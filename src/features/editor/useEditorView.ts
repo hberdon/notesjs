@@ -135,7 +135,7 @@ export function useEditorView(
     const nextState =
       getEditorState(tabId) ??
       EditorState.create({
-        doc: '',
+        doc: getLocalContent(tabId) ?? '',
         extensions: buildExtensions(language, isDark),
       })
 
