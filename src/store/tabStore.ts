@@ -3,12 +3,13 @@ import type { EditorState } from '@codemirror/state'
 import type { Tab, DbFile } from '@/shared/types'
 import { detectLanguage } from '@/shared/utils'
 
-/**
- * Module-level Map — intentionally outside the Zustand store so that
- * EditorState objects (which are NOT serializable) are never touched by
- * Zustand devtools or any persist middleware.
- */
-const editorStateMap = new Map<string, EditorState>()
+const editorStateMap  = new Map<string, EditorState>()
+const localContentMap = new Map<string, string>()
+
+/** Read initial content for a local (unpersisted) tab. Used by useEditorView. */
+export function getLocalContent(tabId: string): string | undefined {
+  return localContentMap.get(tabId)
+}
 
 interface TabStore {
   tabs: Tab[]
@@ -31,6 +32,9 @@ interface TabStore {
 
   /** Retrieve the stored EditorState for a tab (returns undefined if none). */
   getEditorState: (tabId: string) => EditorState | undefined
+
+  /** Open a local file (not yet persisted) with pre-loaded content. */
+  openLocalTab: (filename: string, content: string) => void
 }
 
 export const useTabStore = create<TabStore>((set, get) => ({
@@ -93,5 +97,18 @@ export const useTabStore = create<TabStore>((set, get) => ({
 
   getEditorState(tabId) {
     return editorStateMap.get(tabId)
+  },
+
+  openLocalTab(filename, content) {
+    const id = crypto.randomUUID()
+    localContentMap.set(id, content)
+    const newTab: Tab = {
+      id,
+      fileId: null,
+      filename,
+      language: detectLanguage(filename),
+      isDirty: false,
+    }
+    set((state) => ({ tabs: [...state.tabs, newTab], activeTabId: id }))
   },
 }))

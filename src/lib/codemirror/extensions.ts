@@ -92,7 +92,10 @@ export function buildExtensions(language: string, isDark: boolean): Extension[] 
     // ── Theme ─────────────────────────────────────────────────────────────
     isDark ? getDarkTheme() : getLightTheme(),
 
-    // ── Base theme: fill container height ────────────────────────────────
-    EditorView.theme({ '&': { height: '100%' } }),
+    // ── Base theme: fill container height + font size ────────────────────
+    EditorView.theme({
+      '&': { height: '100%' },
+      '.cm-content, .cm-gutter': { fontSize: '0.893rem' },
+    }),
   ]
 }

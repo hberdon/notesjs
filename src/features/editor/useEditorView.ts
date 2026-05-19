@@ -3,7 +3,7 @@ import type { RefObject } from 'react'
 import { EditorState, StateEffect } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { buildExtensions } from '@/lib/codemirror/extensions'
-import { useTabStore } from '@/store/tabStore'
+import { useTabStore, getLocalContent } from '@/store/tabStore'
 import { useFileStore } from '@/store/fileStore'
 
 /** Debounce delay (ms) before an auto-save fires after the last keystroke. */
@@ -62,11 +62,12 @@ export function useEditorView(
     if (!containerRef.current || !tabId) return
 
     // Restore existing EditorState for this tab, or create a fresh one.
+    // For local file tabs, seed with the content loaded from disk.
     const existingState = getEditorState(tabId)
     const initialState =
       existingState ??
       EditorState.create({
-        doc: '',
+        doc: getLocalContent(tabId) ?? '',
         extensions: buildExtensions(language, isDark),
       })
 

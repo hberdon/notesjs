@@ -153,6 +153,12 @@ const MULTI: Record<string, ReactNode> = {
       <path d="M13 4l-4 16" />
     </>
   ),
+  'folder-open': (
+    <>
+      <path d="M2 8a2 2 0 0 1 2-2h5l2 2h9a2 2 0 0 1 2 2v2" />
+      <path d="M2 8v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2H2z" />
+    </>
+  ),
   // format — magic wand / indent (wand shaft + sparkle)
   format: (
     <>

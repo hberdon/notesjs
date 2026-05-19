@@ -108,6 +108,10 @@ export default function EditorPage() {
     removeTab(id)
   }
 
+  function handleOpenLocalFile(filename: string, content: string) {
+    useTabStore.getState().openLocalTab(filename, content)
+  }
+
   async function handleNewFileFromArchivo() {
     try {
       const file = await createFile('Untitled.txt', '')
@@ -170,6 +174,7 @@ export default function EditorPage() {
         saveStatus="saved"
         activeTabId={activeTabId}
         onNewTab={handleNewFileFromArchivo}
+        onOpenFile={handleOpenLocalFile}
         onRenameTab={() => { /* TODO: rename flow */ }}
         onDeleteTab={() => { if (activeTabId) handleCloseTab(activeTabId) }}
         onFormat={() => { /* TODO: CM6 format */ }}

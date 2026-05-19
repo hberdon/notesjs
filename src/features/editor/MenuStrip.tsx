@@ -18,6 +18,7 @@ export interface MenuStripProps {
   activeTabId: string | null
   /** Passed down to ArchivoSheet */
   onNewTab: () => void
+  onOpenFile: (filename: string, content: string) => void
   onRenameTab: () => void
   onDeleteTab: () => void
   /** Passed down to EditarSheet */
@@ -46,6 +47,7 @@ export function MenuStrip({
   saveStatus,
   activeTabId,
   onNewTab,
+  onOpenFile,
   onRenameTab,
   onDeleteTab,
   onFormat,
@@ -205,6 +207,7 @@ export function MenuStrip({
         <ArchivoSheet
           left={sheetLeft}
           onNewTab={onNewTab}
+          onOpenFile={onOpenFile}
           onRenameTab={onRenameTab}
           onDeleteTab={onDeleteTab}
         />
