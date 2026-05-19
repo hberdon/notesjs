@@ -1,0 +1,278 @@
+// MenuPrimitives — shared building blocks for all 6 MenuSheets
+// Design reference: design/design_handoff_notesjs_v3/README.md § V3MItem / V3MSection / V3MDivider
+
+import type { CSSProperties, ReactNode } from 'react'
+import { N2G } from '@/shared/components/N2G'
+
+// ── MItem ────────────────────────────────────────────────────────────────────
+
+export interface MItemProps {
+  icon?: string                              // N2G icon name
+  label: string
+  sub?: string                               // 10.5px muted sub-label
+  shortcut?: string                          // keyboard shortcut chip
+  variant?: 'default' | 'accent' | 'danger' // color variant
+  on?: boolean                               // selected state → accentSoft bg
+  onClick?: () => void
+  disabled?: boolean
+}
+
+export function MItem({
+  icon,
+  label,
+  sub,
+  shortcut,
+  variant = 'default',
+  on = false,
+  onClick,
+  disabled = false,
+}: MItemProps) {
+  const labelColor =
+    variant === 'danger'
+      ? 'var(--err)'
+      : on
+        ? 'var(--accentDeep)'
+        : 'var(--ink)'
+
+  const iconColor =
+    variant === 'accent' || on ? 'var(--accentDeep)' : 'var(--ink3)'
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      style={{
+        display:         'grid',
+        gridTemplateColumns: '1.143rem 1fr auto',
+        alignItems:      'center',
+        gap:             '0.643rem',
+        width:           '100%',
+        padding:         '0.357rem 0.714rem',
+        background:      on ? 'var(--accentSoft)' : 'transparent',
+        border:          'none',
+        borderRadius:    '0.286rem',
+        cursor:          disabled ? 'default' : 'pointer',
+        textAlign:       'left',
+        color:           labelColor,
+        opacity:         disabled ? 0.45 : 1,
+      } as CSSProperties}
+      onMouseEnter={(e) => {
+        if (!disabled) {
+          (e.currentTarget as HTMLButtonElement).style.background = on
+            ? 'var(--accentSoft)'
+            : '#f7f7f9'
+        }
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.background = on
+          ? 'var(--accentSoft)'
+          : 'transparent'
+      }}
+    >
+      {/* Icon slot */}
+      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1.143rem', height: '1.143rem', flexShrink: 0 }}>
+        {icon ? <N2G name={icon} size={13} stroke={1.8} color={iconColor} /> : null}
+      </span>
+
+      {/* Label + sub-label */}
+      <span style={{ display: 'flex', flexDirection: 'column', gap: 1, overflow: 'hidden' }}>
+        <span
+          style={{
+            fontSize:     '0.893rem',
+            fontWeight:   400,
+            lineHeight:   1,
+            whiteSpace:   'nowrap',
+            overflow:     'hidden',
+            textOverflow: 'ellipsis',
+            color:        labelColor,
+          }}
+        >
+          {label}
+        </span>
+        {sub && (
+          <span
+            style={{
+              fontSize:   '0.75rem',
+              fontWeight: 400,
+              color:      '#9ca3af',
+              lineHeight: 1,
+              whiteSpace: 'nowrap',
+              overflow:   'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {sub}
+          </span>
+        )}
+      </span>
+
+      {/* Shortcut chip */}
+      {shortcut && (
+        <span
+          style={{
+            fontFamily:   'var(--font-mono)',
+            fontSize:     '0.786rem',
+            fontWeight:   400,
+            color:        '#9ca3af',
+            whiteSpace:   'nowrap',
+            flexShrink:   0,
+          }}
+        >
+          {shortcut}
+        </span>
+      )}
+    </button>
+  )
+}
+
+// ── MSection ─────────────────────────────────────────────────────────────────
+
+export interface MSectionProps {
+  label?: string       // optional header; if absent just renders children
+  children: ReactNode
+}
+
+export function MSection({ label, children }: MSectionProps) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {label && (
+        <span
+          style={{
+            display:       'block',
+            padding:       '0.571rem 0.714rem 0.286rem',
+            fontSize:      '0.714rem',
+            fontWeight:    700,
+            letterSpacing: '0.8px',
+            textTransform: 'uppercase',
+            color:         '#9ca3af',
+            lineHeight:    1,
+          }}
+        >
+          {label}
+        </span>
+      )}
+      {children}
+    </div>
+  )
+}
+
+// ── MDivider ─────────────────────────────────────────────────────────────────
+
+export function MDivider() {
+  return (
+    <div
+      style={{
+        height:     '1px',
+        background: '#f3f4f6',
+        margin:     '0.286rem 0.714rem',
+        flexShrink: 0,
+      }}
+    />
+  )
+}
+
+// ── MToggle — 26×14 track toggle ─────────────────────────────────────────────
+
+export interface MToggleProps {
+  value: boolean
+  onChange: (v: boolean) => void
+  label: string
+  icon?: string
+}
+
+export function MToggle({ value, onChange, label, icon }: MToggleProps) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!value)}
+      style={{
+        display:      'grid',
+        gridTemplateColumns: '1.143rem 1fr auto',
+        alignItems:   'center',
+        gap:          '0.643rem',
+        width:        '100%',
+        height:       '2rem',
+        padding:      '0 0.714rem',
+        background:   'transparent',
+        border:       'none',
+        borderRadius: 'var(--r-sm)',
+        cursor:       'pointer',
+        textAlign:    'left',
+        color:        'var(--ink)',
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.background = 'var(--chromeD)'
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+      }}
+    >
+      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {icon ? <N2G name={icon} size={13} stroke={1.8} color="var(--ink3)" /> : null}
+      </span>
+
+      <span style={{ fontSize: '0.893rem', fontWeight: 600, color: 'var(--ink)' }}>
+        {label}
+      </span>
+
+      {/* Track */}
+      <span
+        style={{
+          display:         'inline-flex',
+          alignItems:      'center',
+          width:           '1.857rem',
+          height:          '1rem',
+          borderRadius:    999,
+          background:      value ? 'var(--accent)' : 'var(--chromeDD)',
+          transition:      'background 150ms ease',
+          padding:         '0 0.143rem',
+          flexShrink:      0,
+          justifyContent:  value ? 'flex-end' : 'flex-start',
+        }}
+      >
+        {/* Thumb */}
+        <span
+          style={{
+            width:        '0.714rem',
+            height:       '0.714rem',
+            borderRadius: '50%',
+            background:   '#fff',
+            flexShrink:   0,
+            boxShadow:    '0 1px 2px rgba(0,0,0,0.18)',
+          }}
+        />
+      </span>
+    </button>
+  )
+}
+
+// ── MenuSheet wrapper ─────────────────────────────────────────────────────────
+
+export interface MenuSheetProps {
+  width: string
+  left: string | number
+  children: ReactNode
+}
+
+export function MenuSheet({ width, left, children }: MenuSheetProps) {
+  return (
+    <div
+      style={{
+        position:     'absolute',
+        top:          '2rem',
+        left,
+        width,
+        background:   '#ffffff',
+        borderTop:    '2px solid #10b981',
+        borderRadius: '0 0.429rem 0.429rem 0.429rem',
+        boxShadow:    '0 10px 24px -8px rgba(15,23,42,0.22), 0 2px 4px rgba(15,23,42,0.05)',
+        padding:      '0.286rem 0',
+        zIndex:       100,
+        userSelect:   'none',
+      }}
+    >
+      {children}
+    </div>
+  )
+}

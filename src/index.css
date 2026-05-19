@@ -1,0 +1,195 @@
+/* ── Design Tokens V3 ────────────────────────────────────────────────────── */
+
+html { font-size: 16px; }
+
+:root,
+[data-theme='light'] {
+  /* Color */
+  --ink: #111827;
+  --ink2: #374151;
+  --ink3: #6b7280;
+  --muted: #9ca3af;
+  --bg: #ffffff;
+  --chrome: #f7f7f9;
+  --chromeD: #eef0f3;
+  --chromeDD: #e5e7eb;
+  --border: #e5e7eb;
+  --borderD: #d1d5db;
+  --accent: #10b981;
+  --accentDeep: #047857;
+  --accentSoft: #ecfdf5;
+  --accentBorder: #a7f3d0;
+  --accent-text: #065f46;
+  --warn: #f59e0b;
+  --err: #ef4444;
+
+  /* Syntax tokens — light mode */
+  --kw: #0369a1;
+  --fn: #7c3aed;
+  --st: #b45309;
+  --va: #111827;
+  --pa: #374151;
+  --cm: #94a3b8;
+  --nu: #dc2626;
+  --bl: #16a34a;
+  --pu: #6b7280;
+  --key: #0e7490;
+
+  /* Radii */
+  --r-xs:  0.214rem;
+  --r-sm:  0.286rem;
+  --r-md:  0.357rem;
+  --r-lg:  0.429rem;
+  --r-xl:  0.5rem;
+  --r-xxl: 0.857rem;
+  --r-pill: 999px;
+
+  /* Chrome heights */
+  --h-tabbar:     2.143rem;
+  --h-menustrip:  2.143rem;
+  --h-editorhdr:  2.143rem;
+  --h-statusbar:  1.571rem;
+  --w-rightpanel: 20.714rem;
+
+  /* Shadows */
+  --sh-card: 0 12px 30px -12px rgba(15, 23, 42, 0.18), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --sh-btn-primary: 0 1px 0 rgba(0, 0, 0, 0.04), 0 1px 2px rgba(16, 185, 129, 0.25);
+  --sh-btn-default: 0 1px 0 rgba(0, 0, 0, 0.02);
+  --sh-sheet: 0 10px 24px -8px rgba(15, 23, 42, 0.22), 0 2px 4px rgba(15, 23, 42, 0.05);
+
+  /* Typography */
+  --font-ui: "Nunito", "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+
+  /* --nj-* aliases (maps to local tokens for cross-component compatibility) */
+  --nj-ink:           var(--ink);
+  --nj-ink2:          var(--ink2);
+  --nj-ink3:          var(--ink3);
+  --nj-muted:         var(--muted);
+  --nj-bg:            var(--bg);
+  --nj-chrome:        var(--chrome);
+  --nj-chrome-d:      var(--chromeD);
+  --nj-chrome-dd:     var(--chromeDD);
+  --nj-border:        var(--border);
+  --nj-border-d:      var(--borderD);
+  --nj-accent:        var(--accent);
+  --nj-accent-deep:   var(--accentDeep);
+  --nj-accent-soft:   var(--accentSoft);
+  --nj-accent-border: var(--accentBorder);
+  --nj-accent-text:   var(--accent-text);
+  --nj-warn:          var(--warn);
+  --nj-err:           var(--err);
+  --nj-sh-login-card:     var(--sh-card);
+  --nj-sh-button-primary: var(--sh-btn-primary);
+  --nj-sh-button-default: var(--sh-btn-default);
+  --nj-sh-sheet:          var(--sh-sheet);
+  --nj-font-ui:       var(--font-ui);
+  --nj-font-mono:     var(--font-mono);
+  --nj-r-xs:          var(--r-xs);
+  --nj-r-sm:          var(--r-sm);
+  --nj-r-md:          var(--r-md);
+  --nj-r-lg:          var(--r-lg);
+  --nj-r-xl:          var(--r-xl);
+  --nj-r-xxl:         var(--r-xxl);
+  --nj-r-pill:        var(--r-pill);
+
+  /* --nj-pill-* color tokens */
+  --nj-pill-js-bg:    #fef3c7; --nj-pill-js-fg:    #854d0e; --nj-pill-js-dot:    #eab308;
+  --nj-pill-jsx-bg:   #dbeafe; --nj-pill-jsx-fg:   #1e40af; --nj-pill-jsx-dot:   #3b82f6;
+  --nj-pill-ts-bg:    #dbeafe; --nj-pill-ts-fg:    #1e3a8a; --nj-pill-ts-dot:    #2563eb;
+  --nj-pill-json-bg:  #fed7aa; --nj-pill-json-fg:  #7c2d12; --nj-pill-json-dot:  #f97316;
+  --nj-pill-xml-bg:   #fecaca; --nj-pill-xml-fg:   #7f1d1d; --nj-pill-xml-dot:   #ef4444;
+  --nj-pill-yml-bg:   #dcfce7; --nj-pill-yml-fg:   #14532d; --nj-pill-yml-dot:   #22c55e;
+  --nj-pill-md-bg:    #ede9fe; --nj-pill-md-fg:    #5b21b6; --nj-pill-md-dot:    #8b5cf6;
+  --nj-pill-css-bg:   #e9d5ff; --nj-pill-css-fg:   #581c87; --nj-pill-css-dot:   #a855f7;
+  --nj-pill-html-bg:  #ffe4e6; --nj-pill-html-fg:  #9f1239; --nj-pill-html-dot:  #f43f5e;
+  --nj-pill-txt-bg:   #e5e7eb; --nj-pill-txt-fg:   #374151; --nj-pill-txt-dot:   #6b7280;
+}
+
+[data-theme='dark'] {
+  /* Color */
+  --ink: #e2e8f0;
+  --ink2: #cbd5e1;
+  --ink3: #94a3b8;
+  --muted: #64748b;
+  --bg: #1e1e1e;
+  --chrome: #252526;
+  --chromeD: #2d2d2d;
+  --chromeDD: #3e3e42;
+  --border: #3e3e42;
+  --borderD: #52525b;
+  --accent: #10b981;
+  --accentDeep: #34d399;
+  --accentSoft: #064e3b;
+  --accentBorder: #065f46;
+  --err: #ef4444;
+
+  /* Syntax tokens — dark mode (VS Code style) */
+  --kw: #569cd6;
+  --fn: #dcdcaa;
+  --st: #ce9178;
+  --va: #9cdcfe;
+  --pa: #9cdcfe;
+  --cm: #6a9955;
+  --nu: #b5cea8;
+  --bl: #569cd6;
+  --pu: #d4d4d4;
+  --key: #9cdcfe;
+}
+
+/* ── Base Reset ──────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--ink);
+  height: 100vh;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes njBlink {
+  0%, 100% { opacity: 1 }
+  50%       { opacity: 0 }
+}
+.nj-caret {
+  display: inline-block;
+  width: 1px;
+  height: 1.1em;
+  background: var(--ink);
+  vertical-align: text-bottom;
+  animation: njBlink 1.05s steps(2, end) infinite;
+}
+.nj-line--current {
+  background: #f8fafc;
+  box-shadow: inset 2px 0 0 0 var(--accent);
+}
+.nj-login-dots {
+  background-image: radial-gradient(circle, var(--borderD) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: 0.25;
+}
+
+code,
+pre,
+.mono {
+  font-family: var(--font-mono);
+}

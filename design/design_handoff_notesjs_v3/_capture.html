@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>notes.js V3 — screenshot harness</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #ffffff; }
+  body { font-family: 'Nunito', system-ui, sans-serif; }
+  /* fixed-size artboard, no chrome, anchored top-left so screenshots are deterministic */
+  #ab { position: absolute; top: 0; left: 0; background: #ffffff; }
+  @keyframes njBlink { 0%, 100% { opacity: 1 } 50% { opacity: 0 } }
+</style>
+</head>
+<body>
+<div id="ab"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- shared primitives → formats → v3 frame. design-canvas NOT needed here. -->
+<script type="text/babel" src="src/notesjs-shared-primitives.jsx"></script>
+<script type="text/babel" src="src/notesjs-v3-formats.jsx"></script>
+<script type="text/babel" src="src/notesjs-v3.jsx"></script>
+
+<script type="text/babel">
+// Render one artboard at native size, picked by URL hash (#login, #closed, #json, ...)
+const { V3Login, V3Frame } = window;
+
+const ARTBOARDS = {
+  login:     { w: 1280, h: 760, render: () => <V3Login /> },
+  closed:    { w: 1280, h: 680, render: () => <V3Frame openMenu={null}        activeIdx={0} /> },
+  json:      { w: 1280, h: 680, render: () => <V3Frame openMenu={null}        activeIdx={1} rightPanel="tree" /> },
+  md:        { w: 1280, h: 680, render: () => <V3Frame openMenu={null}        activeIdx={2} rightPanel="preview" /> },
+  txt:       { w: 1280, h: 680, render: () => <V3Frame openMenu={null}        activeIdx={3} /> },
+  archivo:   { w: 1280, h: 680, render: () => <V3Frame openMenu="archivo"     activeIdx={0} /> },
+  editar:    { w: 1280, h: 680, render: () => <V3Frame openMenu="editar"      activeIdx={1} /> },
+  buscar:    { w: 1280, h: 680, render: () => <V3Frame openMenu="buscar"      activeIdx={0} /> },
+  compartir: { w: 1280, h: 680, render: () => <V3Frame openMenu="compartir"   activeIdx={0} /> },
+  ver:       { w: 1280, h: 680, render: () => <V3Frame openMenu="ver"         activeIdx={0} /> },
+  ayuda:     { w: 1280, h: 680, render: () => <V3Frame openMenu="ayuda"       activeIdx={0} /> },
+};
+
+function pick() {
+  const id = (location.hash || '#login').slice(1);
+  return ARTBOARDS[id] ? id : 'login';
+}
+
+let __rroot = null;
+function mount() {
+  const id = pick();
+  const ab = ARTBOARDS[id];
+  const root = document.getElementById('ab');
+  root.style.width  = ab.w + 'px';
+  root.style.height = ab.h + 'px';
+  document.documentElement.style.width  = ab.w + 'px';
+  document.documentElement.style.height = ab.h + 'px';
+  document.body.style.width  = ab.w + 'px';
+  document.body.style.height = ab.h + 'px';
+
+  if (!__rroot) __rroot = ReactDOM.createRoot(root);
+  __rroot.render(ab.render());
+  window.__ab = { id, w: ab.w, h: ab.h };
+}
+
+window.addEventListener('hashchange', mount);
+mount();
+</script>
+</body>
+</html>
