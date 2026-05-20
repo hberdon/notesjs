@@ -3,6 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import type { ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/features/auth/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useAuth } from '@/features/auth/useAuth'
@@ -39,6 +40,7 @@ function AvatarMenu({ open, onClose }: AvatarMenuProps) {
   const theme       = useThemeStore((s) => s.theme)
   const setTheme    = useThemeStore((s) => s.setTheme)
   const { signOut } = useAuth()
+  const navigate    = useNavigate()
 
   const email     = user?.email ?? null
   const fullName  = (user?.user_metadata?.full_name as string | undefined) ?? email ?? 'Usuario'
@@ -89,8 +91,8 @@ function AvatarMenu({ open, onClose }: AvatarMenuProps) {
 
       {/* ── Account section ── */}
       <div style={{ padding: '0.286rem 0' }}>
-        <MenuRow icon="settings" label="Preferencias"  onClick={onClose} />
-        <MenuRow icon="bell"     label="Novedades"      onClick={onClose} />
+        <MenuRow icon="settings" label="Preferencias" onClick={() => { onClose(); navigate('/preferences') }} />
+        <MenuRow icon="bell"     label="Novedades"    onClick={onClose} />
       </div>
 
       {/* ── Divider ── */}
@@ -276,13 +278,13 @@ export default function TabBar({
     <div
       role="tablist"
       style={{
-        display:    'flex',
-        alignItems: 'center',
-        height:     '2.143rem',
-        background: '#eef0f3',
-        flexShrink: 0,
-        fontFamily: 'var(--font-ui)',
-        position:   'relative',
+        display:      'flex',
+        alignItems:   'center',
+        height:       '2.143rem',
+        background:   '#ffffff',
+        flexShrink:   0,
+        fontFamily:   'var(--font-ui)',
+        position:     'relative',
       }}
     >
       {/* ── Left zone: logo + plan chip ── */}
@@ -366,9 +368,10 @@ export default function TabBar({
                   flexShrink: 0,
                   userSelect: 'none',
                   position:   'relative',
-                  background: isActive ? '#ffffff' : 'transparent',
+                  background: isActive ? '#ffffff' : '#f3f4f6',
                   borderRight:'1px solid #e5e7eb',
                   boxSizing:  'border-box',
+                  opacity:    isActive ? 1 : 0.7,
                 }}
               >
                 <FormatPill ext={getExt(tab.filename)} size="s" />
@@ -377,7 +380,7 @@ export default function TabBar({
                   style={{
                     fontSize:     '0.821rem',
                     fontWeight:   isActive ? 600 : 400,
-                    color:        isActive ? '#111827' : '#374151',
+                    color:        isActive ? '#111827' : '#6b7280',
                     overflow:     'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace:   'nowrap',
@@ -408,6 +411,16 @@ export default function TabBar({
                     aria-label={`Cerrar ${tab.filename}`}
                     title={`Cerrar ${tab.filename}`}
                     onClick={(e) => { e.stopPropagation(); onCloseTab(tab.id) }}
+                    onMouseEnter={(e) => {
+                      const btn = e.currentTarget as HTMLButtonElement
+                      btn.style.background = '#fee2e2'
+                      btn.style.color = '#dc2626'
+                    }}
+                    onMouseLeave={(e) => {
+                      const btn = e.currentTarget as HTMLButtonElement
+                      btn.style.background = 'none'
+                      btn.style.color = '#9ca3af'
+                    }}
                     style={{
                       width:      '1rem',
                       height:     '1rem',

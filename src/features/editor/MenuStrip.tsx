@@ -101,6 +101,7 @@ export function MenuStrip({
         height:       '2.143rem',
         minHeight:    '2.143rem',
         background:   '#ffffff',
+        borderTop:    '1px solid #e5e7eb',
         borderBottom: '1px solid #e5e7eb',
         flexShrink:   0,
         userSelect:   'none',

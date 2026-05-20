@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useTabStore } from '@/store/tabStore'
-import { useThemeStore } from '@/store/themeStore'
+import { useThemeStore, getEffectiveTheme } from '@/store/themeStore'
 import { useFileStore } from '@/store/fileStore'
 import { useUIStore } from '@/store/uiStore'
 import { generateId } from '@/shared/utils'
@@ -60,8 +60,8 @@ export default function EditorPage() {
   const setRightPanel   = useUIStore((s) => s.setRightPanel)
 
   // ── Theme store ────────────────────────────────────────────────────────────
-  const effectiveTheme = useThemeStore((s) => s.effectiveTheme)
-  const isDark = effectiveTheme() === 'dark'
+  const theme  = useThemeStore((s) => s.theme)
+  const isDark = getEffectiveTheme(theme) === 'dark'
 
   // ── File store ─────────────────────────────────────────────────────────────
   const fetchFiles   = useFileStore((s) => s.fetchFiles)
