@@ -71,8 +71,8 @@ export function MItem({
       }}
     >
       {/* Icon slot */}
-      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1.143rem', height: '1.143rem', flexShrink: 0 }}>
-        {icon ? <N2G name={icon} size={13} stroke={1.8} color={iconColor} /> : null}
+      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1.286rem', height: '1.286rem', flexShrink: 0 }}>
+        {icon ? <N2G name={icon} size={15} stroke={1.8} color={iconColor} /> : null}
       </span>
 
       {/* Label + sub-label */}
@@ -260,7 +260,7 @@ export function MenuSheet({ width, left, children }: MenuSheetProps) {
     <div
       style={{
         position:     'absolute',
-        top:          '2rem',
+        top:          '100%',
         left,
         width,
         background:   '#ffffff',
@@ -268,7 +268,7 @@ export function MenuSheet({ width, left, children }: MenuSheetProps) {
         borderRadius: '0 0.429rem 0.429rem 0.429rem',
         boxShadow:    '0 10px 24px -8px rgba(15,23,42,0.22), 0 2px 4px rgba(15,23,42,0.05)',
         padding:      '0.286rem 0',
-        zIndex:       100,
+        zIndex:       110,
         userSelect:   'none',
       }}
     >

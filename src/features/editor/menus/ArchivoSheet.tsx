@@ -1,14 +1,13 @@
 // ArchivoSheet — 260px @ anchored to button left
 // Design reference: design/design_handoff_notesjs_v3/README.md § F — Archivo
 
-import { useRef } from 'react'
-import { useUIStore } from '@/store/uiStore'
 import { MItem, MDivider, MSection, MenuSheet } from './MenuPrimitives'
 
 export interface ArchivoSheetProps {
   left: number
   onNewTab: () => void
-  onOpenFile: (filename: string, content: string) => void
+  /** Trigger the persistent file picker in EditorPage */
+  onOpenFile: () => void
   onRenameTab: () => void
   onDeleteTab: () => void
 }
@@ -20,54 +19,9 @@ const RECENTES = [
   { name: 'lista.txt',     time: 'ayer' },
 ]
 
-const ACCEPT = [
-  '.txt', '.md', '.mdx',
-  '.js', '.jsx', '.mjs', '.cjs',
-  '.ts', '.tsx',
-  '.py', '.pyw',
-  '.html', '.htm',
-  '.css', '.scss', '.sass', '.less',
-  '.json', '.jsonc',
-  '.java',
-  '.rs',
-  '.xml', '.yaml', '.yml',
-  '.sh', '.bash', '.zsh',
-  '.sql', '.csv',
-].join(',')
-
 export function ArchivoSheet({ left, onNewTab, onOpenFile, onRenameTab, onDeleteTab }: ArchivoSheetProps) {
-  const closeMenu = useUIStore((s) => s.closeMenu)
-  const inputRef  = useRef<HTMLInputElement>(null)
-
-  function handleOpenClick() {
-    closeMenu()
-    inputRef.current?.click()
-  }
-
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = () => {
-      onOpenFile(file.name, reader.result as string)
-    }
-    reader.readAsText(file, 'utf-8')
-    e.target.value = ''
-  }
-
   return (
-    <>
-      {/* Hidden file input — lives outside the sheet to avoid positioning issues */}
-      <input
-        ref={inputRef}
-        type="file"
-        accept={ACCEPT}
-        style={{ display: 'none' }}
-        onChange={handleFileChange}
-      />
-
-      <MenuSheet width="18.571rem" left={left}>
+    <MenuSheet width="18.571rem" left={left}>
         {/* Nuevo */}
         <MSection>
           <MItem
@@ -87,7 +41,7 @@ export function ArchivoSheet({ left, onNewTab, onOpenFile, onRenameTab, onDelete
             icon="folder-open"
             label="Abrir"
             sub="archivo local"
-            onClick={handleOpenClick}
+            onClick={onOpenFile}
           />
           <MItem
             icon="download"
@@ -134,6 +88,5 @@ export function ArchivoSheet({ left, onNewTab, onOpenFile, onRenameTab, onDelete
           ))}
         </MSection>
       </MenuSheet>
-    </>
   )
 }

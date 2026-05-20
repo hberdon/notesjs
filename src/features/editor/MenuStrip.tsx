@@ -18,7 +18,7 @@ export interface MenuStripProps {
   activeTabId: string | null
   /** Passed down to ArchivoSheet */
   onNewTab: () => void
-  onOpenFile: (filename: string, content: string) => void
+  onOpenFile: () => void
   onRenameTab: () => void
   onDeleteTab: () => void
   /** Passed down to EditarSheet */
@@ -138,12 +138,8 @@ export function MenuStrip({
                 border:       'none',
                 borderLeft:   isActive ? '1px solid #e5e7eb' : 'none',
                 borderRight:  isActive ? '1px solid #e5e7eb' : 'none',
-                // Merge bottom border with sheet's top border
-                marginBottom: isActive ? -1 : 0,
                 cursor:       'pointer',
                 whiteSpace:   'nowrap',
-                position:     'relative',
-                zIndex:       isActive ? 101 : 'auto',
                 flexShrink:   0,
               }}
               onMouseEnter={(e) => {

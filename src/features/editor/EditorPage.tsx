@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTabStore } from '@/store/tabStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useFileStore } from '@/store/fileStore'
@@ -54,6 +54,7 @@ export default function EditorPage() {
 
   // ── UI store ───────────────────────────────────────────────────────────────
   const openMenuId      = useUIStore((s) => s.openMenuId)
+  const closeMenu       = useUIStore((s) => s.closeMenu)
   const rightPanel      = useUIStore((s) => s.rightPanel)
   const toggleRightPanel = useUIStore((s) => s.toggleRightPanel)
   const setRightPanel   = useUIStore((s) => s.setRightPanel)
@@ -108,8 +109,36 @@ export default function EditorPage() {
     removeTab(id)
   }
 
-  function handleOpenLocalFile(filename: string, content: string) {
-    useTabStore.getState().openLocalTab(filename, content)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const FILE_ACCEPT = [
+    '.txt','.md','.mdx',
+    '.js','.jsx','.mjs','.cjs',
+    '.ts','.tsx',
+    '.py','.pyw',
+    '.html','.htm',
+    '.css','.scss','.sass','.less',
+    '.json','.jsonc',
+    '.java','.rs',
+    '.xml','.yaml','.yml',
+    '.sh','.bash','.zsh',
+    '.sql','.csv',
+  ].join(',')
+
+  function handleTriggerOpenFile() {
+    closeMenu()
+    fileInputRef.current?.click()
+  }
+
+  function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      useTabStore.getState().openLocalTab(file.name, reader.result as string)
+    }
+    reader.readAsText(file, 'utf-8')
+    e.target.value = ''
   }
 
   async function handleNewFileFromArchivo() {
@@ -160,6 +189,14 @@ export default function EditorPage() {
         color:          'var(--ink)',
       }}
     >
+      {/* Persistent file picker — survives menu unmounts */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={FILE_ACCEPT}
+        style={{ display: 'none' }}
+        onChange={handleFileInputChange}
+      />
       {/* ── TabBar — never dimmed ── */}
       <TabBar
         tabs={tabs}
@@ -174,7 +211,7 @@ export default function EditorPage() {
         saveStatus="saved"
         activeTabId={activeTabId}
         onNewTab={handleNewFileFromArchivo}
-        onOpenFile={handleOpenLocalFile}
+        onOpenFile={handleTriggerOpenFile}
         onRenameTab={() => { /* TODO: rename flow */ }}
         onDeleteTab={() => { if (activeTabId) handleCloseTab(activeTabId) }}
         onFormat={() => { /* TODO: CM6 format */ }}
