@@ -5,8 +5,8 @@ last_session: 2026-05-20
 active_phase: "Phase 7 — V3 UI Polish"
 phases_done: 6
 phases_total: 7
-tasks_this_session: 23
-tasks_total_done: 26
+tasks_this_session: 25
+tasks_total_done: 28
 velocity_last_5: [3, 15]
 blockers_count: 0
 session_count: 2
@@ -61,6 +61,8 @@ session_count: 2
 - [x] Lite mode: `EditorPanel` — thread prop `onGuestSave`
 - [x] Lite mode: `TabBar` — prop `isGuest`, right zone simplificado con `GuestLoginButton`
 - [x] Lite mode: `EditorPage` — orquestación completa: hydration IDB, render LiteBar/MenuStrip condicional, handlers download + guest save + close cleanup
+- [x] Fix guest: deduplicar tabs en React Strict Mode (idempotency en hydration effect)
+- [x] Fix LiteBar: iconos `size 14 → 16` para mejor peso visual
 
 ### 🔒 Blocked
 — none
