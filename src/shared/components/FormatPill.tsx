@@ -36,6 +36,7 @@ const TOKENS: Record<string, PillTokens> = {
   py:   { bg: '#fef3c7', fg: '#854d0e', dot: '#eab308' },
   json: { bg: '#fed7aa', fg: '#7c2d12', dot: '#f97316' },
   xml:  { bg: '#fecaca', fg: '#7f1d1d', dot: '#ef4444' },
+  sql:  { bg: '#e0f2fe', fg: '#0c4a6e', dot: '#0284c7' },
   yml:  { bg: '#dcfce7', fg: '#14532d', dot: '#22c55e' },
   yaml: { bg: '#dcfce7', fg: '#14532d', dot: '#22c55e' },
   md:   { bg: '#ede9fe', fg: '#5b21b6', dot: '#8b5cf6' },

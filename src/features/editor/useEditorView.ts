@@ -67,8 +67,10 @@ export function useEditorView(
 
   // The autoSaveListener and pasteDetector are created once in the mount effect
   // and stored here so the tab-switch effect can include them in fresh states.
-  const autoSaveListenerRef = useRef<Extension | null>(null)
-  const pasteDetectorRef    = useRef<Extension | null>(null)
+  const autoSaveListenerRef   = useRef<Extension | null>(null)
+  const pasteDetectorRef      = useRef<Extension | null>(null)
+  const contentDetectRef      = useRef<Extension | null>(null)
+  const detectTimerRef        = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Compartment for theme/language — targeted reconfiguration that leaves
   // autoSaveListener untouched.
@@ -147,6 +149,28 @@ if (!update.docChanged) return
     })
     pasteDetectorRef.current = pasteDetector
 
+    const contentDetectListener = EditorView.updateListener.of((update) => {
+      if (!update.docChanged) return
+      const store   = useTabStore.getState()
+      const current = store.tabs.find((t) => t.id === tabIdRef.current)
+      // Only reactive-detect while language is still 'text' (never been identified)
+      if (!current || current.language !== 'text') return
+
+      if (detectTimerRef.current !== null) clearTimeout(detectTimerRef.current)
+      detectTimerRef.current = setTimeout(async () => {
+        const view = viewRef.current
+        if (!view) return
+        const content  = view.state.doc.toString()
+        const detected = detectContentLanguage(content)
+        if (!detected) return
+        useTabStore.getState().updateTabLanguage(tabIdRef.current!, detected)
+        const formatted = await formatCode(content, detected)
+        if (formatted === content) return
+        view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: formatted } })
+      }, 800)
+    })
+    contentDetectRef.current = contentDetectListener
+
     const existingState = getEditorState(tabId)
     const initialState =
       existingState ??
@@ -156,6 +180,7 @@ if (!update.docChanged) return
           compartment.of(buildExtensions(language, isDark, fontSizeRef.current, showLineNumbersRef.current)),
           autoSaveListener,
           pasteDetector,
+          contentDetectListener,
         ],
       })
 
@@ -172,6 +197,10 @@ const view = new EditorView({
       if (saveTimerRef.current !== null) {
         clearTimeout(saveTimerRef.current)
         saveTimerRef.current = null
+      }
+      if (detectTimerRef.current !== null) {
+        clearTimeout(detectTimerRef.current)
+        detectTimerRef.current = null
       }
       // Snapshot before destroy so remount can restore content from editorStateMap
       if (tabIdRef.current) {
@@ -205,6 +234,7 @@ const view = new EditorView({
           compartment.of(buildExtensions(language, isDark, fontSizeRef.current, showLineNumbersRef.current)),
           autoSaveListenerRef.current!,
           pasteDetectorRef.current!,
+          contentDetectRef.current!,
         ],
       })
 

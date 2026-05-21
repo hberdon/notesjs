@@ -1,6 +1,36 @@
 import type { Extension } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
+import { syntaxHighlighting, HighlightStyle } from '@codemirror/language'
+import { tags } from '@lezer/highlight'
 import { oneDark } from '@codemirror/theme-one-dark'
+
+// Light-mode syntax token colors (VS Code Light+ inspired)
+const lightHighlightStyle = HighlightStyle.define([
+  { tag: tags.keyword,                          color: '#0000ff', fontWeight: 'bold' },
+  { tag: [tags.name, tags.deleted, tags.character, tags.propertyName, tags.macroName],
+                                                color: '#001080' },
+  { tag: [tags.function(tags.variableName), tags.labelName],
+                                                color: '#795e26' },
+  { tag: [tags.color, tags.constant(tags.name), tags.standard(tags.name)],
+                                                color: '#0070c1' },
+  { tag: [tags.definition(tags.name), tags.separator],
+                                                color: '#001080' },
+  { tag: [tags.typeName, tags.className, tags.number, tags.changed, tags.annotation, tags.modifier, tags.self, tags.namespace],
+                                                color: '#267f99' },
+  { tag: [tags.operator, tags.operatorKeyword, tags.url, tags.escape, tags.regexp, tags.link, tags.special(tags.string)],
+                                                color: '#af00db' },
+  { tag: [tags.meta, tags.comment],             color: '#008000', fontStyle: 'italic' },
+  { tag: tags.strong,                           fontWeight: 'bold' },
+  { tag: tags.emphasis,                         fontStyle: 'italic' },
+  { tag: tags.strikethrough,                    textDecoration: 'line-through' },
+  { tag: tags.link,                             color: '#0070c1', textDecoration: 'underline' },
+  { tag: tags.heading,                          fontWeight: 'bold', color: '#0000ff' },
+  { tag: [tags.atom, tags.bool, tags.special(tags.variableName)],
+                                                color: '#0070c1' },
+  { tag: [tags.processingInstruction, tags.string, tags.inserted],
+                                                color: '#a31515' },
+  { tag: tags.invalid,                          color: '#ff0000', fontWeight: 'bold' },
+])
 
 /**
  * Returns the CodeMirror 6 dark theme extension.
@@ -29,7 +59,7 @@ export function getDarkTheme(): Extension {
  * - Standard blue selection color
  */
 export function getLightTheme(): Extension {
-  return EditorView.theme(
+  return [syntaxHighlighting(lightHighlightStyle), EditorView.theme(
     {
       '&': {
         color: '#1a1a1a',
@@ -107,5 +137,5 @@ export function getLightTheme(): Extension {
       },
     },
     { dark: false },
-  )
+  )]
 }

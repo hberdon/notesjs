@@ -3,6 +3,7 @@ import { javascript } from '@codemirror/lang-javascript'
 import { python } from '@codemirror/lang-python'
 import { html } from '@codemirror/lang-html'
 import { xml } from '@codemirror/lang-xml'
+import { sql } from '@codemirror/lang-sql'
 import { css } from '@codemirror/lang-css'
 import { markdown } from '@codemirror/lang-markdown'
 import { java } from '@codemirror/lang-java'
@@ -39,6 +40,9 @@ export function getLanguageExtension(language: Language | string): Extension[] {
 
     case 'xml':
       return [xml()]
+
+    case 'sql':
+      return [sql()]
 
     case 'css':
       return [css()]

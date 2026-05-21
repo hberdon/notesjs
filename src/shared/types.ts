@@ -18,6 +18,7 @@ export type Language =
   | 'json'
   | 'java'
   | 'rust'
+  | 'sql'
   | 'text'
 
 /** Light, dark, or system-matched UI theme. */

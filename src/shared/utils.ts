@@ -44,6 +44,8 @@ const LANG_MAP: Record<string, Language> = {
   java: 'java',
   // Rust
   rs: 'rust',
+  // SQL
+  sql: 'sql',
 }
 
 /**
@@ -95,7 +97,12 @@ export function detectContentLanguage(content: string): Language | null {
     return 'html'
   }
 
-  // XML — try DOMParser; any well-formed XML that is not HTML
+  // SQL — leading keyword at word boundary
+  if (/^\s*(SELECT|INSERT\s+INTO|UPDATE\s+\w|DELETE\s+FROM|CREATE\s+(TABLE|DATABASE|INDEX|VIEW)|DROP\s+(TABLE|DATABASE|INDEX|VIEW)|ALTER\s+TABLE|WITH\s+\w)/i.test(t)) {
+    return 'sql'
+  }
+
+  // XML — strict: content must be well-formed as-is (no extraction)
   if (t.startsWith('<')) {
     try {
       const doc = new DOMParser().parseFromString(t, 'text/xml')
