@@ -27,6 +27,11 @@ const LANG_MAP: Record<string, Language> = {
   // HTML / templates
   html: 'html',
   htm: 'html',
+  // XML
+  xml: 'xml',
+  xsl: 'xml',
+  xsd: 'xml',
+  svg: 'xml',
   // CSS
   css: 'css',
   scss: 'css',
@@ -62,6 +67,45 @@ export function detectLanguage(filename: string): Language {
 
   const ext = filename.slice(dotIndex + 1).toLowerCase()
   return LANG_MAP[ext] ?? 'text'
+}
+
+// ── Content-based language detection ────────────────────────────────────────
+
+/**
+ * Infers a Language from pasted text content.
+ * Only fires on unambiguous signals — returns null when uncertain.
+ * Intended for auto-detecting language on paste into plain-text tabs.
+ */
+export function detectContentLanguage(content: string): Language | null {
+  // Strip BOM that Windows/some editors prepend — breaks anchored regexes
+  const t = content.replace(/^﻿/, '').trim()
+  if (t.length < 30) return null
+
+  // JSON — native parse, only { or [ roots
+  if (t.startsWith('{') || t.startsWith('[')) {
+    try { JSON.parse(t); return 'json' } catch {}
+  }
+
+  // HTML — check before XML (HTML can be valid XML too)
+  if (
+    /^<!DOCTYPE\s+html/i.test(t) ||
+    /<html[\s>]/i.test(t) ||
+    (/<head[\s>]/i.test(t) && /<body[\s>]/i.test(t))
+  ) {
+    return 'html'
+  }
+
+  // XML — try DOMParser; any well-formed XML that is not HTML
+  if (t.startsWith('<')) {
+    try {
+      const doc = new DOMParser().parseFromString(t, 'text/xml')
+      if (!doc.querySelector('parseerror') && !doc.querySelector('parsererror')) {
+        return 'xml'
+      }
+    } catch {}
+  }
+
+  return null
 }
 
 // ── ID generation ───────────────────────────────────────────────────────────

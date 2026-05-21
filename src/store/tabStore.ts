@@ -27,6 +27,9 @@ interface TabStore {
   /** Mark a tab as dirty (unsaved changes) or clean. */
   updateTabDirty: (tabId: string, isDirty: boolean) => void
 
+  /** Update the detected language of a tab (e.g. after paste detection). */
+  updateTabLanguage: (tabId: string, language: Language) => void
+
   /** Persist an EditorState snapshot for a tab (called before switching). */
   snapshotState: (tabId: string, state: EditorState) => void
 
@@ -91,6 +94,12 @@ export const useTabStore = create<TabStore>((set, get) => ({
   updateTabDirty(tabId, isDirty) {
     set((state) => ({
       tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, isDirty } : t)),
+    }))
+  },
+
+  updateTabLanguage(tabId, language) {
+    set((state) => ({
+      tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, language } : t)),
     }))
   },
 

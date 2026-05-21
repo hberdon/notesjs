@@ -14,6 +14,8 @@ const ALIASES: Record<string, string> = {
   typescript: 'ts',
   javascript: 'js',
   markdown:   'md',
+  python:     'py',
+  rust:       'rs',
   text:       'txt',
   yaml:       'yml',
 }

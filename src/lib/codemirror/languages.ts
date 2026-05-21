@@ -2,6 +2,7 @@ import type { Extension } from '@codemirror/state'
 import { javascript } from '@codemirror/lang-javascript'
 import { python } from '@codemirror/lang-python'
 import { html } from '@codemirror/lang-html'
+import { xml } from '@codemirror/lang-xml'
 import { css } from '@codemirror/lang-css'
 import { markdown } from '@codemirror/lang-markdown'
 import { java } from '@codemirror/lang-java'
@@ -35,6 +36,9 @@ export function getLanguageExtension(language: Language | string): Extension[] {
 
     case 'html':
       return [html()]
+
+    case 'xml':
+      return [xml()]
 
     case 'css':
       return [css()]

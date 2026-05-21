@@ -13,6 +13,7 @@ export type Language =
   | 'python'
   | 'markdown'
   | 'html'
+  | 'xml'
   | 'css'
   | 'json'
   | 'java'

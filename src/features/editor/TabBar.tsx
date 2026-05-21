@@ -377,11 +377,14 @@ export default function TabBar({
   const user = useAuthStore((s) => s.user)
   const [hoveredTabId, setHoveredTabId] = useState<string | null>(null)
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false)
+  const [avatarImgError, setAvatarImgError] = useState(false)
   const rightZoneRef = useRef<HTMLDivElement>(null)
 
   const email = user?.email ?? null
   const initials = getInitials(email)
-  const avatarUrl = user?.user_metadata?.avatar_url as string | undefined
+  const avatarUrl = (user?.user_metadata?.avatar_url ?? user?.user_metadata?.picture) as string | undefined
+  const fullName = (user?.user_metadata?.full_name as string | undefined) ?? email?.split('@')[0] ?? 'Usuario'
+  const firstName = fullName.split(' ')[0]
 
   // Close avatar menu on click outside — only relevant in auth mode
   useEffect(() => {
@@ -482,7 +485,7 @@ export default function TabBar({
                   opacity: isActive ? 1 : 0.7,
                 }}
               >
-                <FormatPill ext={getExt(tab.filename)} size="s" />
+                <FormatPill ext={tab.language} size="s" />
 
                 <span
                   style={{
@@ -613,18 +616,16 @@ export default function TabBar({
           </>
         ) : (
           <>
-            {email && (
-              <span
-                style={{
-                  fontSize: '0.821rem',
-                  color: 'var(--ink3)',
-                  whiteSpace: 'nowrap',
-                  userSelect: 'none',
-                }}
-              >
-                {email}
-              </span>
-            )}
+            <span
+              style={{
+                fontSize: '0.821rem',
+                color: 'var(--ink2)',
+                whiteSpace: 'nowrap',
+                userSelect: 'none',
+              }}
+            >
+              Hola, <strong style={{ color: 'var(--ink)', fontWeight: 700 }}>{firstName}</strong>
+            </span>
 
             {/* Avatar — clickable */}
             <button
@@ -632,11 +633,12 @@ export default function TabBar({
               aria-label="Menú de cuenta"
               onClick={() => setAvatarMenuOpen((v) => !v)}
               style={{
-                width: '1.429rem',
-                height: '1.429rem',
-                borderRadius: '0.714rem',
-                background: 'linear-gradient(135deg, #10b981, #047857)',
-                border: avatarMenuOpen ? '2px solid #10b981' : '2px solid transparent',
+                width: '1.714rem',
+                height: '1.714rem',
+                borderRadius: '50%',
+                background: '#10b981',
+                border: 'none',
+                boxShadow: avatarMenuOpen ? '0 0 0 2px #10b981' : 'none',
                 padding: 0,
                 cursor: 'pointer',
                 flexShrink: 0,
@@ -644,22 +646,19 @@ export default function TabBar({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                transition: 'border-color 120ms',
+                transition: 'box-shadow 120ms',
               }}
             >
-              {avatarUrl ? (
-                <img src={avatarUrl} alt={email ?? 'Usuario'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              {avatarUrl && !avatarImgError ? (
+                <img
+                  src={avatarUrl}
+                  alt={email ?? 'Usuario'}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={() => setAvatarImgError(true)}
+                />
               ) : (
-                <span
-                  style={{
-                    fontSize: '0.643rem',
-                    fontWeight: 700,
-                    color: 'white',
-                    userSelect: 'none',
-                    lineHeight: 1,
-                  }}
-                >
-                  {initials}
+                <span style={{ fontSize: '0.857rem', fontWeight: 500, color: 'white', userSelect: 'none', lineHeight: 1 }}>
+                  {firstName[0]?.toUpperCase() ?? '?'}
                 </span>
               )}
             </button>

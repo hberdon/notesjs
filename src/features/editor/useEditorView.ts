@@ -7,6 +7,8 @@ import { buildExtensions } from '@/lib/codemirror/extensions'
 import { useTabStore, getLocalContent } from '@/store/tabStore'
 import { useFileStore } from '@/store/fileStore'
 import { useUIStore } from '@/store/uiStore'
+import { detectLanguage, detectContentLanguage } from '@/shared/utils'
+import { formatCode } from '@/lib/formatter'
 
 /** Debounce delay (ms) before an auto-save fires after the last keystroke. */
 const DEBOUNCE_MS = 1500
@@ -46,7 +48,8 @@ export function useEditorView(
   const prevTabIdRef = useRef<string | null>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const fontSize = useUIStore((s) => s.editorSettings.fontSize)
+  const fontSize        = useUIStore((s) => s.editorSettings.fontSize)
+  const showLineNumbers = useUIStore((s) => s.editorSettings.showLineNumbers)
 
   // Keep latest values accessible inside the mount-effect closure (deps=[])
   // without triggering a full view remount.
@@ -56,12 +59,16 @@ export function useEditorView(
   const fontSizeRef = useRef(fontSize)
   useEffect(() => { fontSizeRef.current = fontSize }, [fontSize])
 
+  const showLineNumbersRef = useRef(showLineNumbers)
+  useEffect(() => { showLineNumbersRef.current = showLineNumbers }, [showLineNumbers])
+
   const onGuestSaveRef = useRef(onGuestSave)
   useEffect(() => { onGuestSaveRef.current = onGuestSave }, [onGuestSave])
 
-  // The autoSaveListener is created once in the mount effect and stored here
-  // so the tab-switch effect can include it in freshly created states.
+  // The autoSaveListener and pasteDetector are created once in the mount effect
+  // and stored here so the tab-switch effect can include them in fresh states.
   const autoSaveListenerRef = useRef<Extension | null>(null)
+  const pasteDetectorRef    = useRef<Extension | null>(null)
 
   // Compartment for theme/language — targeted reconfiguration that leaves
   // autoSaveListener untouched.
@@ -111,14 +118,44 @@ if (!update.docChanged) return
 
     autoSaveListenerRef.current = autoSaveListener
 
+    const pasteDetector = EditorView.domEventHandlers({
+      paste(event, view) {
+        const text = event.clipboardData?.getData('text/plain') ?? ''
+        if (text.length < 30) return
+
+        const store   = useTabStore.getState()
+        const current = store.tabs.find((t) => t.id === tabIdRef.current)
+        if (!current) return
+        // Only auto-detect for tabs whose filename has no recognized extension.
+        if (detectLanguage(current.filename) !== 'text') return
+
+        const detected = detectContentLanguage(text)
+        if (!detected) return
+
+        // Prevent CM6 from inserting the raw text — we insert formatted below.
+        event.preventDefault()
+        ;(async () => {
+          const formatted = await formatCode(text, detected)
+          store.updateTabLanguage(tabIdRef.current!, detected)
+          view.dispatch({
+            changes: { from: 0, to: view.state.doc.length, insert: formatted },
+          })
+        })()
+
+        return true
+      },
+    })
+    pasteDetectorRef.current = pasteDetector
+
     const existingState = getEditorState(tabId)
     const initialState =
       existingState ??
       EditorState.create({
         doc: getLocalContent(tabId) ?? '',
         extensions: [
-          compartment.of(buildExtensions(language, isDark, fontSizeRef.current)),
+          compartment.of(buildExtensions(language, isDark, fontSizeRef.current, showLineNumbersRef.current)),
           autoSaveListener,
+          pasteDetector,
         ],
       })
 
@@ -135,6 +172,10 @@ const view = new EditorView({
       if (saveTimerRef.current !== null) {
         clearTimeout(saveTimerRef.current)
         saveTimerRef.current = null
+      }
+      // Snapshot before destroy so remount can restore content from editorStateMap
+      if (tabIdRef.current) {
+        useTabStore.getState().snapshotState(tabIdRef.current, view.state)
       }
       view.destroy()
       viewRef.current = null
@@ -161,8 +202,9 @@ const view = new EditorView({
       EditorState.create({
         doc: getLocalContent(tabId) ?? '',
         extensions: [
-          compartment.of(buildExtensions(language, isDark, fontSizeRef.current)),
+          compartment.of(buildExtensions(language, isDark, fontSizeRef.current, showLineNumbersRef.current)),
           autoSaveListenerRef.current!,
+          pasteDetectorRef.current!,
         ],
       })
 
@@ -178,9 +220,9 @@ const view = new EditorView({
 
     // Reconfigure only the compartment — autoSaveListener is unaffected.
     view.dispatch({
-      effects: compartmentRef.current.reconfigure(buildExtensions(language, isDark, fontSize)),
+      effects: compartmentRef.current.reconfigure(buildExtensions(language, isDark, fontSize, showLineNumbers)),
     })
-  }, [isDark, language, fontSize])
+  }, [isDark, language, fontSize, showLineNumbers])
 
   // ── Return ────────────────────────────────────────────────────────────────
 

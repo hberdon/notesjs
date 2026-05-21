@@ -48,12 +48,10 @@ import { getDarkTheme, getLightTheme } from './theme'
  * @param language - A Language ID string (e.g. 'typescript', 'python', 'text')
  * @param isDark   - Whether to apply the dark theme (true) or light theme (false)
  */
-export function buildExtensions(language: string, isDark: boolean, fontSize = 12): Extension[] {
+export function buildExtensions(language: string, isDark: boolean, fontSize = 12, showLineNumbers = true): Extension[] {
   return [
     // ── Gutters ────────────────────────────────────────────────────────────
-    lineNumbers(),
-    highlightActiveLineGutter(),
-    foldGutter(),
+    ...(showLineNumbers ? [lineNumbers(), highlightActiveLineGutter(), foldGutter()] : []),
 
     // ── Visual aids ────────────────────────────────────────────────────────
     highlightSpecialChars(),

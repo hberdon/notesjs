@@ -3,6 +3,7 @@ import { N2G } from '@/shared/components/N2G'
 import { formatBytes } from '@/shared/utils'
 import { GUEST_MAX_BYTES } from '@/lib/guestDb'
 import { getActiveEditorView } from './useEditorView'
+import { useUIStore } from '@/store/uiStore'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -15,16 +16,48 @@ export interface LiteBarProps {
   usedBytes:    number
 }
 
+// ── Icon toggle button ────────────────────────────────────────────────────────
+
+function IconToggleBtn({ icon, active, onClick, title }: { icon: string; active: boolean; onClick: () => void; title?: string }) {
+  const [hovered, setHovered] = useState(false)
+  const color = hovered ? 'var(--accent)' : active ? 'var(--ink)' : 'var(--ink3)'
+  return (
+    <button
+      type="button"
+      title={title}
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display:        'flex',
+        alignItems:     'center',
+        justifyContent: 'center',
+        width:          '1.714rem',
+        height:         '2.143rem',
+        marginLeft:     '-0.2rem',
+        background:     'transparent',
+        border:         'none',
+        cursor:         'pointer',
+        flexShrink:     0,
+      }}
+    >
+      <N2G name={icon} size={13} color={color} />
+    </button>
+  )
+}
+
 // ── Action button ─────────────────────────────────────────────────────────────
 
 interface ActionBtnProps {
   icon:    string
   label:   string
   onClick: () => void
+  active?: boolean
 }
 
-function ActionBtn({ icon, label, onClick }: ActionBtnProps) {
+function ActionBtn({ icon, label, onClick, active = false }: ActionBtnProps) {
   const [hovered, setHovered] = useState(false)
+  const lit = active || hovered
 
   return (
     <button
@@ -39,18 +72,21 @@ function ActionBtn({ icon, label, onClick }: ActionBtnProps) {
         height:     '2.143rem',
         padding:    '0 0.857rem',
         fontSize:   '0.893rem',
-        fontWeight: 600,
+        fontWeight: active ? 700 : 600,
         fontFamily: 'var(--font-ui)',
-        color:      hovered ? 'var(--ink)' : 'var(--ink2)',
-        background: hovered ? 'var(--chrome)' : 'transparent',
-        border:     'none',
-        cursor:     'pointer',
+        color:      lit ? 'var(--accent)' : 'var(--ink2)',
+        background:  hovered ? 'var(--chrome)' : 'transparent',
+        border:      'none',
+        borderLeft:  '1px solid var(--border)',
+        borderRight: '1px solid var(--border)',
+        marginRight: '-1px',
+        cursor:      'pointer',
         whiteSpace: 'nowrap',
         flexShrink: 0,
         lineHeight: 1,
       }}
     >
-      <N2G name={icon} size={16} stroke={1.8} color={hovered ? 'var(--ink)' : 'var(--ink2)'} />
+      <N2G name={icon} size={16} stroke={1.8} color={lit ? 'var(--accent)' : 'var(--ink2)'} />
       {label}
     </button>
   )
@@ -67,6 +103,8 @@ export default function LiteBar({
   usedBytes,
 }: LiteBarProps) {
   const [copied, setCopied] = useState(false)
+  const showLineNumbers     = useUIStore((s) => s.editorSettings.showLineNumbers)
+  const updateEditorSettings = useUIStore((s) => s.updateEditorSettings)
 
   function handleDownload() {
     if (!activeTabId) return
@@ -109,6 +147,7 @@ export default function LiteBar({
     >
       {/* ── Left: action buttons ── */}
       <div style={{ display: 'flex', alignItems: 'stretch', height: '100%', flex: 1 }}>
+        <IconToggleBtn icon="list-ol" active={showLineNumbers} onClick={() => updateEditorSettings({ showLineNumbers: !showLineNumbers })} title="Números de línea" />
         <ActionBtn icon="file-new"    label="Nuevo"      onClick={onNewTab}      />
         <ActionBtn icon="folder-open" label="Abrir"      onClick={onOpenFile}    />
         <ActionBtn icon="download"    label="Descargar"  onClick={handleDownload} />

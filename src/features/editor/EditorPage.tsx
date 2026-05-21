@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTabStore, getLocalContent } from '@/store/tabStore'
 import { useThemeStore, getEffectiveTheme } from '@/store/themeStore'
 import { useFileStore } from '@/store/fileStore'
 import { useUIStore } from '@/store/uiStore'
 import { useAuthStore } from '@/features/auth/authStore'
 import { generateId } from '@/shared/utils'
+import { formatCode } from '@/lib/formatter'
+import { getActiveEditorView } from './useEditorView'
 import { loadGuestTabs, saveGuestTab, deleteGuestTab } from '@/lib/guestDb'
 import type { Tab } from '@/shared/types'
 import TabBar from './TabBar'
@@ -267,6 +269,21 @@ export default function EditorPage() {
   const filename   = activeTab?.filename ?? 'Untitled'
   const hasPanel   = languageHasPanel(language)
 
+  // ── Format active document ────────────────────────────────────────────────
+
+  const handleFormat = useCallback(async () => {
+    const currentTab = useTabStore.getState().tabs.find((t) => t.id === activeTabId)
+    if (!currentTab) return
+    const view = getActiveEditorView()
+    if (!view) return
+    const raw       = view.state.doc.toString()
+    const formatted = await formatCode(raw, currentTab.language)
+    if (formatted === raw) return
+    view.dispatch({
+      changes: { from: 0, to: view.state.doc.length, insert: formatted },
+    })
+  }, [activeTabId])
+
   // Close the right panel when switching to a language that doesn't support it
   useEffect(() => {
     if (!hasPanel && rightPanel !== null) {
@@ -323,7 +340,7 @@ export default function EditorPage() {
           activeFilename={filename}
           onNewTab={handleNewTab}
           onOpenFile={handleTriggerOpenFile}
-          onFormat={() => { /* TODO: CM6 format */ }}
+          onFormat={handleFormat}
           usedBytes={usedBytes}
         />
       ) : (
@@ -334,7 +351,7 @@ export default function EditorPage() {
           onOpenFile={handleTriggerOpenFile}
           onRenameTab={() => { /* TODO: rename flow */ }}
           onDeleteTab={() => { if (activeTabId) handleCloseTab(activeTabId) }}
-          onFormat={() => { /* TODO: CM6 format */ }}
+          onFormat={handleFormat}
           onMinify={() => { /* TODO: CM6 minify */ }}
           fileId={activeTab?.fileId ?? null}
         />
