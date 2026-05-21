@@ -8,7 +8,7 @@ import {
   faFont, faAlignLeft, faHashtag, faTrash, faDownload, faUpload,
   faCloudArrowUp, faCircleCheck, faMagnifyingGlass, faShareNodes,
   faLock, faEye, faSun, faMap, faKeyboard, faCircleInfo, faCircle,
-  faFilePlus, faPencil, faRotateLeft, faRotateRight, faScissors,
+  faFileCirclePlus, faPencil, faRotateLeft, faRotateRight, faScissors,
   faCopy, faPaste, faCode, faGear, faBell, faArrowRightFromBracket,
   faFolderOpen, faWandMagicSparkles, faCompress, faHardDrive,
   faCloud, faSliders, faAlignJustify, faEllipsis, faFile,
@@ -50,7 +50,7 @@ const ICONS: Record<string, IconDefinition> = {
   'comment':                faCode,
   'format':                 faWandMagicSparkles,
   // files / cloud
-  'file-new':               faFilePlus,
+  'file-new':               faFileCirclePlus,
   'folder-open':            faFolderOpen,
   'cloud-check':            faCircleCheck,
   'cloud-up':               faCloudArrowUp,
