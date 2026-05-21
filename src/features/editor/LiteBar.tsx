@@ -51,7 +51,7 @@ function ActionBtn({ icon, label, onClick }: ActionBtnProps) {
         lineHeight: 1,
       }}
     >
-      <N2G name={icon} size={14} stroke={1.8} color={hovered ? '#111827' : '#374151'} />
+      <N2G name={icon} size={16} stroke={1.8} color={hovered ? '#111827' : '#374151'} />
       {label}
     </button>
   )

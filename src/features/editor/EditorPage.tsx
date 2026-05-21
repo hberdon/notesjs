@@ -83,12 +83,17 @@ export default function EditorPage() {
   }, [fetchFiles, isGuest])
 
   // ── Hydrate guest tabs from IndexedDB ──────────────────────────────────────
+  // Guard against React Strict Mode double-invocation: before opening any tab,
+  // check if it's already in the store (happens when the effect re-fires without
+  // an unmount clearing the Zustand state).
   useEffect(() => {
     if (!isGuest) return
     async function hydrate() {
       const records = await loadGuestTabs()
+
       if (records.length === 0) {
-        // First guest entry — create welcome.js and persist it
+        // First guest entry — only create welcome.js if no tab exists yet
+        if (useTabStore.getState().tabs.length > 0) return
         const id      = crypto.randomUUID()
         const welcome = [
           '// Welcome to notes.js!',
@@ -108,9 +113,14 @@ export default function EditorPage() {
         setUsedBytes(new TextEncoder().encode(welcome).length)
         return
       }
+
+      // Restore tabs — skip any already open (Strict Mode re-fire protection)
+      const existing = new Set(useTabStore.getState().tabs.map((t) => t.id))
       let total = 0
       for (const rec of records) {
-        openGuestTab(rec.id, rec.filename, rec.content)
+        if (!existing.has(rec.id)) {
+          openGuestTab(rec.id, rec.filename, rec.content)
+        }
         total += new TextEncoder().encode(rec.content).length
       }
       setUsedBytes(total)
