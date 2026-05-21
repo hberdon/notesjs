@@ -79,7 +79,7 @@ export function MItem({
       <span style={{ display: 'flex', flexDirection: 'column', gap: 1, overflow: 'hidden' }}>
         <span
           style={{
-            fontSize:     '0.893rem',
+            fontSize:     '0.821rem',
             fontWeight:   400,
             lineHeight:   1,
             whiteSpace:   'nowrap',
@@ -212,7 +212,7 @@ export function MToggle({ value, onChange, label, icon }: MToggleProps) {
         {icon ? <N2G name={icon} size={13} stroke={1.8} color="var(--ink3)" /> : null}
       </span>
 
-      <span style={{ fontSize: '0.893rem', fontWeight: 600, color: 'var(--ink)' }}>
+      <span style={{ fontSize: '0.821rem', fontWeight: 400, color: 'var(--ink)' }}>
         {label}
       </span>
 

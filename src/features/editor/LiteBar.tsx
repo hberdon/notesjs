@@ -66,6 +66,7 @@ export default function LiteBar({
   onFormat,
   usedBytes,
 }: LiteBarProps) {
+  const [copied, setCopied] = useState(false)
 
   function handleDownload() {
     if (!activeTabId) return
@@ -77,6 +78,14 @@ export default function LiteBar({
     a.download = activeFilename
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  async function handleShare() {
+    if (!activeTabId) return
+    const content = getActiveEditorView()?.state.doc.toString() ?? ''
+    await navigator.clipboard.writeText(content)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   const usageRatio  = usedBytes / GUEST_MAX_BYTES
@@ -104,6 +113,7 @@ export default function LiteBar({
         <ActionBtn icon="folder-open" label="Abrir"      onClick={onOpenFile}    />
         <ActionBtn icon="download"    label="Descargar"  onClick={handleDownload} />
         <ActionBtn icon="format"      label="Formatear"  onClick={onFormat}      />
+        <ActionBtn icon="share"       label={copied ? 'Copiado' : 'Compartir'} onClick={handleShare} />
       </div>
 
       {/* ── Right: storage indicator + cloud CTA ── */}

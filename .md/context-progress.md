@@ -1,26 +1,26 @@
 ---
 project: notesjs
 mode: vibe
-last_session: 2026-05-20
+last_session: 2026-05-21
 active_phase: "Phase 7 — V3 UI Polish"
 phases_done: 6
 phases_total: 7
-tasks_this_session: 25
-tasks_total_done: 28
-velocity_last_5: [3, 15]
+tasks_this_session: 23
+tasks_total_done: 51
+velocity_last_5: [3, 15, 18]
 blockers_count: 0
-session_count: 2
+session_count: 3
 ---
 
 # 📋 CONTEXT-PROGRESS
-## notesjs • Session #2 • 2026-05-20
+## notesjs • Session #3 • 2026-05-21
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  🏗️  CURRENT PHASE: V3 UI Polish                                │
-│  ██████████████████████░  98%                                   │
-│  📅 Start: 2026-05-19  •  ⏱️  Day 3                             │
-│  📌 Tasks: 23/23 completados esta sesión  •  🔒 0 blocked       │
+│  ███████████████████████░  99%                                  │
+│  📅 Start: 2026-05-19  •  ⏱️  Day 4                             │
+│  📌 Tasks: 18/18 completados esta sesión  •  🔒 0 blocked       │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -34,35 +34,30 @@ session_count: 2
 | 4. Auth | ✅ Done | 2026-05-18 | ██████████ 100% |
 | 5. Router + Stores | ✅ Done | 2026-05-18 | ██████████ 100% |
 | 6. V3 Layout + Components | ✅ Done | 2026-05-19 | ██████████ 100% |
-| 7. V3 UI Polish | 🔄 In progress | 2026-05-19 | █████████░ 98% |
+| 7. V3 UI Polish | 🔄 In progress | 2026-05-19 | █████████░ 99% |
 
 ## Tasks this session
 
 ### ✅ Done
-- [x] AvatarMenu: Divider + SectionLabel components añadidos (faltaban, causaban crash)
-- [x] AvatarMenu estilo igual que MenuSheet: borde verde superior, mismo shadow
-- [x] Fix borde verde dropdowns cortado: `top: '100%'` + `zIndex: 110` en MenuSheet, eliminados `marginBottom` y `zIndex` del botón activo
-- [x] Git push a rama `develop` (commit fa3ec39)
-- [x] PreferencesPage implementada: layout dos columnas (sidebar + main)
-- [x] Sidebar: "Volver al editor", sección "Ajustes", nav Cuenta / Editor
-- [x] Sección Cuenta: Información del perfil (Nombre, Apellidos, Email+VERIFICADO, Username) + Guardar
-- [x] Sección Cuenta: Cuentas conectadas (Google icon SVG coloreado + Email provider)
-- [x] Ruta `/preferences` registrada y protegida con ProtectedRoute
-- [x] AvatarMenu → "Preferencias" navega a `/preferences`
-- [x] Preferencias: refinamientos (sin breadcrumb, menu avatar completo con Preferencias disabled, heading "Preferencias › Cuenta/Editor", fondo blanco, "Volver al editor" tamaño correcto)
-- [x] Bug temas: `effectiveTheme` función como selector no re-renderizaba → arreglado con `s.theme` + `getEffectiveTheme(theme)`; TabBar fondo `#eef0f3` → `#ffffff`
-- [x] Tab inactiva: estilo disabled (`background: #f3f4f6`, `opacity: 0.7`, `color: #6b7280`)
-- [x] Fix separador TabBar/MenuStrip no full-width → movido a `borderTop` del MenuStrip
-- [x] Hover rojo en botón cerrar tab (`background: #fee2e2`, `color: #dc2626`)
-- [x] Lite mode (guest): `src/lib/guestDb.ts` — capa IndexedDB completa con `idb` (5MB/archivo)
-- [x] Lite mode: `tabStore.openGuestTab` — hydration con ID estable desde IDB
-- [x] Lite mode: `LiteBar.tsx` — barra horizontal con Nuevo, Abrir, Descargar, Formatear + storage indicator + CTA "Guardar en la nube"
-- [x] Lite mode: `useEditorView` — guest auto-save path via `onGuestSave` callback + refs para evitar stale closures
-- [x] Lite mode: `EditorPanel` — thread prop `onGuestSave`
-- [x] Lite mode: `TabBar` — prop `isGuest`, right zone simplificado con `GuestLoginButton`
-- [x] Lite mode: `EditorPage` — orquestación completa: hydration IDB, render LiteBar/MenuStrip condicional, handlers download + guest save + close cleanup
-- [x] Fix guest: deduplicar tabs en React Strict Mode (idempotency en hydration effect)
-- [x] Fix LiteBar: iconos `size 14 → 16` para mejor peso visual
+- [x] Fix guest auto-save: `autoSaveListener` movido a `EditorState.create` extensions (CM6 ignora `extensions` en EditorView cuando se pasa `state`)
+- [x] Fix guest auto-save: `Compartment` para `buildExtensions` + `compartment.reconfigure()` en lugar de `StateEffect.reconfigure.of()`
+- [x] LoginPage: quitar icono `nj`, wordmark más grande, botones OAuth outlined, form email+contraseña con toggle ojo, CTA verde
+- [x] Dark mode barras: TabBar, MenuStrip, LiteBar → colores hardcoded reemplazados por CSS variables
+- [x] Pill plan: `FREE` → `LITE` en modo guest; luego eliminado de la barra y movido al header del AvatarMenu
+- [x] Font Awesome: instalar paquetes FA6, reescribir N2G.tsx con FA solid (misma API name-string)
+- [x] Fix FA: `faFilePlus` → `faFileCirclePlus` (no existe en FA6 free solid)
+- [x] Dark mode menús desplegables: `MenuPrimitives.tsx` hardcoded → CSS vars (`MenuSheet` bg, `MItem` hover, `MDivider`, `MSection`, shortcuts)
+- [x] LiteBar: eliminar botón "Guardar en la nube" + divider
+- [x] TabBar lite mode: `ThemeToggleButton` (luna/sol) a la izquierda de "Iniciar sesión →"
+- [x] ThemeToggleButton: iconos SVG custom (sun stroke + moon filled con estrellas)
+- [x] Pill FREE/LITE: eliminar de la barra izquierda del TabBar
+- [x] Pill FREE: añadir en header AvatarMenu junto al email (solo modo auth)
+- [x] VerSheet: eliminar sección de temas (ahora en AvatarMenu)
+- [x] Menú texto más pequeño: `MItem` label + `MToggle` label + `VerSheet` ToggleRow `0.893rem` → `0.821rem` (proporciones CompartirSheet)
+- [x] LiteBar: añadir botón "Compartir" — copia contenido activo al portapapeles, feedback "Copiado" 2s
+- [x] Coherencia de peso tipográfico en menus: `MToggle` + `VerSheet` ToggleRow `fontWeight: 600` → `400` (igual que `MItem`); `BuscarSheet` inputs + botón `0.893rem` → `0.821rem`
+- [x] TabBar: altura `2.143rem` → `3rem`; tabs ancladas al fondo (`alignItems: flex-end` en center zone)
+- [x] Tabs: `borderTop` + `borderRadius: 0.357rem 0.357rem 0 0`; tab activa con borde superior verde
 
 ### 🔒 Blocked
 — none
@@ -80,6 +75,7 @@ Runtime    ▸ Node.js (Vite 8)
 Framework  ▸ React 19 + React Router 7 + CodeMirror 6
 State      ▸ Zustand 5
 Backend    ▸ Supabase (auth + postgres + storage)
+Icons      ▸ Font Awesome 6 Free Solid (via N2G wrapper)
 Testing    ▸ Vitest 4 + Testing Library
 Deploy     ▸ Vercel
 ```
@@ -87,8 +83,8 @@ Deploy     ▸ Vercel
 ## 📊 Metrics
 
 ```
-Velocity     ▸ ⚡ 12 tasks/session (esta sesión) • avg 7.5/session
-Bugs         ▸ 🐛 0 open • ✅ 2 closed
+Velocity     ▸ ⚡ 18 tasks/session (esta sesión) • avg 10.2/session
+Bugs         ▸ 🐛 0 open • ✅ 3 closed esta sesión
 Blockers     ▸ 🚧 0 active
 ```
 
@@ -101,6 +97,8 @@ Blockers     ▸ 🚧 0 active
 |---|------|-------------|------------|-----|-------|
 | 1 | 2026-05-20 | Borde verde de dropdowns no visible (cortado) | Botón activo tenía `zIndex: 101` > sheet `zIndex: 100`; además `top: '2rem'` ≠ altura real del strip `2.143rem` | `top: '100%'`, `zIndex: 110` en MenuSheet; eliminados `marginBottom: -1` y `zIndex: 101` del botón activo | MenuPrimitives.tsx, MenuStrip.tsx |
 | 2 | 2026-05-20 | Temas no aplicaban al hacer clic en el selector | `useThemeStore((s) => s.effectiveTheme)` devuelve referencia de función estable → componente nunca re-renderiza | Cambiar a `s.theme` (valor primitivo) + `getEffectiveTheme(theme)` para calcular `isDark` | EditorPage.tsx |
+| 3 | 2026-05-21 | Guest auto-save nunca disparaba | CM6 ignora `extensions` en `EditorView({ state, extensions })` cuando se pasa `state` — `autoSaveListener` nunca se registraba | Mover `autoSaveListener` a `EditorState.create({ extensions: [...] })` + `Compartment` para `buildExtensions` | useEditorView.ts |
+| 4 | 2026-05-21 | `faFilePlus` crash al cargar | No existe en FA6 free solid | Reemplazar por `faFileCirclePlus` | N2G.tsx |
 
 ### ⚖️ Decisions
 | # | Date | Decision | Rationale | Impact |
@@ -110,10 +108,13 @@ Blockers     ▸ 🚧 0 active
 | 3 | 2026-05-20 | PreferencesPage con su propio TopBar (no reutiliza TabBar) | TabBar está acoplado a lógica de tabs; Preferences necesita solo brand + avatar | TopBar independiente en PreferencesPage.tsx |
 | 4 | 2026-05-20 | OAuth flowType: 'implicit' para Supabase local CLI | CLI local no soporta PKCE correctamente; producción puede usar PKCE | supabase.ts — pendiente ajustar para prod |
 | 5 | 2026-05-20 | Separador TabBar→MenuStrip como `borderTop` del MenuStrip | Hijos del TabBar con `height: 2.143rem` + `box-sizing: border-box` cubren el `borderBottom` del padre (overflow ~0.5-1px) | TabBar.tsx, MenuStrip.tsx |
+| 6 | 2026-05-21 | IndexedDB (idb) para persistencia guest | Sin límite práctico vs localStorage, 5 MB/archivo, sobrevive recargas | guestDb.ts |
+| 7 | 2026-05-21 | N2G como wrapper de FA6 | Misma API name-string — callers no cambian, solo el renderer | N2G.tsx |
+| 8 | 2026-05-21 | Pill FREE en header AvatarMenu (no en barra) | Barra más limpia; el tier es info secundaria, visible al abrir el menú | TabBar.tsx |
+| 9 | 2026-05-21 | Temas eliminados del menú Ver | Duplicado con AvatarMenu; centralizar en un solo lugar | VerSheet.tsx |
 
 ### 🚧 Blockers
 | # | Description | Owner | Since | Notes |
-|---|-------------|-------|-------|-------|
 
 ### 💡 Learnings
 | # | Date | Learning |
@@ -122,6 +123,9 @@ Blockers     ▸ 🚧 0 active
 | 2 | 2026-05-20 | Zustand selector con función (`(s) => s.methodThatReturnsValue`) no re-renderiza cuando cambia el estado subyacente — solo cuando cambia la referencia del selector. Siempre suscribir a valores primitivos |
 | 3 | 2026-05-20 | Input oculto en un componente que se desmonta (ArchivoSheet) nunca dispara onChange porque el DOM desaparece antes. La solución: mover el input a un componente persistente (EditorPage) |
 | 4 | 2026-05-20 | Flex hijo con `height` explícito igual al padre + `box-sizing: border-box` puede cubrir el `borderBottom` del padre (~0.5-1px overflow). Mover el borde al elemento siguiente como `borderTop` garantiza full-width |
+| 5 | 2026-05-21 | CM6: `EditorView({ state, extensions })` ignora completamente `extensions` cuando se pasa `state`. Las extensiones deben estar en `EditorState.create({ extensions: [...] })` |
+| 6 | 2026-05-21 | CM6: `StateEffect.reconfigure.of(ext)` reemplaza TODAS las extensiones del estado — incluyendo listeners. Usar `Compartment` + `compartment.reconfigure(ext)` para reconfigurar solo un subconjunto |
+| 7 | 2026-05-21 | FA6 free solid: `faFilePlus` no existe, el equivalente es `faFileCirclePlus` |
 
 ---
 
@@ -131,7 +135,7 @@ Blockers     ▸ 🚧 0 active
 - Google OAuth en local usa `flowType: 'implicit'`; en prod cambiar a PKCE
 - Archivos abiertos con "Abrir" son solo locales (no persisten en Supabase) — intencional por ahora
 - PreferencesPage sección Editor es placeholder ("Próximamente")
-- Temas cambian el CodeMirror y la variable `--bg` del body, pero los componentes usan colores hardcodeados — migración a CSS variables pendiente para dark mode completo
+- Dark mode barras completado; componentes internos de menus usan CSS vars
 
 **Start with:**
 — ▶️ Revisar pendientes de V3 según design handoff
@@ -143,4 +147,5 @@ Blockers     ▸ 🚧 0 active
 | Session | Date | Tasks | Phase | Summary |
 |---------|------|-------|-------|---------|
 | 1 | 2026-05-19 | 3 | V3 UI Polish | Dropdown alignment + TabBar logo removal |
-| 2 | 2026-05-20 | 12 | V3 UI Polish | AvatarMenu, PreferencesPage, OAuth Google, bug fixes (borde verde + temas) |
+| 2 | 2026-05-20 | 25 | V3 UI Polish | AvatarMenu, PreferencesPage, OAuth Google, guest mode IDB, bug fixes |
+| 3 | 2026-05-21 | 18 | V3 UI Polish | Fix guest auto-save (CM6 bug), LoginPage redesign, dark mode bars, FA icons, UI cleanup |

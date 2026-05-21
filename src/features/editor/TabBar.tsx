@@ -401,8 +401,8 @@ export default function TabBar({
       role="tablist"
       style={{
         display: 'flex',
-        alignItems: 'center',
-        height: '2.143rem',
+        alignItems: 'stretch',
+        height: '3rem',
         background: 'var(--bg)',
         flexShrink: 0,
         fontFamily: 'var(--font-ui)',
@@ -416,9 +416,7 @@ export default function TabBar({
           alignItems: 'center',
           flexShrink: 0,
           padding: '0 0.857rem',
-          height: '2.143rem',
-          background: 'var(--bg)',
-          borderRight: '1px solid var(--border)',
+          background: 'repeating-linear-gradient(45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 1px, transparent 1px, transparent 12px)',
         }}
       >
         <span style={{ fontSize: '1.143rem', fontWeight: 800, letterSpacing: -0.4, color: 'var(--ink)', lineHeight: 1, whiteSpace: 'nowrap', userSelect: 'none' }}>
@@ -431,8 +429,9 @@ export default function TabBar({
         style={{
           flex: 1,
           display: 'flex',
-          height: '2.143rem',
+          alignItems: 'flex-end',
           overflow: 'hidden',
+          background: 'repeating-linear-gradient(45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 1px, transparent 1px, transparent 12px)',
         }}
       >
         <div
@@ -444,9 +443,10 @@ export default function TabBar({
             flex: 1,
           }}
         >
-          {tabs.map((tab) => {
+          {tabs.map((tab, index) => {
             const isActive = tab.id === activeTabId
             const isHovered = hoveredTabId === tab.id
+            const isLast = index === tabs.length - 1
 
             return (
               <div
@@ -469,7 +469,14 @@ export default function TabBar({
                   userSelect: 'none',
                   position: 'relative',
                   background: isActive ? 'var(--bg)' : 'var(--chromeDD)',
-                  borderRight: '1px solid var(--border)',
+                  borderTop: '1px solid var(--borderD)',
+                  borderLeft: '1px solid var(--borderD)',
+                  borderRight: isLast ? '1px solid var(--borderD)' : 'none',
+                  borderRadius: index === 0 && isLast ? '0.357rem 0.357rem 0 0'
+                    : index === 0 ? '0.357rem 0 0 0'
+                    : isLast    ? '0 0.357rem 0 0'
+                    : 0,
+                  marginLeft: index === 0 ? '0.857rem' : 0,
                   boxSizing: 'border-box',
                   opacity: isActive ? 1 : 0.7,
                 }}
@@ -599,7 +606,6 @@ export default function TabBar({
           gap: '0.571rem',
           flexShrink: 0,
           padding: '0 0.857rem',
-          height: '2.143rem',
           background: 'var(--bg)',
           borderLeft: isGuest ? 'none' : '1px solid var(--border)',
           position: 'relative',

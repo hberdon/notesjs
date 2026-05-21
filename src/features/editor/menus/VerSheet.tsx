@@ -107,7 +107,7 @@ function ToggleRow({ label, icon, value, onChange }: ToggleRowProps) {
       <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <N2G name={icon} size={13} stroke={1.8} color="var(--ink3)" />
       </span>
-      <span style={{ fontSize: '0.893rem', fontWeight: 600, color: 'var(--ink)' }}>{label}</span>
+      <span style={{ fontSize: '0.821rem', fontWeight: 400, color: 'var(--ink)' }}>{label}</span>
       <span
         style={{
           display:        'inline-flex',
