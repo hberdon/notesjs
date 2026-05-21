@@ -36,21 +36,21 @@ interface AvatarMenuProps {
 }
 
 function AvatarMenu({ open, onClose }: AvatarMenuProps) {
-  const user        = useAuthStore((s) => s.user)
-  const theme       = useThemeStore((s) => s.theme)
-  const setTheme    = useThemeStore((s) => s.setTheme)
+  const user = useAuthStore((s) => s.user)
+  const theme = useThemeStore((s) => s.theme)
+  const setTheme = useThemeStore((s) => s.setTheme)
   const { signOut } = useAuth()
-  const navigate    = useNavigate()
+  const navigate = useNavigate()
 
-  const email     = user?.email ?? null
-  const fullName  = (user?.user_metadata?.full_name as string | undefined) ?? email ?? 'Usuario'
+  const email = user?.email ?? null
+  const fullName = (user?.user_metadata?.full_name as string | undefined) ?? email ?? 'Usuario'
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined
-  const initials  = getInitials(email)
+  const initials = getInitials(email)
 
   const THEMES: Array<{ id: Theme; label: string }> = [
-    { id: 'dark',  label: 'Oscuro' },
-    { id: 'light', label: 'Claro'  },
-    { id: 'auto',  label: 'Auto'   },
+    { id: 'dark', label: 'Oscuro' },
+    { id: 'light', label: 'Claro' },
+    { id: 'auto', label: 'Auto' },
   ]
 
   async function handleSignOut() {
@@ -63,25 +63,25 @@ function AvatarMenu({ open, onClose }: AvatarMenuProps) {
   return (
     <div
       style={{
-        position:     'absolute',
-        top:          '100%',
-        right:        0,
-        width:        '15rem',
-        background:   '#ffffff',
-        borderTop:    '2px solid #10b981',
+        position: 'absolute',
+        top: '100%',
+        right: 0,
+        width: '15rem',
+        background: 'var(--bg)',
+        borderTop: '2px solid #10b981',
         borderRadius: '0.429rem 0 0.429rem 0.429rem',
-        boxShadow:    '0 10px 24px -8px rgba(15,23,42,0.22), 0 2px 4px rgba(15,23,42,0.05)',
-        zIndex:       200,
-        overflow:     'hidden',
-        userSelect:   'none',
+        boxShadow: '0 10px 24px -8px rgba(15,23,42,0.22), 0 2px 4px rgba(15,23,42,0.05)',
+        zIndex: 200,
+        overflow: 'hidden',
+        userSelect: 'none',
       }}
     >
       {/* ── Header: name + email ── */}
       <div style={{ padding: '0.714rem 0.857rem 0.643rem' }}>
-        <div style={{ fontSize: '0.893rem', fontWeight: 700, color: '#111827', lineHeight: 1.3, fontFamily: 'var(--font-ui)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div style={{ fontSize: '0.893rem', fontWeight: 700, color: 'var(--ink)', lineHeight: 1.3, fontFamily: 'var(--font-ui)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {fullName}
         </div>
-        <div style={{ fontSize: '0.786rem', color: '#6b7280', lineHeight: 1.3, fontFamily: 'var(--font-ui)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div style={{ fontSize: '0.786rem', color: 'var(--ink3)', lineHeight: 1.3, fontFamily: 'var(--font-ui)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {email}
         </div>
       </div>
@@ -92,7 +92,7 @@ function AvatarMenu({ open, onClose }: AvatarMenuProps) {
       {/* ── Account section ── */}
       <div style={{ padding: '0.286rem 0' }}>
         <MenuRow icon="settings" label="Preferencias" onClick={() => { onClose(); navigate('/preferences') }} />
-        <MenuRow icon="bell"     label="Novedades"    onClick={onClose} />
+        <MenuRow icon="bell" label="Novedades" onClick={onClose} />
       </div>
 
       {/* ── Divider ── */}
@@ -134,34 +134,34 @@ function ThemeRow({ label, active, onClick }: { label: string; active: boolean; 
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        display:     'flex',
-        alignItems:  'center',
-        gap:         '0.571rem',
-        width:       '100%',
-        padding:     '0.357rem 0.857rem',
-        background:  hovered ? '#f7f7f9' : 'transparent',
-        border:      'none',
-        cursor:      'pointer',
-        textAlign:   'left',
-        fontFamily:  'var(--font-ui)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.571rem',
+        width: '100%',
+        padding: '0.357rem 0.857rem',
+        background: hovered ? 'var(--chrome)' : 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        textAlign: 'left',
+        fontFamily: 'var(--font-ui)',
       }}
     >
       {/* Active dot */}
       <span
         style={{
-          width:        '0.429rem',
-          height:       '0.429rem',
+          width: '0.429rem',
+          height: '0.429rem',
           borderRadius: '50%',
-          background:   active ? '#10b981' : 'transparent',
-          border:       active ? 'none' : '1.5px solid #d1d5db',
-          flexShrink:   0,
+          background: active ? '#10b981' : 'transparent',
+          border: active ? 'none' : '1.5px solid #d1d5db',
+          flexShrink: 0,
         }}
       />
       <span
         style={{
-          fontSize:   '0.857rem',
+          fontSize: '0.857rem',
           fontWeight: active ? 600 : 400,
-          color:      active ? '#111827' : '#374151',
+          color: active ? 'var(--ink)' : 'var(--ink2)',
           lineHeight: 1,
         }}
       >
@@ -175,8 +175,8 @@ function ThemeRow({ label, active, onClick }: { label: string; active: boolean; 
 
 function MenuRow({ label, icon, danger, onClick }: { label: string; icon: string; danger?: boolean; onClick: () => void }) {
   const [hovered, setHovered] = useState(false)
-  const color = danger ? '#dc2626' : '#374151'
-  const bg    = hovered ? (danger ? '#fef2f2' : '#f7f7f9') : 'transparent'
+  const color = danger ? '#dc2626' : 'var(--ink2)'
+  const bg = hovered ? (danger ? '#fef2f2' : 'var(--chrome)') : 'transparent'
 
   return (
     <button
@@ -185,15 +185,15 @@ function MenuRow({ label, icon, danger, onClick }: { label: string; icon: string
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        display:    'flex',
+        display: 'flex',
         alignItems: 'center',
-        gap:        '0.571rem',
-        width:      '100%',
-        padding:    '0.357rem 0.857rem',
+        gap: '0.571rem',
+        width: '100%',
+        padding: '0.357rem 0.857rem',
         background: bg,
-        border:     'none',
-        cursor:     'pointer',
-        textAlign:  'left',
+        border: 'none',
+        cursor: 'pointer',
+        textAlign: 'left',
         fontFamily: 'var(--font-ui)',
         color,
       }}
@@ -208,7 +208,7 @@ function MenuRow({ label, icon, danger, onClick }: { label: string; icon: string
 
 function Divider() {
   return (
-    <div style={{ height: 1, background: '#e5e7eb', margin: '0.143rem 0' }} />
+    <div style={{ height: 1, background: 'var(--border)', margin: '0.143rem 0' }} />
   )
 }
 
@@ -218,15 +218,15 @@ function SectionLabel({ children }: { children: ReactNode }) {
   return (
     <div
       style={{
-        padding:       '0.357rem 0.857rem 0.143rem',
-        fontSize:      '0.714rem',
-        fontWeight:    700,
+        padding: '0.357rem 0.857rem 0.143rem',
+        fontSize: '0.714rem',
+        fontWeight: 700,
         letterSpacing: '0.6px',
         textTransform: 'uppercase',
-        color:         '#9ca3af',
-        lineHeight:    1,
-        fontFamily:    'var(--font-ui)',
-        userSelect:    'none',
+        color: 'var(--muted)',
+        lineHeight: 1,
+        fontFamily: 'var(--font-ui)',
+        userSelect: 'none',
       }}
     >
       {children}
@@ -247,21 +247,21 @@ function GuestLoginButton() {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        display:      'inline-flex',
-        alignItems:   'center',
-        gap:          '0.286rem',
-        padding:      '0.286rem 0.714rem',
-        background:   hovered ? 'var(--accentSoft)' : 'transparent',
-        border:       '1px solid var(--accentBorder)',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.286rem',
+        padding: '0.286rem 0.714rem',
+        background: hovered ? 'var(--accentSoft)' : 'transparent',
+        border: '1px solid var(--accentBorder)',
         borderRadius: 'var(--r-pill)',
-        cursor:       'pointer',
-        fontSize:     '0.821rem',
-        fontWeight:   700,
-        color:        'var(--accentDeep)',
-        fontFamily:   'var(--font-ui)',
-        whiteSpace:   'nowrap',
-        transition:   'background 120ms',
-        lineHeight:   1,
+        cursor: 'pointer',
+        fontSize: '0.821rem',
+        fontWeight: 700,
+        color: 'var(--accentDeep)',
+        fontFamily: 'var(--font-ui)',
+        whiteSpace: 'nowrap',
+        transition: 'background 120ms',
+        lineHeight: 1,
       }}
     >
       Iniciar sesión →
@@ -272,12 +272,12 @@ function GuestLoginButton() {
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface TabBarProps {
-  tabs:        Tab[]
+  tabs: Tab[]
   activeTabId: string | null
   onSelectTab: (id: string) => void
-  onCloseTab:  (id: string) => void
-  onNewTab:    () => void
-  isGuest?:    boolean
+  onCloseTab: (id: string) => void
+  onNewTab: () => void
+  isGuest?: boolean
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -290,12 +290,12 @@ export default function TabBar({
   onNewTab,
   isGuest = false,
 }: TabBarProps) {
-  const user  = useAuthStore((s) => s.user)
-  const [hoveredTabId,   setHoveredTabId]   = useState<string | null>(null)
+  const user = useAuthStore((s) => s.user)
+  const [hoveredTabId, setHoveredTabId] = useState<string | null>(null)
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false)
   const rightZoneRef = useRef<HTMLDivElement>(null)
 
-  const email    = user?.email ?? null
+  const email = user?.email ?? null
   const initials = getInitials(email)
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined
 
@@ -316,74 +316,74 @@ export default function TabBar({
     <div
       role="tablist"
       style={{
-        display:      'flex',
-        alignItems:   'center',
-        height:       '2.143rem',
-        background:   '#ffffff',
-        flexShrink:   0,
-        fontFamily:   'var(--font-ui)',
-        position:     'relative',
+        display: 'flex',
+        alignItems: 'center',
+        height: '2.143rem',
+        background: 'var(--bg)',
+        flexShrink: 0,
+        fontFamily: 'var(--font-ui)',
+        position: 'relative',
       }}
     >
       {/* ── Left zone: logo + plan chip ── */}
       <div
         style={{
-          display:     'flex',
-          alignItems:  'center',
-          gap:         '0.571rem',
-          flexShrink:  0,
-          padding:     '0 0.857rem',
-          height:      '2.143rem',
-          background:  '#ffffff',
-          borderRight: '1px solid #e5e7eb',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.571rem',
+          flexShrink: 0,
+          padding: '0 0.857rem',
+          height: '2.143rem',
+          background: 'var(--bg)',
+          borderRight: '1px solid var(--border)',
         }}
       >
         {/* App name */}
-        <span style={{ fontSize: '1.143rem', fontWeight: 800, letterSpacing: -0.4, color: '#111827', lineHeight: 1, whiteSpace: 'nowrap', userSelect: 'none' }}>
+        <span style={{ fontSize: '1.143rem', fontWeight: 800, letterSpacing: -0.4, color: 'var(--ink)', lineHeight: 1, whiteSpace: 'nowrap', userSelect: 'none' }}>
           notes<span style={{ color: '#10b981' }}>.js</span>
         </span>
 
-        {/* FREE plan chip */}
+        {/* Plan chip */}
         <span
           style={{
-            fontSize:      '0.714rem',
-            fontWeight:    700,
+            fontSize: '0.5rem',
+            fontWeight: 700,
             textTransform: 'uppercase',
-            letterSpacing: 0.5,
-            color:         '#6b7280',
-            background:    'transparent',
-            border:        '1px solid #d1d5db',
-            borderRadius:  999,
-            padding:       '1px 0.429rem',
-            lineHeight:    1,
-            userSelect:    'none',
-            marginLeft:    '0.286rem',
+            letterSpacing: 0.4,
+            color: 'var(--accent)',
+            background: 'transparent',
+            border: '1px solid var(--accent)',
+            borderRadius: 6,
+            padding: '1px 0.429rem',
+            lineHeight: 1,
+            userSelect: 'none',
+            marginLeft: '0.286rem',
           }}
         >
-          FREE
+          {isGuest ? 'LITE' : 'FREE'}
         </span>
       </div>
 
       {/* ── Center zone: scrollable tabs + new-tab button ── */}
       <div
         style={{
-          flex:     1,
-          display:  'flex',
-          height:   '2.143rem',
+          flex: 1,
+          display: 'flex',
+          height: '2.143rem',
           overflow: 'hidden',
         }}
       >
         <div
           style={{
-            display:       'flex',
-            overflowX:     'auto',
-            scrollbarWidth:'none',
-            height:        '2.143rem',
-            flex:          1,
+            display: 'flex',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            height: '2.143rem',
+            flex: 1,
           }}
         >
           {tabs.map((tab) => {
-            const isActive  = tab.id === activeTabId
+            const isActive = tab.id === activeTabId
             const isHovered = hoveredTabId === tab.id
 
             return (
@@ -395,36 +395,36 @@ export default function TabBar({
                 onMouseEnter={() => setHoveredTabId(tab.id)}
                 onMouseLeave={() => setHoveredTabId(null)}
                 style={{
-                  display:    'flex',
+                  display: 'flex',
                   alignItems: 'center',
-                  gap:        '0.429rem',
-                  padding:    '0 0.714rem',
-                  height:     '2.143rem',
-                  maxWidth:   '14.286rem',
-                  minWidth:   '5.714rem',
-                  cursor:     'pointer',
+                  gap: '0.429rem',
+                  padding: '0 0.714rem',
+                  height: '2.143rem',
+                  maxWidth: '14.286rem',
+                  minWidth: '5.714rem',
+                  cursor: 'pointer',
                   flexShrink: 0,
                   userSelect: 'none',
-                  position:   'relative',
-                  background: isActive ? '#ffffff' : '#f3f4f6',
-                  borderRight:'1px solid #e5e7eb',
-                  boxSizing:  'border-box',
-                  opacity:    isActive ? 1 : 0.7,
+                  position: 'relative',
+                  background: isActive ? 'var(--bg)' : 'var(--chromeDD)',
+                  borderRight: '1px solid var(--border)',
+                  boxSizing: 'border-box',
+                  opacity: isActive ? 1 : 0.7,
                 }}
               >
                 <FormatPill ext={getExt(tab.filename)} size="s" />
 
                 <span
                   style={{
-                    fontSize:     '0.821rem',
-                    fontWeight:   isActive ? 600 : 400,
-                    color:        isActive ? '#111827' : '#6b7280',
-                    overflow:     'hidden',
+                    fontSize: '0.821rem',
+                    fontWeight: isActive ? 600 : 400,
+                    color: isActive ? 'var(--ink)' : 'var(--ink3)',
+                    overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    whiteSpace:   'nowrap',
-                    flex:         1,
-                    minWidth:     0,
-                    lineHeight:   1,
+                    whiteSpace: 'nowrap',
+                    flex: 1,
+                    minWidth: 0,
+                    lineHeight: 1,
                   }}
                 >
                   {tab.filename}
@@ -434,12 +434,12 @@ export default function TabBar({
                   <span
                     title="Cambios sin guardar"
                     style={{
-                      width:        '0.429rem',
-                      height:       '0.429rem',
+                      width: '0.429rem',
+                      height: '0.429rem',
                       borderRadius: '0.214rem',
-                      background:   '#f59e0b',
-                      flexShrink:   0,
-                      display:      'inline-block',
+                      background: '#f59e0b',
+                      flexShrink: 0,
+                      display: 'inline-block',
                     }}
                   />
                 )}
@@ -460,20 +460,20 @@ export default function TabBar({
                       btn.style.color = '#9ca3af'
                     }}
                     style={{
-                      width:      '1rem',
-                      height:     '1rem',
+                      width: '1rem',
+                      height: '1rem',
                       background: 'none',
-                      border:     'none',
-                      cursor:     'pointer',
-                      color:      '#9ca3af',
-                      padding:    0,
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: '#9ca3af',
+                      padding: 0,
                       borderRadius: 2,
-                      display:    'flex',
+                      display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
                       lineHeight: 1,
-                      fontSize:   '0.714rem',
+                      fontSize: '0.714rem',
                     }}
                   >
                     <N2G name="x" size={12} stroke={2} />
@@ -483,11 +483,11 @@ export default function TabBar({
                 {isActive && (
                   <span
                     style={{
-                      position:   'absolute',
-                      bottom:     0,
-                      left:       0,
-                      right:      0,
-                      height:     2,
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: 2,
                       background: '#10b981',
                     }}
                   />
@@ -502,25 +502,25 @@ export default function TabBar({
             title="Nuevo documento (⌘T)"
             onClick={onNewTab}
             style={{
-              width:      '2.143rem',
-              height:     '2.143rem',
+              width: '2.143rem',
+              height: '2.143rem',
               background: 'transparent',
-              border:     'none',
-              cursor:     'pointer',
-              color:      '#9ca3af',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#9ca3af',
               flexShrink: 0,
-              display:    'flex',
+              display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize:   '1rem',
+              fontSize: '1rem',
             }}
             onMouseEnter={(e) => {
-              ;(e.currentTarget as HTMLButtonElement).style.background = '#e5e7eb'
-              ;(e.currentTarget as HTMLButtonElement).style.color = '#374151'
+              ; (e.currentTarget as HTMLButtonElement).style.background = 'var(--chromeDD)'
+                ; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink2)'
             }}
             onMouseLeave={(e) => {
-              ;(e.currentTarget as HTMLButtonElement).style.background = 'transparent'
-              ;(e.currentTarget as HTMLButtonElement).style.color = '#9ca3af'
+              ; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+                ; (e.currentTarget as HTMLButtonElement).style.color = 'var(--muted)'
             }}
           >
             <N2G name="plus" size={17} stroke={2} />
@@ -532,15 +532,15 @@ export default function TabBar({
       <div
         ref={rightZoneRef}
         style={{
-          display:    'flex',
+          display: 'flex',
           alignItems: 'center',
-          gap:        '0.571rem',
+          gap: '0.571rem',
           flexShrink: 0,
-          padding:    '0 0.857rem',
-          height:     '2.143rem',
-          background: '#ffffff',
-          borderLeft: '1px solid #e5e7eb',
-          position:   'relative',
+          padding: '0 0.857rem',
+          height: '2.143rem',
+          background: 'var(--bg)',
+          borderLeft: '1px solid var(--border)',
+          position: 'relative',
         }}
       >
         {isGuest ? (
@@ -550,8 +550,8 @@ export default function TabBar({
             {email && (
               <span
                 style={{
-                  fontSize:   '0.821rem',
-                  color:      '#6b7280',
+                  fontSize: '0.821rem',
+                  color: 'var(--ink3)',
                   whiteSpace: 'nowrap',
                   userSelect: 'none',
                 }}
@@ -566,19 +566,19 @@ export default function TabBar({
               aria-label="Menú de cuenta"
               onClick={() => setAvatarMenuOpen((v) => !v)}
               style={{
-                width:        '1.429rem',
-                height:       '1.429rem',
+                width: '1.429rem',
+                height: '1.429rem',
                 borderRadius: '0.714rem',
-                background:   'linear-gradient(135deg, #10b981, #047857)',
-                border:       avatarMenuOpen ? '2px solid #10b981' : '2px solid transparent',
-                padding:      0,
-                cursor:       'pointer',
-                flexShrink:   0,
-                overflow:     'hidden',
-                display:      'flex',
-                alignItems:   'center',
+                background: 'linear-gradient(135deg, #10b981, #047857)',
+                border: avatarMenuOpen ? '2px solid #10b981' : '2px solid transparent',
+                padding: 0,
+                cursor: 'pointer',
+                flexShrink: 0,
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'center',
-                transition:   'border-color 120ms',
+                transition: 'border-color 120ms',
               }}
             >
               {avatarUrl ? (
@@ -586,9 +586,9 @@ export default function TabBar({
               ) : (
                 <span
                   style={{
-                    fontSize:   '0.643rem',
+                    fontSize: '0.643rem',
                     fontWeight: 700,
-                    color:      'white',
+                    color: 'white',
                     userSelect: 'none',
                     lineHeight: 1,
                   }}

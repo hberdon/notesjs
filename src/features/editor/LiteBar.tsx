@@ -42,8 +42,8 @@ function ActionBtn({ icon, label, onClick }: ActionBtnProps) {
         fontSize:   '0.893rem',
         fontWeight: 600,
         fontFamily: 'var(--font-ui)',
-        color:      hovered ? '#111827' : '#374151',
-        background: hovered ? '#f7f7f9' : 'transparent',
+        color:      hovered ? 'var(--ink)' : 'var(--ink2)',
+        background: hovered ? 'var(--chrome)' : 'transparent',
         border:     'none',
         cursor:     'pointer',
         whiteSpace: 'nowrap',
@@ -51,7 +51,7 @@ function ActionBtn({ icon, label, onClick }: ActionBtnProps) {
         lineHeight: 1,
       }}
     >
-      <N2G name={icon} size={16} stroke={1.8} color={hovered ? '#111827' : '#374151'} />
+      <N2G name={icon} size={16} stroke={1.8} color={hovered ? 'var(--ink)' : 'var(--ink2)'} />
       {label}
     </button>
   )
@@ -93,9 +93,9 @@ export default function LiteBar({
         alignItems:   'center',
         height:       '2.143rem',
         minHeight:    '2.143rem',
-        background:   '#ffffff',
-        borderTop:    '1px solid #e5e7eb',
-        borderBottom: '1px solid #e5e7eb',
+        background:   'var(--bg)',
+        borderTop:    '1px solid var(--border)',
+        borderBottom: '1px solid var(--border)',
         flexShrink:   0,
         userSelect:   'none',
         paddingLeft:  '0.286rem',
@@ -143,7 +143,7 @@ export default function LiteBar({
         )}
 
         {/* Divider */}
-        <div style={{ width: 1, height: '1rem', background: '#e5e7eb', flexShrink: 0 }} />
+        <div style={{ width: 1, height: '1rem', background: 'var(--border)', flexShrink: 0 }} />
 
         {/* Cloud CTA */}
         <button

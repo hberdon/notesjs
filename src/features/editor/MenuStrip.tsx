@@ -100,9 +100,9 @@ export function MenuStrip({
         alignItems:   'center',
         height:       '2.143rem',
         minHeight:    '2.143rem',
-        background:   '#ffffff',
-        borderTop:    '1px solid #e5e7eb',
-        borderBottom: '1px solid #e5e7eb',
+        background:   'var(--bg)',
+        borderTop:    '1px solid var(--border)',
+        borderBottom: '1px solid var(--border)',
         flexShrink:   0,
         userSelect:   'none',
         zIndex:       50,
@@ -134,24 +134,24 @@ export function MenuStrip({
                 fontSize:     '0.893rem',
                 fontWeight:   600,
                 fontFamily:   'var(--font-ui)',
-                color:        isActive ? '#111827' : '#374151',
-                background:   isActive ? '#f7f7f9' : 'transparent',
+                color:        isActive ? 'var(--ink)' : 'var(--ink2)',
+                background:   isActive ? 'var(--chrome)' : 'transparent',
                 border:       'none',
-                borderLeft:   isActive ? '1px solid #e5e7eb' : 'none',
-                borderRight:  isActive ? '1px solid #e5e7eb' : 'none',
+                borderLeft:   isActive ? '1px solid var(--border)' : 'none',
+                borderRight:  isActive ? '1px solid var(--border)' : 'none',
                 cursor:       'pointer',
                 whiteSpace:   'nowrap',
                 flexShrink:   0,
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
-                  (e.currentTarget as HTMLButtonElement).style.color = '#111827'
-                  ;(e.currentTarget as HTMLButtonElement).style.background = '#f7f7f9'
+                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink)'
+                  ;(e.currentTarget as HTMLButtonElement).style.background = 'var(--chrome)'
                 }
               }}
               onMouseLeave={(e) => {
                 if (!isActive) {
-                  (e.currentTarget as HTMLButtonElement).style.color = '#374151'
+                  (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink2)'
                   ;(e.currentTarget as HTMLButtonElement).style.background = 'transparent'
                 }
               }}
@@ -187,9 +187,9 @@ export function MenuStrip({
           style={{
             fontFamily:   'var(--font-mono)',
             fontSize:     '0.75rem',
-            color:        '#9ca3af',
+            color:        'var(--muted)',
             padding:      '2px 0.429rem',
-            border:       '1px solid #e5e7eb',
+            border:       '1px solid var(--border)',
             borderRadius: '0.286rem',
             whiteSpace:   'nowrap',
             lineHeight:   1,
