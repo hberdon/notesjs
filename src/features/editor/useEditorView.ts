@@ -6,6 +6,7 @@ import { EditorView } from '@codemirror/view'
 import { buildExtensions } from '@/lib/codemirror/extensions'
 import { useTabStore, getLocalContent } from '@/store/tabStore'
 import { useFileStore } from '@/store/fileStore'
+import { useUIStore } from '@/store/uiStore'
 
 /** Debounce delay (ms) before an auto-save fires after the last keystroke. */
 const DEBOUNCE_MS = 1500
@@ -45,10 +46,15 @@ export function useEditorView(
   const prevTabIdRef = useRef<string | null>(null)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Keep latest tabId and onGuestSave accessible inside the mount-effect closure
-  // (deps=[]) without triggering a full view remount.
+  const fontSize = useUIStore((s) => s.editorSettings.fontSize)
+
+  // Keep latest values accessible inside the mount-effect closure (deps=[])
+  // without triggering a full view remount.
   const tabIdRef = useRef(tabId)
   useEffect(() => { tabIdRef.current = tabId }, [tabId])
+
+  const fontSizeRef = useRef(fontSize)
+  useEffect(() => { fontSizeRef.current = fontSize }, [fontSize])
 
   const onGuestSaveRef = useRef(onGuestSave)
   useEffect(() => { onGuestSaveRef.current = onGuestSave }, [onGuestSave])
@@ -111,7 +117,7 @@ if (!update.docChanged) return
       EditorState.create({
         doc: getLocalContent(tabId) ?? '',
         extensions: [
-          compartment.of(buildExtensions(language, isDark)),
+          compartment.of(buildExtensions(language, isDark, fontSizeRef.current)),
           autoSaveListener,
         ],
       })
@@ -155,7 +161,7 @@ const view = new EditorView({
       EditorState.create({
         doc: getLocalContent(tabId) ?? '',
         extensions: [
-          compartment.of(buildExtensions(language, isDark)),
+          compartment.of(buildExtensions(language, isDark, fontSizeRef.current)),
           autoSaveListenerRef.current!,
         ],
       })
@@ -172,9 +178,9 @@ const view = new EditorView({
 
     // Reconfigure only the compartment — autoSaveListener is unaffected.
     view.dispatch({
-      effects: compartmentRef.current.reconfigure(buildExtensions(language, isDark)),
+      effects: compartmentRef.current.reconfigure(buildExtensions(language, isDark, fontSize)),
     })
-  }, [isDark, language])
+  }, [isDark, language, fontSize])
 
   // ── Return ────────────────────────────────────────────────────────────────
 

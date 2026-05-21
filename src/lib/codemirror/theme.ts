@@ -7,7 +7,15 @@ import { oneDark } from '@codemirror/theme-one-dark'
  * Uses the official `oneDark` theme from `@codemirror/theme-one-dark`.
  */
 export function getDarkTheme(): Extension {
-  return oneDark
+  return [
+    oneDark,
+    EditorView.theme({
+      '&': {
+        backgroundImage: 'radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)',
+        backgroundSize: '22px 22px',
+      },
+    }),
+  ]
 }
 
 /**
@@ -26,6 +34,8 @@ export function getLightTheme(): Extension {
       '&': {
         color: '#1a1a1a',
         backgroundColor: '#ffffff',
+        backgroundImage: 'radial-gradient(rgba(0,0,0,0.05) 1px, transparent 1px)',
+        backgroundSize: '22px 22px',
       },
       '.cm-content': {
         caretColor: '#0e0e0e',

@@ -48,7 +48,7 @@ import { getDarkTheme, getLightTheme } from './theme'
  * @param language - A Language ID string (e.g. 'typescript', 'python', 'text')
  * @param isDark   - Whether to apply the dark theme (true) or light theme (false)
  */
-export function buildExtensions(language: string, isDark: boolean): Extension[] {
+export function buildExtensions(language: string, isDark: boolean, fontSize = 12): Extension[] {
   return [
     // ── Gutters ────────────────────────────────────────────────────────────
     lineNumbers(),
@@ -95,7 +95,7 @@ export function buildExtensions(language: string, isDark: boolean): Extension[] 
     // ── Base theme: fill container height + font size ────────────────────
     EditorView.theme({
       '&': { height: '100%' },
-      '.cm-content, .cm-gutter': { fontSize: '0.893rem' },
+      '.cm-content, .cm-gutter': { fontSize: `${fontSize}px` },
     }),
   ]
 }

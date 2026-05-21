@@ -7,7 +7,7 @@ type RightPanelType = 'tree' | 'preview'
 interface EditorSettings {
   showLineNumbers: boolean
   wrap: boolean
-  fontSize: number // 10..24, default 14
+  fontSize: number // 10..24, default 12
 }
 
 interface UIState {
@@ -26,7 +26,7 @@ interface UIState {
 const DEFAULT_EDITOR_SETTINGS: EditorSettings = {
   showLineNumbers: true,
   wrap: true,
-  fontSize: 14,
+  fontSize: 12,
 }
 
 export const useUIStore = create<UIState>()(

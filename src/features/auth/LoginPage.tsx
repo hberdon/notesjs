@@ -165,7 +165,7 @@ export default function LoginPage() {
       <div
         style={{
           minHeight: '100vh',
-          background: 'radial-gradient(circle at 20% 0%, #ecfdf5 0%, transparent 40%), radial-gradient(circle at 100% 100%, #e0f2fe 0%, transparent 35%), #f7f7f9',
+          background: 'radial-gradient(circle at 20% 0%, #d1fae5 0%, transparent 45%), radial-gradient(circle at 100% 100%, #dbeafe 0%, transparent 40%), #f7f7f9',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -180,7 +180,7 @@ export default function LoginPage() {
             position: 'absolute', inset: 0,
             backgroundImage: 'radial-gradient(#d1d5db 1px, transparent 1px)',
             backgroundSize: '22px 22px',
-            opacity: 0.25, zIndex: 0, pointerEvents: 'none',
+            opacity: 0.4, zIndex: 0, pointerEvents: 'none',
           }}
         />
 

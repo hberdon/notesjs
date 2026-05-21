@@ -403,7 +403,7 @@ export default function TabBar({
         display: 'flex',
         alignItems: 'stretch',
         height: '3rem',
-        background: 'var(--bg)',
+        background: 'linear-gradient(to right, rgba(16,185,129,0.07), transparent), repeating-linear-gradient(45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 1px, transparent 1px, transparent 12px)',
         flexShrink: 0,
         fontFamily: 'var(--font-ui)',
         position: 'relative',
@@ -415,11 +415,13 @@ export default function TabBar({
           display: 'flex',
           alignItems: 'center',
           flexShrink: 0,
-          padding: '0 0.857rem',
-          background: 'repeating-linear-gradient(45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 1px, transparent 1px, transparent 12px)',
+          gap: '0.714rem',
+          padding: '0 1rem 0 1rem',
         }}
       >
-        <span style={{ fontSize: '1.143rem', fontWeight: 800, letterSpacing: -0.4, color: 'var(--ink)', lineHeight: 1, whiteSpace: 'nowrap', userSelect: 'none' }}>
+        {/* Logo placeholder */}
+        <div style={{ width: '1.714rem', height: '1.714rem', borderRadius: '0.357rem', background: 'rgba(16,185,129,0.15)', flexShrink: 0 }} />
+        <span style={{ fontSize: '1.357rem', fontWeight: 800, letterSpacing: -0.5, color: 'var(--ink)', lineHeight: 1, whiteSpace: 'nowrap', userSelect: 'none' }}>
           notes<span style={{ color: '#10b981' }}>.js</span>
         </span>
       </div>
@@ -431,7 +433,6 @@ export default function TabBar({
           display: 'flex',
           alignItems: 'flex-end',
           overflow: 'hidden',
-          background: 'repeating-linear-gradient(45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 1px, transparent 1px, transparent 12px)',
         }}
       >
         <div
@@ -583,14 +584,8 @@ export default function TabBar({
               justifyContent: 'center',
               fontSize: '1rem',
             }}
-            onMouseEnter={(e) => {
-              ; (e.currentTarget as HTMLButtonElement).style.background = 'var(--chromeDD)'
-                ; (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink2)'
-            }}
-            onMouseLeave={(e) => {
-              ; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
-                ; (e.currentTarget as HTMLButtonElement).style.color = 'var(--muted)'
-            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#10b981' }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#9ca3af' }}
           >
             <N2G name="plus" size={17} stroke={2} />
           </button>
