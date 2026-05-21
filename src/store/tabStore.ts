@@ -116,7 +116,14 @@ export const useTabStore = create<TabStore>((set, get) => ({
   },
 
   openGuestTab(id, filename, content) {
+    // Always refresh content maps — IDB is source of truth on re-hydration.
+    // Clearing editorStateMap forces the editor to rebuild from localContentMap
+    // instead of using a stale CM6 snapshot from a previous session.
     localContentMap.set(id, content)
+    editorStateMap.delete(id)
+
+    if (get().tabs.some((t) => t.id === id)) return
+
     const newTab: Tab = {
       id,
       fileId: null,

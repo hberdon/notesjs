@@ -114,13 +114,11 @@ export default function EditorPage() {
         return
       }
 
-      // Restore tabs — skip any already open (Strict Mode re-fire protection)
-      const existing = new Set(useTabStore.getState().tabs.map((t) => t.id))
+      // Restore tabs — openGuestTab is idempotent: always refreshes localContentMap
+      // from IDB (source of truth), and only adds to the store if not already open.
       let total = 0
       for (const rec of records) {
-        if (!existing.has(rec.id)) {
-          openGuestTab(rec.id, rec.filename, rec.content)
-        }
+        openGuestTab(rec.id, rec.filename, rec.content)
         total += new TextEncoder().encode(rec.content).length
       }
       setUsedBytes(total)
