@@ -3,16 +3,17 @@ import { useNavigate } from 'react-router-dom'
 import { N2G } from '@/shared/components/N2G'
 import { formatBytes } from '@/shared/utils'
 import { GUEST_MAX_BYTES } from '@/lib/guestDb'
+import { getActiveEditorView } from './useEditorView'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface LiteBarProps {
-  activeTabId: string | null
-  onNewTab:    () => void
-  onOpenFile:  () => void
-  onDownload:  () => void
-  onFormat:    () => void
-  usedBytes:   number
+  activeTabId:  string | null
+  activeFilename: string
+  onNewTab:     () => void
+  onOpenFile:   () => void
+  onFormat:     () => void
+  usedBytes:    number
 }
 
 // ── Action button ─────────────────────────────────────────────────────────────
@@ -60,14 +61,26 @@ function ActionBtn({ icon, label, onClick }: ActionBtnProps) {
 
 export default function LiteBar({
   activeTabId,
+  activeFilename,
   onNewTab,
   onOpenFile,
-  onDownload,
   onFormat,
   usedBytes,
 }: LiteBarProps) {
   const navigate = useNavigate()
   const [ctaHovered, setCtaHovered] = useState(false)
+
+  function handleDownload() {
+    if (!activeTabId) return
+    const content = getActiveEditorView()?.state.doc.toString() ?? ''
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = activeFilename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   const usageRatio  = usedBytes / GUEST_MAX_BYTES
   const storageWarn = usageRatio > 0.8
@@ -90,14 +103,10 @@ export default function LiteBar({
     >
       {/* ── Left: action buttons ── */}
       <div style={{ display: 'flex', alignItems: 'stretch', height: '100%', flex: 1 }}>
-        <ActionBtn icon="file-plus" label="Nuevo"      onClick={onNewTab}   />
-        <ActionBtn icon="folder-open" label="Abrir"    onClick={onOpenFile} />
-        <ActionBtn
-          icon="download"
-          label="Descargar"
-          onClick={onDownload}
-        />
-        <ActionBtn icon="wand" label="Formatear" onClick={onFormat} />
+        <ActionBtn icon="file-new"    label="Nuevo"      onClick={onNewTab}      />
+        <ActionBtn icon="folder-open" label="Abrir"      onClick={onOpenFile}    />
+        <ActionBtn icon="download"    label="Descargar"  onClick={handleDownload} />
+        <ActionBtn icon="format"      label="Formatear"  onClick={onFormat}      />
       </div>
 
       {/* ── Right: storage indicator + cloud CTA ── */}
@@ -126,7 +135,7 @@ export default function LiteBar({
             <N2G
               name="hard-drive"
               size={12}
-              stroke={1.8}
+              stroke={2}
               color={storageWarn ? 'var(--warn)' : 'var(--ink3)'}
             />
             {storageText}
@@ -160,7 +169,7 @@ export default function LiteBar({
             lineHeight:   1,
           }}
         >
-          <N2G name="cloud-upload" size={12} stroke={2} color="var(--accentDeep)" />
+          <N2G name="cloud-up" size={12} stroke={2} color="var(--accentDeep)" />
           Guardar en la nube
         </button>
       </div>

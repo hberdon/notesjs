@@ -88,7 +88,24 @@ export default function EditorPage() {
     async function hydrate() {
       const records = await loadGuestTabs()
       if (records.length === 0) {
-        createDefaultTab()
+        // First guest entry — create welcome.js and persist it
+        const id      = crypto.randomUUID()
+        const welcome = [
+          '// Welcome to notes.js!',
+          '// A lightweight code editor that lives in your browser.',
+          '//',
+          '// Your files are saved automatically — no account needed.',
+          '// Sign in to sync across devices and unlock more features.',
+          '',
+          'function greet(name) {',
+          "  console.log(`Welcome to notes.js, ${name}!`);",
+          '}',
+          '',
+          "greet('world');",
+        ].join('\n')
+        openGuestTab(id, 'welcome.js', welcome)
+        await saveGuestTab(id, 'welcome.js', welcome).catch(console.error)
+        setUsedBytes(new TextEncoder().encode(welcome).length)
         return
       }
       let total = 0
@@ -102,8 +119,10 @@ export default function EditorPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGuest])
 
-  // ── Ensure at least one tab exists on mount ────────────────────────────────
+  // ── Ensure at least one tab exists on mount — auth mode only ──────────────
+  // Guest mode is handled by the hydration effect below.
   useEffect(() => {
+    if (isGuest) return
     if (tabs.length === 0) {
       createDefaultTab()
     }
@@ -277,9 +296,9 @@ export default function EditorPage() {
       {isGuest ? (
         <LiteBar
           activeTabId={activeTabId}
+          activeFilename={filename}
           onNewTab={handleNewTab}
           onOpenFile={handleTriggerOpenFile}
-          onDownload={handleDownloadActive}
           onFormat={() => { /* TODO: CM6 format */ }}
           usedBytes={usedBytes}
         />

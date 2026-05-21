@@ -191,6 +191,20 @@ const MULTI: Record<string, ReactNode> = {
       <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" />
     </>
   ),
+  'hard-drive': (
+    <>
+      <rect x="2" y="7" width="20" height="14" rx="2" />
+      <path d="M2 12h20" />
+      <circle cx="7" cy="17" r="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  'cloud-upload': (
+    <>
+      <path d="M7 18a4.5 4.5 0 0 1-.5-9 6 6 0 0 1 11.7 1A3.8 3.8 0 0 1 17 18z" />
+      <path d="m9 14 3-3 3 3" />
+      <path d="M12 11v6" />
+    </>
+  ),
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────

@@ -9,6 +9,16 @@ import { useFileStore } from '@/store/fileStore'
 /** Debounce delay (ms) before an auto-save fires after the last keystroke. */
 const DEBOUNCE_MS = 1500
 
+// Module-level singleton — always points to the currently mounted EditorView.
+// There is only ever one active view in this app, so a singleton is safe and
+// avoids threading the view instance through props.
+let _activeView: EditorView | null = null
+
+/** Returns the live EditorView instance, or null if no editor is mounted. */
+export function getActiveEditorView(): EditorView | null {
+  return _activeView
+}
+
 /**
  * Manages a single CodeMirror 6 `EditorView` bound to the given container.
  *
@@ -119,6 +129,7 @@ export function useEditorView(
 
     viewRef.current = view
     prevTabIdRef.current = tabId
+    _activeView = view
 
     return () => {
       // Clear any pending auto-save to avoid post-unmount network calls.
@@ -130,6 +141,7 @@ export function useEditorView(
       // MANDATORY: destroy the EditorView to release DOM listeners.
       view.destroy()
       viewRef.current = null
+      _activeView = null
     }
     // Intentionally only run on mount/unmount.
     // tabId, language, and isDark changes are handled in their own effects below.
