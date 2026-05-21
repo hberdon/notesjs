@@ -2,9 +2,7 @@
 // Design reference: design/design_handoff_notesjs_v3/README.md § J — Ver
 
 import { useState } from 'react'
-import { useThemeStore } from '@/store/themeStore'
 import { useUIStore } from '@/store/uiStore'
-import type { Theme } from '@/shared/types'
 import { MenuSheet, MSection, MDivider } from './MenuPrimitives'
 import { N2G } from '@/shared/components/N2G'
 
@@ -12,72 +10,15 @@ import { N2G } from '@/shared/components/N2G'
 // ── VerSheet ──────────────────────────────────────────────────────────────────
 
 export function VerSheet({ left }: { left: number }) {
-  const theme    = useThemeStore((s) => s.theme)
-  const setTheme = useThemeStore((s) => s.setTheme)
-
-  const editorSettings     = useUIStore((s) => s.editorSettings)
+  const editorSettings       = useUIStore((s) => s.editorSettings)
   const updateEditorSettings = useUIStore((s) => s.updateEditorSettings)
 
   const { showLineNumbers, wrap, fontSize } = editorSettings
 
-  // Local minimap state — not yet in editorSettings
-  // We keep it local for now; extend EditorSettings later if needed
-  // (declared with _ prefix to satisfy noUnusedLocals is not possible here,
-  // so we just use a normal state pair)
   const [minimap, setMinimap] = useState(false)
 
   return (
     <MenuSheet width="17.857rem" left={left}>
-      {/* Tema */}
-      <MSection label="Tema">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.429rem', padding: '0.143rem 0.571rem 0.286rem' }}>
-          {[
-            { id: 'light' as Theme, label: 'Claro',  bg: '#ffffff',      dot: '#10b981' },
-            { id: 'dark'  as Theme, label: 'Oscuro', bg: '#0f172a',      dot: '#34d399' },
-            { id: 'auto'  as Theme, label: 'Auto',   bg: 'linear-gradient(135deg,#ffffff 0%,#ffffff 50%,#0f172a 50%,#0f172a 100%)', dot: '#10b981' },
-          ].map((t) => {
-            const isActive = theme === t.id
-            return (
-              <div
-                key={t.id}
-                onClick={() => setTheme(t.id)}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.214rem', cursor: 'pointer' }}
-              >
-                {/* Preview box */}
-                <div
-                  style={{
-                    width: '100%',
-                    height: '2.286rem',
-                    borderRadius: '0.286rem',
-                    border: `${isActive ? 2 : 1}px solid ${isActive ? '#10b981' : '#e5e7eb'}`,
-                    background: t.bg,
-                    position: 'relative',
-                    flexShrink: 0,
-                  }}
-                >
-                  <span style={{
-                    position: 'absolute', right: '0.214rem', bottom: '0.214rem',
-                    width: '0.357rem', height: '0.357rem', borderRadius: '50%',
-                    background: t.dot,
-                  }} />
-                </div>
-                {/* Label */}
-                <span style={{
-                  fontFamily: 'var(--font-ui)',
-                  fontSize: '0.786rem',
-                  fontWeight: isActive ? 700 : 500,
-                  color: isActive ? '#111827' : '#374151',
-                }}>
-                  {t.label}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-      </MSection>
-
-      <MDivider />
-
       {/* Editor toggles */}
       <MSection label="Editor">
         <ToggleRow
