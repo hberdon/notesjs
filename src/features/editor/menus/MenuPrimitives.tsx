@@ -61,7 +61,7 @@ export function MItem({
         if (!disabled) {
           (e.currentTarget as HTMLButtonElement).style.background = on
             ? 'var(--accentSoft)'
-            : '#f7f7f9'
+            : 'var(--chrome)'
         }
       }}
       onMouseLeave={(e) => {
@@ -95,7 +95,7 @@ export function MItem({
             style={{
               fontSize:   '0.75rem',
               fontWeight: 400,
-              color:      '#9ca3af',
+              color:      'var(--muted)',
               lineHeight: 1,
               whiteSpace: 'nowrap',
               overflow:   'hidden',
@@ -114,7 +114,7 @@ export function MItem({
             fontFamily:   'var(--font-mono)',
             fontSize:     '0.786rem',
             fontWeight:   400,
-            color:        '#9ca3af',
+            color:        'var(--muted)',
             whiteSpace:   'nowrap',
             flexShrink:   0,
           }}
@@ -145,7 +145,7 @@ export function MSection({ label, children }: MSectionProps) {
             fontWeight:    700,
             letterSpacing: '0.8px',
             textTransform: 'uppercase',
-            color:         '#9ca3af',
+            color:         'var(--muted)',
             lineHeight:    1,
           }}
         >
@@ -164,7 +164,7 @@ export function MDivider() {
     <div
       style={{
         height:     '1px',
-        background: '#f3f4f6',
+        background: 'var(--border)',
         margin:     '0.286rem 0.714rem',
         flexShrink: 0,
       }}
@@ -263,7 +263,7 @@ export function MenuSheet({ width, left, children }: MenuSheetProps) {
         top:          '100%',
         left,
         width,
-        background:   '#ffffff',
+        background:   'var(--bg)',
         borderTop:    '2px solid #10b981',
         borderRadius: '0 0.429rem 0.429rem 0.429rem',
         boxShadow:    '0 10px 24px -8px rgba(15,23,42,0.22), 0 2px 4px rgba(15,23,42,0.05)',

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { N2G } from '@/shared/components/N2G'
 import { formatBytes } from '@/shared/utils'
 import { GUEST_MAX_BYTES } from '@/lib/guestDb'
@@ -67,8 +66,6 @@ export default function LiteBar({
   onFormat,
   usedBytes,
 }: LiteBarProps) {
-  const navigate = useNavigate()
-  const [ctaHovered, setCtaHovered] = useState(false)
 
   function handleDownload() {
     if (!activeTabId) return
@@ -142,36 +139,6 @@ export default function LiteBar({
           </span>
         )}
 
-        {/* Divider */}
-        <div style={{ width: 1, height: '1rem', background: 'var(--border)', flexShrink: 0 }} />
-
-        {/* Cloud CTA */}
-        <button
-          type="button"
-          onClick={() => navigate('/login')}
-          onMouseEnter={() => setCtaHovered(true)}
-          onMouseLeave={() => setCtaHovered(false)}
-          style={{
-            display:      'inline-flex',
-            alignItems:   'center',
-            gap:          '0.286rem',
-            padding:      '0.25rem 0.714rem',
-            background:   ctaHovered ? '#d1fae5' : 'var(--accentSoft)',
-            border:       '1px solid var(--accentBorder)',
-            borderRadius: 'var(--r-pill)',
-            cursor:       'pointer',
-            fontSize:     '0.786rem',
-            fontWeight:   700,
-            color:        'var(--accentDeep)',
-            fontFamily:   'var(--font-ui)',
-            whiteSpace:   'nowrap',
-            transition:   'background 120ms',
-            lineHeight:   1,
-          }}
-        >
-          <N2G name="cloud-up" size={12} stroke={2} color="var(--accentDeep)" />
-          Guardar en la nube
-        </button>
       </div>
     </div>
   )

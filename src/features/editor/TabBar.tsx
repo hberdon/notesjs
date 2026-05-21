@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/features/auth/authStore'
-import { useThemeStore } from '@/store/themeStore'
+import { useThemeStore, getEffectiveTheme } from '@/store/themeStore'
 import { useAuth } from '@/features/auth/useAuth'
 import { FormatPill } from '@/shared/components/FormatPill'
 import { N2G } from '@/shared/components/N2G'
@@ -231,6 +231,48 @@ function SectionLabel({ children }: { children: ReactNode }) {
     >
       {children}
     </div>
+  )
+}
+
+// ── ThemeToggleButton ─────────────────────────────────────────────────────────
+
+function ThemeToggleButton() {
+  const theme    = useThemeStore((s) => s.theme)
+  const setTheme = useThemeStore((s) => s.setTheme)
+  const [hovered, setHovered] = useState(false)
+
+  const isDark   = getEffectiveTheme(theme) === 'dark'
+  const icon     = isDark ? 'sun' : 'moon'
+  const title    = isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'
+
+  function toggle() {
+    setTheme(isDark ? 'light' : 'dark')
+  }
+
+  return (
+    <button
+      type="button"
+      title={title}
+      onClick={toggle}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display:      'inline-flex',
+        alignItems:   'center',
+        justifyContent: 'center',
+        width:        '1.714rem',
+        height:       '1.714rem',
+        background:   hovered ? 'var(--chrome)' : 'transparent',
+        border:       '1px solid var(--border)',
+        borderRadius: 'var(--r-md)',
+        cursor:       'pointer',
+        color:        'var(--ink3)',
+        transition:   'background 120ms',
+        flexShrink:   0,
+      }}
+    >
+      <N2G name={icon} size={13} color={hovered ? 'var(--ink)' : 'var(--ink3)'} />
+    </button>
   )
 }
 
@@ -544,7 +586,10 @@ export default function TabBar({
         }}
       >
         {isGuest ? (
-          <GuestLoginButton />
+          <>
+            <ThemeToggleButton />
+            <GuestLoginButton />
+          </>
         ) : (
           <>
             {email && (
