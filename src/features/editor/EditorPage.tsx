@@ -1,9 +1,11 @@
-import { useEffect, useRef } from 'react'
-import { useTabStore } from '@/store/tabStore'
+import { useEffect, useRef, useState } from 'react'
+import { useTabStore, getLocalContent } from '@/store/tabStore'
 import { useThemeStore, getEffectiveTheme } from '@/store/themeStore'
 import { useFileStore } from '@/store/fileStore'
 import { useUIStore } from '@/store/uiStore'
+import { useAuthStore } from '@/features/auth/authStore'
 import { generateId } from '@/shared/utils'
+import { loadGuestTabs, saveGuestTab, deleteGuestTab } from '@/lib/guestDb'
 import type { Tab } from '@/shared/types'
 import TabBar from './TabBar'
 import { MenuStrip } from './MenuStrip'
@@ -11,6 +13,7 @@ import { EditorHeader } from './EditorHeader'
 import { RightPanel } from './RightPanel'
 import { StatusBar } from './StatusBar'
 import EditorPanel from './EditorPanel'
+import LiteBar from './LiteBar'
 
 /**
  * Root editor page — V3 layout orchestrator.
@@ -44,13 +47,20 @@ function panelTypeForLanguage(language: string): 'tree' | 'preview' {
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export default function EditorPage() {
+  // ── Auth store ─────────────────────────────────────────────────────────────
+  const isGuest = useAuthStore((s) => s.isGuest)
+
   // ── Tab store ──────────────────────────────────────────────────────────────
-  const tabs         = useTabStore((s) => s.tabs)
-  const activeTabId  = useTabStore((s) => s.activeTabId)
-  const addTabRaw    = useTabStore((s) => s.addTab)
-  const removeTab    = useTabStore((s) => s.removeTab)
-  const setActiveTab = useTabStore((s) => s.setActiveTab)
+  const tabs           = useTabStore((s) => s.tabs)
+  const activeTabId    = useTabStore((s) => s.activeTabId)
+  const addTabRaw      = useTabStore((s) => s.addTab)
+  const removeTab      = useTabStore((s) => s.removeTab)
+  const setActiveTab   = useTabStore((s) => s.setActiveTab)
   const getEditorState = useTabStore((s) => s.getEditorState)
+  const openGuestTab   = useTabStore((s) => s.openGuestTab)
+
+  // Storage usage indicator for LiteBar
+  const [usedBytes, setUsedBytes] = useState(0)
 
   // ── UI store ───────────────────────────────────────────────────────────────
   const openMenuId      = useUIStore((s) => s.openMenuId)
@@ -67,10 +77,30 @@ export default function EditorPage() {
   const fetchFiles   = useFileStore((s) => s.fetchFiles)
   const createFile   = useFileStore((s) => s.createFile)
 
-  // ── Fetch files on mount ───────────────────────────────────────────────────
+  // ── Fetch files on mount (auth only) ──────────────────────────────────────
   useEffect(() => {
-    fetchFiles()
-  }, [fetchFiles])
+    if (!isGuest) fetchFiles()
+  }, [fetchFiles, isGuest])
+
+  // ── Hydrate guest tabs from IndexedDB ──────────────────────────────────────
+  useEffect(() => {
+    if (!isGuest) return
+    async function hydrate() {
+      const records = await loadGuestTabs()
+      if (records.length === 0) {
+        createDefaultTab()
+        return
+      }
+      let total = 0
+      for (const rec of records) {
+        openGuestTab(rec.id, rec.filename, rec.content)
+        total += new TextEncoder().encode(rec.content).length
+      }
+      setUsedBytes(total)
+    }
+    hydrate().catch(console.error)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isGuest])
 
   // ── Ensure at least one tab exists on mount ────────────────────────────────
   useEffect(() => {
@@ -105,8 +135,44 @@ export default function EditorPage() {
     setActiveTab(id)
   }
 
-  function handleCloseTab(id: string) {
+  async function handleCloseTab(id: string) {
     removeTab(id)
+    if (isGuest) {
+      await deleteGuestTab(id).catch(console.error)
+      const records = await loadGuestTabs()
+      setUsedBytes(
+        records.reduce((sum, r) => sum + new TextEncoder().encode(r.content).length, 0),
+      )
+    }
+  }
+
+  function handleDownloadActive() {
+    if (!activeTabId) return
+    const content =
+      getEditorState(activeTabId)?.doc.toString() ??
+      getLocalContent(activeTabId) ??
+      ''
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = filename
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  async function handleGuestSave(tabId: string, content: string) {
+    try {
+      const tab = tabs.find((t) => t.id === tabId)
+      if (!tab) return
+      await saveGuestTab(tabId, tab.filename, content)
+      const records = await loadGuestTabs()
+      setUsedBytes(
+        records.reduce((sum, r) => sum + new TextEncoder().encode(r.content).length, 0),
+      )
+    } catch (err) {
+      console.error('[EditorPage] guest save failed:', err)
+    }
   }
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -204,20 +270,32 @@ export default function EditorPage() {
         onSelectTab={handleSelectTab}
         onCloseTab={handleCloseTab}
         onNewTab={handleNewTab}
+        isGuest={isGuest}
       />
 
-      {/* ── MenuStrip — never dimmed ── */}
-      <MenuStrip
-        saveStatus="saved"
-        activeTabId={activeTabId}
-        onNewTab={handleNewFileFromArchivo}
-        onOpenFile={handleTriggerOpenFile}
-        onRenameTab={() => { /* TODO: rename flow */ }}
-        onDeleteTab={() => { if (activeTabId) handleCloseTab(activeTabId) }}
-        onFormat={() => { /* TODO: CM6 format */ }}
-        onMinify={() => { /* TODO: CM6 minify */ }}
-        fileId={activeTab?.fileId ?? null}
-      />
+      {/* ── Menu bar row — LiteBar for guests, MenuStrip for auth ── */}
+      {isGuest ? (
+        <LiteBar
+          activeTabId={activeTabId}
+          onNewTab={handleNewTab}
+          onOpenFile={handleTriggerOpenFile}
+          onDownload={handleDownloadActive}
+          onFormat={() => { /* TODO: CM6 format */ }}
+          usedBytes={usedBytes}
+        />
+      ) : (
+        <MenuStrip
+          saveStatus="saved"
+          activeTabId={activeTabId}
+          onNewTab={handleNewFileFromArchivo}
+          onOpenFile={handleTriggerOpenFile}
+          onRenameTab={() => { /* TODO: rename flow */ }}
+          onDeleteTab={() => { if (activeTabId) handleCloseTab(activeTabId) }}
+          onFormat={() => { /* TODO: CM6 format */ }}
+          onMinify={() => { /* TODO: CM6 minify */ }}
+          fileId={activeTab?.fileId ?? null}
+        />
+      )}
 
       {/* ── Area below MenuStrip — dims when a menu is open ── */}
       <div
@@ -246,6 +324,7 @@ export default function EditorPage() {
                 fileId={activeTab?.fileId ?? null}
                 language={language}
                 isDark={isDark}
+                onGuestSave={isGuest ? handleGuestSave : undefined}
               />
             )}
           </div>

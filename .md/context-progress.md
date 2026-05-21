@@ -5,8 +5,8 @@ last_session: 2026-05-20
 active_phase: "Phase 7 — V3 UI Polish"
 phases_done: 6
 phases_total: 7
-tasks_this_session: 15
-tasks_total_done: 18
+tasks_this_session: 23
+tasks_total_done: 26
 velocity_last_5: [3, 15]
 blockers_count: 0
 session_count: 2
@@ -18,9 +18,9 @@ session_count: 2
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  🏗️  CURRENT PHASE: V3 UI Polish                                │
-│  █████████████████████░  95%                                    │
-│  📅 Start: 2026-05-19  •  ⏱️  Day 2                             │
-│  📌 Tasks: 15/15 completados esta sesión  •  🔒 0 blocked       │
+│  ██████████████████████░  98%                                   │
+│  📅 Start: 2026-05-19  •  ⏱️  Day 3                             │
+│  📌 Tasks: 23/23 completados esta sesión  •  🔒 0 blocked       │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -34,7 +34,7 @@ session_count: 2
 | 4. Auth | ✅ Done | 2026-05-18 | ██████████ 100% |
 | 5. Router + Stores | ✅ Done | 2026-05-18 | ██████████ 100% |
 | 6. V3 Layout + Components | ✅ Done | 2026-05-19 | ██████████ 100% |
-| 7. V3 UI Polish | 🔄 In progress | 2026-05-19 | █████████░ 95% |
+| 7. V3 UI Polish | 🔄 In progress | 2026-05-19 | █████████░ 98% |
 
 ## Tasks this session
 
@@ -54,6 +54,13 @@ session_count: 2
 - [x] Tab inactiva: estilo disabled (`background: #f3f4f6`, `opacity: 0.7`, `color: #6b7280`)
 - [x] Fix separador TabBar/MenuStrip no full-width → movido a `borderTop` del MenuStrip
 - [x] Hover rojo en botón cerrar tab (`background: #fee2e2`, `color: #dc2626`)
+- [x] Lite mode (guest): `src/lib/guestDb.ts` — capa IndexedDB completa con `idb` (5MB/archivo)
+- [x] Lite mode: `tabStore.openGuestTab` — hydration con ID estable desde IDB
+- [x] Lite mode: `LiteBar.tsx` — barra horizontal con Nuevo, Abrir, Descargar, Formatear + storage indicator + CTA "Guardar en la nube"
+- [x] Lite mode: `useEditorView` — guest auto-save path via `onGuestSave` callback + refs para evitar stale closures
+- [x] Lite mode: `EditorPanel` — thread prop `onGuestSave`
+- [x] Lite mode: `TabBar` — prop `isGuest`, right zone simplificado con `GuestLoginButton`
+- [x] Lite mode: `EditorPage` — orquestación completa: hydration IDB, render LiteBar/MenuStrip condicional, handlers download + guest save + close cleanup
 
 ### 🔒 Blocked
 — none

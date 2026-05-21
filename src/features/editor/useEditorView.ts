@@ -36,6 +36,7 @@ export function useEditorView(
   fileId: string | null,
   language: string,
   isDark: boolean,
+  onGuestSave?: (tabId: string, content: string) => void,
 ) {
   // ── Stable refs ───────────────────────────────────────────────────────────
 
@@ -49,6 +50,16 @@ export function useEditorView(
 
   // Debounce timer reference — cleared on unmount to prevent post-unmount saves.
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Refs to keep the latest tabId and onGuestSave in the mount-effect closure
+  // without triggering a full view remount. The mount effect runs only once
+  // (deps=[]), so without refs these values would be stale after the first
+  // tab switch or prop change.
+  const tabIdRef = useRef(tabId)
+  useEffect(() => { tabIdRef.current = tabId }, [tabId])
+
+  const onGuestSaveRef = useRef(onGuestSave)
+  useEffect(() => { onGuestSaveRef.current = onGuestSave }, [onGuestSave])
 
   // ── Store accessors ───────────────────────────────────────────────────────
 
@@ -81,7 +92,16 @@ export function useEditorView(
         clearTimeout(saveTimerRef.current)
       }
 
-      if (fileId === null) return
+      if (fileId === null) {
+        // Guest path — fileId is always null for local/guest tabs
+        if (onGuestSaveRef.current && tabIdRef.current) {
+          saveTimerRef.current = setTimeout(() => {
+            const content = update.state.doc.toString()
+            onGuestSaveRef.current?.(tabIdRef.current!, content)
+          }, DEBOUNCE_MS)
+        }
+        return
+      }
 
       saveTimerRef.current = setTimeout(() => {
         const content = update.state.doc.toString()

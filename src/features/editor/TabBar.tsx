@@ -234,14 +234,50 @@ function SectionLabel({ children }: { children: ReactNode }) {
   )
 }
 
+// ── GuestLoginButton ──────────────────────────────────────────────────────────
+
+function GuestLoginButton() {
+  const navigate = useNavigate()
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <button
+      type="button"
+      onClick={() => navigate('/login')}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display:      'inline-flex',
+        alignItems:   'center',
+        gap:          '0.286rem',
+        padding:      '0.286rem 0.714rem',
+        background:   hovered ? 'var(--accentSoft)' : 'transparent',
+        border:       '1px solid var(--accentBorder)',
+        borderRadius: 'var(--r-pill)',
+        cursor:       'pointer',
+        fontSize:     '0.821rem',
+        fontWeight:   700,
+        color:        'var(--accentDeep)',
+        fontFamily:   'var(--font-ui)',
+        whiteSpace:   'nowrap',
+        transition:   'background 120ms',
+        lineHeight:   1,
+      }}
+    >
+      Iniciar sesión →
+    </button>
+  )
+}
+
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface TabBarProps {
-  tabs: Tab[]
+  tabs:        Tab[]
   activeTabId: string | null
   onSelectTab: (id: string) => void
-  onCloseTab: (id: string) => void
-  onNewTab: () => void
+  onCloseTab:  (id: string) => void
+  onNewTab:    () => void
+  isGuest?:    boolean
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -252,6 +288,7 @@ export default function TabBar({
   onSelectTab,
   onCloseTab,
   onNewTab,
+  isGuest = false,
 }: TabBarProps) {
   const user  = useAuthStore((s) => s.user)
   const [hoveredTabId,   setHoveredTabId]   = useState<string | null>(null)
@@ -262,8 +299,9 @@ export default function TabBar({
   const initials = getInitials(email)
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined
 
-  // Close on click outside
+  // Close avatar menu on click outside — only relevant in auth mode
   useEffect(() => {
+    if (isGuest) return
     if (!avatarMenuOpen) return
     function handleMouseDown(e: MouseEvent) {
       if (rightZoneRef.current && !rightZoneRef.current.contains(e.target as Node)) {
@@ -272,7 +310,7 @@ export default function TabBar({
     }
     document.addEventListener('mousedown', handleMouseDown)
     return () => document.removeEventListener('mousedown', handleMouseDown)
-  }, [avatarMenuOpen])
+  }, [isGuest, avatarMenuOpen])
 
   return (
     <div
@@ -505,59 +543,65 @@ export default function TabBar({
           position:   'relative',
         }}
       >
-        {email && (
-          <span
-            style={{
-              fontSize:   '0.821rem',
-              color:      '#6b7280',
-              whiteSpace: 'nowrap',
-              userSelect: 'none',
-            }}
-          >
-            {email}
-          </span>
-        )}
+        {isGuest ? (
+          <GuestLoginButton />
+        ) : (
+          <>
+            {email && (
+              <span
+                style={{
+                  fontSize:   '0.821rem',
+                  color:      '#6b7280',
+                  whiteSpace: 'nowrap',
+                  userSelect: 'none',
+                }}
+              >
+                {email}
+              </span>
+            )}
 
-        {/* Avatar — clickable */}
-        <button
-          type="button"
-          aria-label="Menú de cuenta"
-          onClick={() => setAvatarMenuOpen((v) => !v)}
-          style={{
-            width:        '1.429rem',
-            height:       '1.429rem',
-            borderRadius: '0.714rem',
-            background:   'linear-gradient(135deg, #10b981, #047857)',
-            border:       avatarMenuOpen ? '2px solid #10b981' : '2px solid transparent',
-            padding:      0,
-            cursor:       'pointer',
-            flexShrink:   0,
-            overflow:     'hidden',
-            display:      'flex',
-            alignItems:   'center',
-            justifyContent: 'center',
-            transition:   'border-color 120ms',
-          }}
-        >
-          {avatarUrl ? (
-            <img src={avatarUrl} alt={email ?? 'Usuario'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          ) : (
-            <span
+            {/* Avatar — clickable */}
+            <button
+              type="button"
+              aria-label="Menú de cuenta"
+              onClick={() => setAvatarMenuOpen((v) => !v)}
               style={{
-                fontSize:   '0.643rem',
-                fontWeight: 700,
-                color:      'white',
-                userSelect: 'none',
-                lineHeight: 1,
+                width:        '1.429rem',
+                height:       '1.429rem',
+                borderRadius: '0.714rem',
+                background:   'linear-gradient(135deg, #10b981, #047857)',
+                border:       avatarMenuOpen ? '2px solid #10b981' : '2px solid transparent',
+                padding:      0,
+                cursor:       'pointer',
+                flexShrink:   0,
+                overflow:     'hidden',
+                display:      'flex',
+                alignItems:   'center',
+                justifyContent: 'center',
+                transition:   'border-color 120ms',
               }}
             >
-              {initials}
-            </span>
-          )}
-        </button>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={email ?? 'Usuario'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span
+                  style={{
+                    fontSize:   '0.643rem',
+                    fontWeight: 700,
+                    color:      'white',
+                    userSelect: 'none',
+                    lineHeight: 1,
+                  }}
+                >
+                  {initials}
+                </span>
+              )}
+            </button>
 
-        {/* Dropdown */}
-        <AvatarMenu open={avatarMenuOpen} onClose={() => setAvatarMenuOpen(false)} />
+            {/* Dropdown */}
+            <AvatarMenu open={avatarMenuOpen} onClose={() => setAvatarMenuOpen(false)} />
+          </>
+        )}
       </div>
     </div>
   )

@@ -35,6 +35,9 @@ interface TabStore {
 
   /** Open a local file (not yet persisted) with pre-loaded content. */
   openLocalTab: (filename: string, content: string) => void
+
+  /** Open a local tab with a caller-provided stable ID. Used for IndexedDB guest hydration. */
+  openGuestTab: (id: string, filename: string, content: string) => void
 }
 
 export const useTabStore = create<TabStore>((set, get) => ({
@@ -101,6 +104,18 @@ export const useTabStore = create<TabStore>((set, get) => ({
 
   openLocalTab(filename, content) {
     const id = crypto.randomUUID()
+    localContentMap.set(id, content)
+    const newTab: Tab = {
+      id,
+      fileId: null,
+      filename,
+      language: detectLanguage(filename),
+      isDirty: false,
+    }
+    set((state) => ({ tabs: [...state.tabs, newTab], activeTabId: id }))
+  },
+
+  openGuestTab(id, filename, content) {
     localContentMap.set(id, content)
     const newTab: Tab = {
       id,
