@@ -62,6 +62,12 @@ export default function EditorPage() {
   // Storage usage indicator for LiteBar
   const [usedBytes, setUsedBytes] = useState(0)
 
+  // Gate that prevents EditorPanel from mounting before guest hydration completes.
+  // If EditorPanel mounts first, useEditorView creates a CM6 view with stale
+  // localContentMap content before the hydration effect can refresh it from IDB.
+  // Auth users are always ready; guests wait for the hydration effect to finish.
+  const [hydratedGuest, setHydratedGuest] = useState(!isGuest)
+
   // ── UI store ───────────────────────────────────────────────────────────────
   const openMenuId      = useUIStore((s) => s.openMenuId)
   const closeMenu       = useUIStore((s) => s.closeMenu)
@@ -87,13 +93,21 @@ export default function EditorPage() {
   // check if it's already in the store (happens when the effect re-fires without
   // an unmount clearing the Zustand state).
   useEffect(() => {
-    if (!isGuest) return
+    if (!isGuest) {
+      setHydratedGuest(true)
+      return
+    }
+    // Block EditorPanel from mounting until localContentMap is refreshed from IDB.
+    setHydratedGuest(false)
     async function hydrate() {
       const records = await loadGuestTabs()
 
       if (records.length === 0) {
         // First guest entry — only create welcome.js if no tab exists yet
-        if (useTabStore.getState().tabs.length > 0) return
+        if (useTabStore.getState().tabs.length > 0) {
+          setHydratedGuest(true)
+          return
+        }
         const id      = crypto.randomUUID()
         const welcome = [
           '// Welcome to notes.js!',
@@ -111,6 +125,7 @@ export default function EditorPage() {
         openGuestTab(id, 'welcome.js', welcome)
         await saveGuestTab(id, 'welcome.js', welcome).catch(console.error)
         setUsedBytes(new TextEncoder().encode(welcome).length)
+        setHydratedGuest(true)
         return
       }
 
@@ -122,6 +137,7 @@ export default function EditorPage() {
         total += new TextEncoder().encode(rec.content).length
       }
       setUsedBytes(total)
+      setHydratedGuest(true)
     }
     hydrate().catch(console.error)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -345,7 +361,7 @@ export default function EditorPage() {
           }}
         >
           <div style={{ flex: 1, overflow: 'hidden' }}>
-            {activeTabId !== null && (
+            {activeTabId !== null && hydratedGuest && (
               <EditorPanel
                 tabId={activeTabId}
                 fileId={activeTab?.fileId ?? null}
