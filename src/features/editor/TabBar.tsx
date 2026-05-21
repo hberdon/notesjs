@@ -76,13 +76,33 @@ function AvatarMenu({ open, onClose }: AvatarMenuProps) {
         userSelect: 'none',
       }}
     >
-      {/* ── Header: name + email ── */}
+      {/* ── Header: name + email + plan chip ── */}
       <div style={{ padding: '0.714rem 0.857rem 0.643rem' }}>
         <div style={{ fontSize: '0.893rem', fontWeight: 700, color: 'var(--ink)', lineHeight: 1.3, fontFamily: 'var(--font-ui)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {fullName}
         </div>
-        <div style={{ fontSize: '0.786rem', color: 'var(--ink3)', lineHeight: 1.3, fontFamily: 'var(--font-ui)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {email}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.429rem', marginTop: '0.143rem' }}>
+          <span style={{ fontSize: '0.786rem', color: 'var(--ink3)', lineHeight: 1.3, fontFamily: 'var(--font-ui)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0 }}>
+            {email}
+          </span>
+          <span
+            style={{
+              fontSize:      '0.607rem',
+              fontWeight:    700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.4px',
+              color:         'var(--muted)',
+              border:        '1px solid var(--borderD)',
+              borderRadius:  999,
+              padding:       '1px 0.357rem',
+              lineHeight:    1.4,
+              userSelect:    'none',
+              flexShrink:    0,
+              fontFamily:    'var(--font-ui)',
+            }}
+          >
+            FREE
+          </span>
         </div>
       </div>
 
@@ -234,16 +254,36 @@ function SectionLabel({ children }: { children: ReactNode }) {
   )
 }
 
+// ── Theme SVG icons ───────────────────────────────────────────────────────────
+
+function SunIcon({ color }: { color: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke={color} width="16" height="16" style={{ flexShrink: 0 }}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+    </svg>
+  )
+}
+
+function MoonIcon({ color }: { color: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" width="16" height="16" style={{ flexShrink: 0, color }}>
+      <path fillRule="evenodd" clipRule="evenodd" d="M17.715 15.15A6.5 6.5 0 0 1 9 6.035C6.106 6.922 4 9.645 4 12.867c0 3.94 3.153 7.136 7.042 7.136 3.101 0 5.734-2.032 6.673-4.853Z" fill="currentColor" opacity="0.2" />
+      <path d="m17.715 15.15.95.316a1 1 0 0 0-1.445-1.185l.495.869ZM9 6.035l.846.534a1 1 0 0 0-1.14-1.49L9 6.035Zm8.221 8.246a5.47 5.47 0 0 1-2.72.718v2a7.47 7.47 0 0 0 3.71-.98l-.99-1.738Zm-2.72.718A5.5 5.5 0 0 1 9 9.5H7a7.5 7.5 0 0 0 7.5 7.5v-2ZM9 9.5c0-1.079.31-2.082.845-2.93L8.153 5.5A7.47 7.47 0 0 0 7 9.5h2Zm-4 3.368C5 10.089 6.815 7.75 9.292 6.99L8.706 5.08C5.397 6.094 3 9.201 3 12.867h2Zm6.042 6.136C7.718 19.003 5 16.268 5 12.867H3c0 4.48 3.588 8.136 8.042 8.136v-2Zm5.725-4.17c-.81 2.433-3.074 4.17-5.725 4.17v2c3.552 0 6.553-2.327 7.622-5.537l-1.897-.632Z" fill="currentColor" />
+      <path fillRule="evenodd" clipRule="evenodd" d="M17 3a1 1 0 0 1 1 1 2 2 0 0 0 2 2 1 1 0 1 1 0 2 2 2 0 0 0-2 2 1 1 0 1 1-2 0 2 2 0 0 0-2-2 1 1 0 1 1 0-2 2 2 0 0 0 2-2 1 1 0 0 1 1-1Z" fill="currentColor" />
+    </svg>
+  )
+}
+
 // ── ThemeToggleButton ─────────────────────────────────────────────────────────
 
 function ThemeToggleButton() {
-  const theme    = useThemeStore((s) => s.theme)
+  const theme = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
   const [hovered, setHovered] = useState(false)
 
-  const isDark   = getEffectiveTheme(theme) === 'dark'
-  const icon     = isDark ? 'sun' : 'moon'
-  const title    = isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'
+  const isDark = getEffectiveTheme(theme) === 'dark'
+  const title = isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'
+  const iconColor = hovered ? 'var(--accent)' : 'var(--ink3)'
 
   function toggle() {
     setTheme(isDark ? 'light' : 'dark')
@@ -257,21 +297,23 @@ function ThemeToggleButton() {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        display:      'inline-flex',
-        alignItems:   'center',
+        display: 'inline-flex',
+        alignItems: 'center',
         justifyContent: 'center',
-        width:        '1.714rem',
-        height:       '1.714rem',
-        background:   hovered ? 'var(--chrome)' : 'transparent',
-        border:       '1px solid var(--border)',
-        borderRadius: 'var(--r-md)',
-        cursor:       'pointer',
-        color:        'var(--ink3)',
-        transition:   'background 120ms',
-        flexShrink:   0,
+        width: '1.714rem',
+        height: '1.714rem',
+        background: hovered ? 'var(--chrome)' : 'transparent',
+        border: '0px solid var(--border)',
+        borderRadius: '20px',
+        cursor: 'pointer',
+        transition: 'background 120ms',
+        flexShrink: 0,
       }}
     >
-      <N2G name={icon} size={13} color={hovered ? 'var(--ink)' : 'var(--ink3)'} />
+      {isDark
+        ? <SunIcon color={iconColor} />
+        : <MoonIcon color={iconColor} />
+      }
     </button>
   )
 }
@@ -367,12 +409,11 @@ export default function TabBar({
         position: 'relative',
       }}
     >
-      {/* ── Left zone: logo + plan chip ── */}
+      {/* ── Left zone: logo ── */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '0.571rem',
           flexShrink: 0,
           padding: '0 0.857rem',
           height: '2.143rem',
@@ -380,29 +421,8 @@ export default function TabBar({
           borderRight: '1px solid var(--border)',
         }}
       >
-        {/* App name */}
         <span style={{ fontSize: '1.143rem', fontWeight: 800, letterSpacing: -0.4, color: 'var(--ink)', lineHeight: 1, whiteSpace: 'nowrap', userSelect: 'none' }}>
           notes<span style={{ color: '#10b981' }}>.js</span>
-        </span>
-
-        {/* Plan chip */}
-        <span
-          style={{
-            fontSize: '0.5rem',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: 0.4,
-            color: 'var(--accent)',
-            background: 'transparent',
-            border: '1px solid var(--accent)',
-            borderRadius: 6,
-            padding: '1px 0.429rem',
-            lineHeight: 1,
-            userSelect: 'none',
-            marginLeft: '0.286rem',
-          }}
-        >
-          {isGuest ? 'LITE' : 'FREE'}
         </span>
       </div>
 
@@ -581,7 +601,7 @@ export default function TabBar({
           padding: '0 0.857rem',
           height: '2.143rem',
           background: 'var(--bg)',
-          borderLeft: '1px solid var(--border)',
+          borderLeft: isGuest ? 'none' : '1px solid var(--border)',
           position: 'relative',
         }}
       >
