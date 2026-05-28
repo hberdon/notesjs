@@ -68,17 +68,99 @@ CREATE POLICY "owner_all" ON public_links
 CREATE POLICY "public_read" ON public_links
   FOR SELECT USING (expires_at IS NULL OR expires_at > now());
 
--- Anyone can read a file that has at least one valid public link
+-- Anyone can read a file that has at least one valid, non-password-protected public link.
+-- Password-protected files are served exclusively via the get_shared_file() RPC.
 CREATE POLICY "public_read_via_link" ON files
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM public_links
       WHERE public_links.file_id = files.id
         AND (public_links.expires_at IS NULL OR public_links.expires_at > now())
+        AND public_links.password_hash IS NULL
     )
   );
 
+-- ── Password hashing ───────────────────────────────────────────────────────
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Auto-hash the password before storing it (bcrypt cost 8).
+-- The client sends the plain password; this trigger ensures only the hash is persisted.
+CREATE OR REPLACE FUNCTION hash_public_link_password()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.password_hash IS NOT NULL THEN
+    NEW.password_hash = crypt(NEW.password_hash, gen_salt('bf', 8));
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER public_links_hash_password
+  BEFORE INSERT ON public_links
+  FOR EACH ROW EXECUTE FUNCTION hash_public_link_password();
+
+-- ── Shared file RPC ────────────────────────────────────────────────────────
+
+-- Returns the file + link data for a given share token.
+-- Handles three cases:
+--   · token not found or expired → returns NULL
+--   · link has password but none was provided → returns { requires_password: true }
+--   · link has password and wrong password was provided → returns { wrong_password: true }
+--   · no password or correct password → returns { file: {...}, link: {...} }
+--
+-- SECURITY DEFINER: runs as the function owner, bypassing RLS on files.
+-- The password is verified with bcrypt via pgcrypto — the hash is never exposed to the client.
+CREATE OR REPLACE FUNCTION get_shared_file(p_token text, p_password text DEFAULT NULL)
+RETURNS jsonb
+SECURITY DEFINER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_link public_links%ROWTYPE;
+  v_file files%ROWTYPE;
+BEGIN
+  SELECT * INTO v_link
+  FROM public_links
+  WHERE token = p_token
+    AND (expires_at IS NULL OR expires_at > now());
+
+  IF NOT FOUND THEN
+    RETURN NULL;
+  END IF;
+
+  IF v_link.password_hash IS NOT NULL THEN
+    IF p_password IS NULL THEN
+      RETURN jsonb_build_object('requires_password', true);
+    END IF;
+    IF v_link.password_hash != crypt(p_password, v_link.password_hash) THEN
+      RETURN jsonb_build_object('wrong_password', true);
+    END IF;
+  END IF;
+
+  SELECT * INTO v_file FROM files WHERE id = v_link.file_id;
+
+  RETURN jsonb_build_object(
+    'file', jsonb_build_object(
+      'id',       v_file.id,
+      'name',     v_file.name,
+      'content',  v_file.content,
+      'language', v_file.language
+    ),
+    'link', jsonb_build_object(
+      'id',         v_link.id,
+      'token',      v_link.token,
+      'permission', v_link.permission,
+      'expires_at', v_link.expires_at
+    )
+  );
+END;
+$$;
+
 -- ── Rollback ───────────────────────────────────────────────────────────────
--- To revert: DROP TABLE IF EXISTS public_links CASCADE;
+-- To revert: DROP FUNCTION IF EXISTS get_shared_file(text, text);
+--            DROP TRIGGER IF EXISTS public_links_hash_password ON public_links;
+--            DROP FUNCTION IF EXISTS hash_public_link_password();
+--            DROP TABLE IF EXISTS public_links CASCADE;
 --            DROP TABLE IF EXISTS files CASCADE;
 --            DROP FUNCTION IF EXISTS update_updated_at();

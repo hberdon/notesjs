@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useFileStore } from '@/store/fileStore'
-import type { PublicFileResult } from '@/store/fileStore'
+import type { SharedFileResult } from '@/store/fileStore'
 
-type State = 'loading' | 'not_found' | 'expired' | 'ok'
+type PageState = 'loading' | 'not_found' | 'needs_password' | 'wrong_password' | 'ok'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('es-ES', {
@@ -22,36 +22,53 @@ function downloadFile(filename: string, content: string) {
 }
 
 export default function SharedFilePage() {
-  const { token } = useParams<{ token: string }>()
-  const getPublicFile = useFileStore((s) => s.getPublicFile)
+  const { token }        = useParams<{ token: string }>()
+  const getSharedFile    = useFileStore((s) => s.getSharedFile)
 
-  const [state, setState]   = useState<State>('loading')
-  const [result, setResult] = useState<PublicFileResult | null>(null)
+  const [state,    setState]    = useState<PageState>('loading')
+  const [result,   setResult]   = useState<Extract<SharedFileResult, { status: 'ok' }> | null>(null)
+  const [password, setPassword] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!token) { setState('not_found'); return }
 
-    void getPublicFile(token).then((res) => {
-      if (!res) { setState('not_found'); return }
-
-      // Defense-in-depth: validate expiry on the client too
-      if (res.link.expires_at !== null && new Date(res.link.expires_at) < new Date()) {
-        setState('expired')
-        return
-      }
-
-      setResult(res)
-      setState('ok')
+    void getSharedFile(token).then((res) => {
+      if (!res)                           { setState('not_found');      return }
+      if (res.status === 'needs_password') { setState('needs_password'); return }
+      if (res.status === 'ok')             { setResult(res); setState('ok') }
     })
-  }, [token, getPublicFile])
+  }, [token, getSharedFile])
+
+  // Focus password input when prompt appears
+  useEffect(() => {
+    if (state === 'needs_password' || state === 'wrong_password') {
+      inputRef.current?.focus()
+    }
+  }, [state])
+
+  async function handlePasswordSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!token || !password.trim()) return
+    setSubmitting(true)
+    try {
+      const res = await getSharedFile(token, password)
+      if (!res)                            { setState('not_found') }
+      else if (res.status === 'wrong_password') { setState('wrong_password') }
+      else if (res.status === 'ok')        { setResult(res); setState('ok') }
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div style={{
-      minHeight:   '100vh',
-      background:  'var(--bg)',
-      color:       'var(--ink)',
-      fontFamily:  'var(--font-ui)',
-      display:     'flex',
+      minHeight:     '100vh',
+      background:    'var(--bg)',
+      color:         'var(--ink)',
+      fontFamily:    'var(--font-ui)',
+      display:       'flex',
       flexDirection: 'column',
     }}>
       {/* Header */}
@@ -74,7 +91,16 @@ export default function SharedFilePage() {
       </header>
 
       {/* Body */}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '1.5rem', gap: '1rem', maxWidth: '64rem', width: '100%', margin: '0 auto' }}>
+      <main style={{
+        flex:          1,
+        display:       'flex',
+        flexDirection: 'column',
+        padding:       '1.5rem',
+        gap:           '1rem',
+        maxWidth:      '64rem',
+        width:         '100%',
+        margin:        '0 auto',
+      }}>
 
         {state === 'loading' && (
           <span style={{ color: 'var(--ink3)', fontSize: '0.893rem' }}>Cargando…</span>
@@ -84,17 +110,90 @@ export default function SharedFilePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingTop: '2rem' }}>
             <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>Enlace no encontrado</span>
             <span style={{ fontSize: '0.893rem', color: 'var(--ink3)' }}>
-              Este enlace no existe o ha sido revocado.
+              Este enlace no existe, ha caducado o ha sido revocado.
             </span>
           </div>
         )}
 
-        {state === 'expired' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingTop: '2rem' }}>
-            <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>Enlace expirado</span>
-            <span style={{ fontSize: '0.893rem', color: 'var(--ink3)' }}>
-              Este enlace ya no es válido. El propietario puede crear uno nuevo.
-            </span>
+        {(state === 'needs_password' || state === 'wrong_password') && (
+          <div style={{
+            display:        'flex',
+            flexDirection:  'column',
+            alignItems:     'center',
+            justifyContent: 'center',
+            flex:           1,
+            paddingTop:     '3rem',
+          }}>
+            <form
+              onSubmit={handlePasswordSubmit}
+              style={{
+                display:       'flex',
+                flexDirection: 'column',
+                gap:           '0.857rem',
+                width:         '100%',
+                maxWidth:      '22rem',
+                padding:       '1.714rem',
+                background:    'var(--chromeD)',
+                border:        '1px solid var(--border)',
+                borderRadius:  'var(--r-lg)',
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.286rem' }}>
+                <span style={{ fontSize: '1rem', fontWeight: 700 }}>Archivo protegido</span>
+                <span style={{ fontSize: '0.821rem', color: 'var(--ink3)', lineHeight: 1.4 }}>
+                  Introduce la contraseña para acceder al contenido.
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.357rem' }}>
+                <input
+                  ref={inputRef}
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Contraseña…"
+                  style={{
+                    height:       '2.286rem',
+                    padding:      '0 0.714rem',
+                    fontSize:     '0.893rem',
+                    fontFamily:   'var(--font-ui)',
+                    color:        'var(--ink)',
+                    background:   'var(--bg)',
+                    border:       state === 'wrong_password'
+                      ? '1.5px solid var(--err)'
+                      : '1.5px solid var(--border)',
+                    borderRadius: 'var(--r-md)',
+                    outline:      'none',
+                    boxSizing:    'border-box',
+                    width:        '100%',
+                  }}
+                />
+                {state === 'wrong_password' && (
+                  <span style={{ fontSize: '0.786rem', color: 'var(--err)' }}>
+                    Contraseña incorrecta.
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting || !password.trim()}
+                style={{
+                  height:       '2.286rem',
+                  fontSize:     '0.893rem',
+                  fontWeight:   700,
+                  fontFamily:   'var(--font-ui)',
+                  color:        '#fff',
+                  background:   'var(--accent)',
+                  border:       '1px solid #047857',
+                  borderRadius: 'var(--r-md)',
+                  cursor:       submitting || !password.trim() ? 'default' : 'pointer',
+                  opacity:      submitting || !password.trim() ? 0.6 : 1,
+                }}
+              >
+                {submitting ? 'Verificando…' : 'Acceder'}
+              </button>
+            </form>
           </div>
         )}
 
@@ -104,12 +203,12 @@ export default function SharedFilePage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
               <span style={{ fontWeight: 700, fontSize: '1rem' }}>{result.file.name}</span>
               <span style={{
-                fontSize:     '0.75rem',
-                fontWeight:   600,
-                padding:      '0.143rem 0.5rem',
-                borderRadius: 999,
-                background:   'var(--accentSoft)',
-                color:        'var(--accentDeep)',
+                fontSize:      '0.75rem',
+                fontWeight:    600,
+                padding:       '0.143rem 0.5rem',
+                borderRadius:  999,
+                background:    'var(--accentSoft)',
+                color:         'var(--accentDeep)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
               }}>
@@ -147,19 +246,19 @@ export default function SharedFilePage() {
 
             {/* Content */}
             <pre style={{
-              flex:        1,
-              margin:      0,
-              padding:     '1rem',
-              background:  'var(--chromeD)',
-              border:      '1px solid var(--border)',
+              flex:         1,
+              margin:       0,
+              padding:      '1rem',
+              background:   'var(--chromeD)',
+              border:       '1px solid var(--border)',
               borderRadius: 'var(--r-lg)',
-              fontFamily:  'var(--font-mono)',
-              fontSize:    '0.857rem',
-              lineHeight:  1.6,
-              color:       'var(--ink)',
-              overflowX:   'auto',
-              whiteSpace:  'pre',
-              tabSize:     2,
+              fontFamily:   'var(--font-mono)',
+              fontSize:     '0.857rem',
+              lineHeight:   1.6,
+              color:        'var(--ink)',
+              overflowX:    'auto',
+              whiteSpace:   'pre',
+              tabSize:      2,
             }}>
               {result.file.content || <span style={{ color: 'var(--ink3)' }}>(archivo vacío)</span>}
             </pre>

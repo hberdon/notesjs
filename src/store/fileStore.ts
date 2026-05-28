@@ -3,7 +3,10 @@ import { supabase } from '@/lib/supabase'
 import type { DbFile, PublicLink, SharePermission } from '@/shared/types'
 import { detectLanguage } from '@/shared/utils'
 
-export type PublicFileResult = { link: PublicLink; file: DbFile }
+export type SharedFileResult =
+  | { status: 'needs_password' }
+  | { status: 'wrong_password' }
+  | { status: 'ok'; link: PublicLink; file: DbFile }
 
 const SIZE_WARN_BYTES = 512_000 // 500 KB
 
@@ -56,11 +59,11 @@ interface FileStore {
   getPublicLink: (fileId: string) => Promise<PublicLink | null>
 
   /**
-   * Fetch a public link + its file by token.
-   * Works without authentication — used by SharedFilePage.
-   * Returns null if the token doesn't exist or the link is expired (RLS filters it).
+   * Fetch a shared file by token, optionally with a password.
+   * Calls the get_shared_file() RPC — works without authentication.
+   * Returns null if the token doesn't exist or is expired.
    */
-  getPublicFile: (token: string) => Promise<PublicFileResult | null>
+  getSharedFile: (token: string, password?: string) => Promise<SharedFileResult | null>
 }
 
 export const useFileStore = create<FileStore>((set, get) => ({
@@ -213,20 +216,27 @@ export const useFileStore = create<FileStore>((set, get) => ({
     return (data as PublicLink) ?? null
   },
 
-  async getPublicFile(token) {
+  async getSharedFile(token, password) {
     const { data, error } = await supabase
-      .from('public_links')
-      .select('*, files(*)')
-      .eq('token', token)
-      .maybeSingle()
+      .rpc('get_shared_file', {
+        p_token:    token,
+        p_password: password ?? null,
+      })
 
     if (error) {
-      console.error('[fileStore] getPublicFile error:', error.message)
+      console.error('[fileStore] getSharedFile error:', error.message)
       return null
     }
     if (!data) return null
 
-    const { files: fileData, ...linkFields } = data as PublicLink & { files: DbFile }
-    return { link: linkFields as PublicLink, file: fileData }
+    if ((data as { requires_password?: boolean }).requires_password) {
+      return { status: 'needs_password' as const }
+    }
+    if ((data as { wrong_password?: boolean }).wrong_password) {
+      return { status: 'wrong_password' as const }
+    }
+
+    const { file, link } = data as { file: DbFile; link: PublicLink }
+    return { status: 'ok' as const, file, link }
   },
 }))
