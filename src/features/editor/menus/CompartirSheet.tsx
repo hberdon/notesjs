@@ -84,7 +84,7 @@ export function CompartirSheet({ left, fileId }: CompartirSheetProps) {
 
   async function handleCopy() {
     if (!link) return
-    const url = `notes.js/p/${link.token}`
+    const url = `${window.location.origin}/s/${link.token}`
     await navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -134,7 +134,7 @@ export function CompartirSheet({ left, fileId }: CompartirSheetProps) {
                   whiteSpace:   'nowrap',
                 }}
               >
-                notes.js/p/{link.token}
+                {window.location.origin}/s/{link.token}
               </span>
               <button
                 type="button"

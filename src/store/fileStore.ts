@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase'
 import type { DbFile, PublicLink, SharePermission } from '@/shared/types'
 import { detectLanguage } from '@/shared/utils'
 
+export type PublicFileResult = { link: PublicLink; file: DbFile }
+
 const SIZE_WARN_BYTES = 512_000 // 500 KB
 
 interface FileStore {
@@ -52,6 +54,13 @@ interface FileStore {
    * Returns null if no link exists for that file.
    */
   getPublicLink: (fileId: string) => Promise<PublicLink | null>
+
+  /**
+   * Fetch a public link + its file by token.
+   * Works without authentication — used by SharedFilePage.
+   * Returns null if the token doesn't exist or the link is expired (RLS filters it).
+   */
+  getPublicFile: (token: string) => Promise<PublicFileResult | null>
 }
 
 export const useFileStore = create<FileStore>((set, get) => ({
@@ -202,5 +211,22 @@ export const useFileStore = create<FileStore>((set, get) => ({
     }
 
     return (data as PublicLink) ?? null
+  },
+
+  async getPublicFile(token) {
+    const { data, error } = await supabase
+      .from('public_links')
+      .select('*, files(*)')
+      .eq('token', token)
+      .maybeSingle()
+
+    if (error) {
+      console.error('[fileStore] getPublicFile error:', error.message)
+      return null
+    }
+    if (!data) return null
+
+    const { files: fileData, ...linkFields } = data as PublicLink & { files: DbFile }
+    return { link: linkFields as PublicLink, file: fileData }
   },
 }))

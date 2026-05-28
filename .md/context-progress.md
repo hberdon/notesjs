@@ -3,10 +3,10 @@ project: notesjs
 mode: vibe
 last_session: 2026-05-21
 active_phase: "Phase 7 — V3 UI Polish"
-phases_done: 6
+phases_done: 7
 phases_total: 7
-tasks_this_session: 23
-tasks_total_done: 51
+tasks_this_session: 28
+tasks_total_done: 56
 velocity_last_5: [3, 15, 18]
 blockers_count: 0
 session_count: 3
@@ -34,11 +34,18 @@ session_count: 3
 | 4. Auth | ✅ Done | 2026-05-18 | ██████████ 100% |
 | 5. Router + Stores | ✅ Done | 2026-05-18 | ██████████ 100% |
 | 6. V3 Layout + Components | ✅ Done | 2026-05-19 | ██████████ 100% |
-| 7. V3 UI Polish | 🔄 In progress | 2026-05-19 | █████████░ 99% |
+| 7. V3 UI Polish | ✅ Done | 2026-05-19 | ██████████ 100% |
 
 ## Tasks this session
 
 ### ✅ Done
+- [x] Public links: RLS policy en `001_files.sql` — filtra `expires_at > now()` en DB + policy `public_read_via_link` en `files` para acceso anónimo
+- [x] `getPublicFile(token)` en fileStore — join `public_links → files` sin auth
+- [x] `SharedFilePage` — ruta pública `/s/:token` con estados: loading, not_found, expired, ok
+- [x] Router: ruta `/s/:token` sin `ProtectedRoute`
+- [x] `CompartirSheet`: URL fix `notes.js/p/` → `window.location.origin + /s/`
+- [x] Schema consolidado en `001_files.sql` — eliminado `002_public_links.sql`
+- [x] `supabase/DEPLOY.md` — guía completa de despliegue (schema, OAuth, env vars, Vercel, PKCE)
 - [x] Fix guest auto-save: `autoSaveListener` movido a `EditorState.create` extensions (CM6 ignora `extensions` en EditorView cuando se pasa `state`)
 - [x] Fix guest auto-save: `Compartment` para `buildExtensions` + `compartment.reconfigure()` en lugar de `StateEffect.reconfigure.of()`
 - [x] LoginPage: quitar icono `nj`, wordmark más grande, botones OAuth outlined, form email+contraseña con toggle ojo, CTA verde
@@ -63,7 +70,7 @@ session_count: 3
 — none
 
 ### 📋 To Do
-— pendientes según design handoff V3
+— sin pendientes
 
 ---
 

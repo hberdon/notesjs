@@ -8,7 +8,7 @@ import {
   faFont, faAlignLeft, faHashtag, faTrash, faDownload, faUpload,
   faCloudArrowUp, faCircleCheck, faMagnifyingGlass, faShareNodes,
   faLock, faEye, faSun, faMap, faKeyboard, faCircleInfo, faCircle,
-  faFileCirclePlus, faPencil, faRotateLeft, faRotateRight, faScissors,
+  faFileCirclePlus, faPencil, faRotateLeft, faRotateRight, faScissors, faListOl,
   faCopy, faPaste, faCode, faGear, faBell, faArrowRightFromBracket,
   faFolderOpen, faWandMagicSparkles, faCompress, faHardDrive,
   faCloud, faSliders, faAlignJustify, faEllipsis, faFile,
@@ -75,6 +75,7 @@ const ICONS: Record<string, IconDefinition> = {
   'cloud':                  faCloud,
   // compat aliases
   'align-left':             faAlignLeft,
+  'list-ol':                faListOl,
 }
 
 export function N2G({
