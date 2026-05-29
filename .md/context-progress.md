@@ -1,26 +1,26 @@
 ---
 project: notesjs
 mode: vibe
-last_session: 2026-05-21
-active_phase: "Phase 7 — V3 UI Polish"
-phases_done: 7
-phases_total: 7
-tasks_this_session: 28
-tasks_total_done: 56
-velocity_last_5: [3, 15, 18]
+last_session: 2026-05-29
+active_phase: "Phase 8 — Sharing & Deploy Prep"
+phases_done: 8
+phases_total: 8
+tasks_this_session: 12
+tasks_total_done: 68
+velocity_last_5: [3, 15, 18, 12]
 blockers_count: 0
-session_count: 3
+session_count: 4
 ---
 
 # 📋 CONTEXT-PROGRESS
-## notesjs • Session #3 • 2026-05-21
+## notesjs • Session #4 • 2026-05-29
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  🏗️  CURRENT PHASE: V3 UI Polish                                │
-│  ███████████████████████░  99%                                  │
-│  📅 Start: 2026-05-19  •  ⏱️  Day 4                             │
-│  📌 Tasks: 18/18 completados esta sesión  •  🔒 0 blocked       │
+│  🏗️  CURRENT PHASE: Sharing & Deploy Prep                       │
+│  ██████████████████████████  100%                               │
+│  📅 Start: 2026-05-29  •  ⏱️  Day 1                             │
+│  📌 Tasks: 12/12 completados esta sesión  •  🔒 0 blocked       │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -35,42 +35,36 @@ session_count: 3
 | 5. Router + Stores | ✅ Done | 2026-05-18 | ██████████ 100% |
 | 6. V3 Layout + Components | ✅ Done | 2026-05-19 | ██████████ 100% |
 | 7. V3 UI Polish | ✅ Done | 2026-05-19 | ██████████ 100% |
+| 8. Sharing & Deploy Prep | ✅ Done | 2026-05-29 | ██████████ 100% |
 
 ## Tasks this session
 
 ### ✅ Done
-- [x] Public links: RLS policy en `001_files.sql` — filtra `expires_at > now()` en DB + policy `public_read_via_link` en `files` para acceso anónimo
-- [x] `getPublicFile(token)` en fileStore — join `public_links → files` sin auth
-- [x] `SharedFilePage` — ruta pública `/s/:token` con estados: loading, not_found, expired, ok
-- [x] Router: ruta `/s/:token` sin `ProtectedRoute`
-- [x] `CompartirSheet`: URL fix `notes.js/p/` → `window.location.origin + /s/`
+- [x] Public links: RLS policy `public_read` filtra `expires_at IS NULL OR expires_at > now()`
+- [x] Policy `public_read_via_link` en `files` — acceso anónimo solo si link válido sin password
 - [x] Schema consolidado en `001_files.sql` — eliminado `002_public_links.sql`
-- [x] `supabase/DEPLOY.md` — guía completa de despliegue (schema, OAuth, env vars, Vercel, PKCE)
-- [x] Fix guest auto-save: `autoSaveListener` movido a `EditorState.create` extensions (CM6 ignora `extensions` en EditorView cuando se pasa `state`)
-- [x] Fix guest auto-save: `Compartment` para `buildExtensions` + `compartment.reconfigure()` en lugar de `StateEffect.reconfigure.of()`
-- [x] LoginPage: quitar icono `nj`, wordmark más grande, botones OAuth outlined, form email+contraseña con toggle ojo, CTA verde
-- [x] Dark mode barras: TabBar, MenuStrip, LiteBar → colores hardcoded reemplazados por CSS variables
-- [x] Pill plan: `FREE` → `LITE` en modo guest; luego eliminado de la barra y movido al header del AvatarMenu
-- [x] Font Awesome: instalar paquetes FA6, reescribir N2G.tsx con FA solid (misma API name-string)
-- [x] Fix FA: `faFilePlus` → `faFileCirclePlus` (no existe en FA6 free solid)
-- [x] Dark mode menús desplegables: `MenuPrimitives.tsx` hardcoded → CSS vars (`MenuSheet` bg, `MItem` hover, `MDivider`, `MSection`, shortcuts)
-- [x] LiteBar: eliminar botón "Guardar en la nube" + divider
-- [x] TabBar lite mode: `ThemeToggleButton` (luna/sol) a la izquierda de "Iniciar sesión →"
-- [x] ThemeToggleButton: iconos SVG custom (sun stroke + moon filled con estrellas)
-- [x] Pill FREE/LITE: eliminar de la barra izquierda del TabBar
-- [x] Pill FREE: añadir en header AvatarMenu junto al email (solo modo auth)
-- [x] VerSheet: eliminar sección de temas (ahora en AvatarMenu)
-- [x] Menú texto más pequeño: `MItem` label + `MToggle` label + `VerSheet` ToggleRow `0.893rem` → `0.821rem` (proporciones CompartirSheet)
-- [x] LiteBar: añadir botón "Compartir" — copia contenido activo al portapapeles, feedback "Copiado" 2s
-- [x] Coherencia de peso tipográfico en menus: `MToggle` + `VerSheet` ToggleRow `fontWeight: 600` → `400` (igual que `MItem`); `BuscarSheet` inputs + botón `0.893rem` → `0.821rem`
-- [x] TabBar: altura `2.143rem` → `3rem`; tabs ancladas al fondo (`alignItems: flex-end` en center zone)
-- [x] Tabs: `borderTop` + `borderRadius: 0.357rem 0.357rem 0 0`; tab activa con borde superior verde
+- [x] `supabase/DEPLOY.md` — guía completa: schema, Google OAuth, env vars, flowType PKCE, Vercel
+- [x] `getSharedFile(token, password?)` en fileStore — llama RPC `get_shared_file`, tipo `SharedFileResult`
+- [x] `SharedFilePage` (`/s/:token`) — estados: loading, not_found, needs_password, wrong_password, ok
+- [x] Router: ruta `/s/:token` sin `ProtectedRoute`; catch-all `*` → `/login`
+- [x] `CompartirSheet`: URL fix `notes.js/p/` → `window.location.origin/s/`
+- [x] Password protection: pgcrypto + trigger BEFORE INSERT (bcrypt cost 8) + RPC `get_shared_file` SECURITY DEFINER
+- [x] N2G.tsx: añadir `faListOl`
+- [x] Verificación Playwright: login, redirect, SharedFilePage, catch-all — todo OK
+- [x] Fix bug: ruta desconocida mostraba React Router error boundary en crudo → catch-all `*` → `/login`
 
 ### 🔒 Blocked
 — none
 
 ### 📋 To Do
-— sin pendientes
+— sin pendientes de código
+
+**Pendiente de infraestructura (acciones en dashboards):**
+- [ ] Aplicar `001_files.sql` en Supabase SQL Editor
+- [ ] Configurar Google OAuth en Supabase + redirect URLs
+- [ ] Variables de entorno en Vercel (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`)
+- [ ] Cambiar `flowType: 'implicit'` → `'pkce'` en `src/lib/supabase.ts:33` antes de prod
+- [ ] Primer deploy con `vercel --prod`
 
 ---
 
@@ -81,7 +75,7 @@ Language   ▸ TypeScript 6.0
 Runtime    ▸ Node.js (Vite 8)
 Framework  ▸ React 19 + React Router 7 + CodeMirror 6
 State      ▸ Zustand 5
-Backend    ▸ Supabase (auth + postgres + storage)
+Backend    ▸ Supabase (auth + postgres + storage + pgcrypto)
 Icons      ▸ Font Awesome 6 Free Solid (via N2G wrapper)
 Testing    ▸ Vitest 4 + Testing Library
 Deploy     ▸ Vercel
@@ -90,8 +84,8 @@ Deploy     ▸ Vercel
 ## 📊 Metrics
 
 ```
-Velocity     ▸ ⚡ 18 tasks/session (esta sesión) • avg 10.2/session
-Bugs         ▸ 🐛 0 open • ✅ 3 closed esta sesión
+Velocity     ▸ ⚡ 12 tasks/session (esta sesión) • avg 11.3/session
+Bugs         ▸ 🐛 0 open • ✅ 1 closed esta sesión
 Blockers     ▸ 🚧 0 active
 ```
 
@@ -106,6 +100,7 @@ Blockers     ▸ 🚧 0 active
 | 2 | 2026-05-20 | Temas no aplicaban al hacer clic en el selector | `useThemeStore((s) => s.effectiveTheme)` devuelve referencia de función estable → componente nunca re-renderiza | Cambiar a `s.theme` (valor primitivo) + `getEffectiveTheme(theme)` para calcular `isDark` | EditorPage.tsx |
 | 3 | 2026-05-21 | Guest auto-save nunca disparaba | CM6 ignora `extensions` en `EditorView({ state, extensions })` cuando se pasa `state` — `autoSaveListener` nunca se registraba | Mover `autoSaveListener` a `EditorState.create({ extensions: [...] })` + `Compartment` para `buildExtensions` | useEditorView.ts |
 | 4 | 2026-05-21 | `faFilePlus` crash al cargar | No existe en FA6 free solid | Reemplazar por `faFileCirclePlus` | N2G.tsx |
+| 5 | 2026-05-29 | Ruta desconocida mostraba "Unexpected Application Error!" de React Router | Sin catch-all en el router | Añadir `{ path: '*', element: <Navigate to="/login" replace /> }` | router/index.tsx |
 
 ### ⚖️ Decisions
 | # | Date | Decision | Rationale | Impact |
@@ -113,12 +108,13 @@ Blockers     ▸ 🚧 0 active
 | 1 | 2026-05-19 | Dropdown position via `offsetLeft` dinámico | Valores hardcodeados rompían en cualquier viewport | `sheetLeft` state + buttonRefs map en MenuStrip | MenuStrip.tsx, todos los *Sheet.tsx |
 | 2 | 2026-05-19 | Eliminar ícono `nj` del TabBar | Diseño más limpio, solo wordmark | TabBar.tsx |
 | 3 | 2026-05-20 | PreferencesPage con su propio TopBar (no reutiliza TabBar) | TabBar está acoplado a lógica de tabs; Preferences necesita solo brand + avatar | TopBar independiente en PreferencesPage.tsx |
-| 4 | 2026-05-20 | OAuth flowType: 'implicit' para Supabase local CLI | CLI local no soporta PKCE correctamente; producción puede usar PKCE | supabase.ts — pendiente ajustar para prod |
-| 5 | 2026-05-20 | Separador TabBar→MenuStrip como `borderTop` del MenuStrip | Hijos del TabBar con `height: 2.143rem` + `box-sizing: border-box` cubren el `borderBottom` del padre (overflow ~0.5-1px) | TabBar.tsx, MenuStrip.tsx |
+| 4 | 2026-05-20 | OAuth flowType: 'implicit' para Supabase local CLI | CLI local no soporta PKCE correctamente; producción puede usar PKCE | supabase.ts — cambiar a 'pkce' antes de prod |
+| 5 | 2026-05-20 | Separador TabBar→MenuStrip como `borderTop` del MenuStrip | Hijos del TabBar con `height: 2.143rem` + `box-sizing: border-box` cubren el `borderBottom` del padre (~0.5-1px overflow) | TabBar.tsx, MenuStrip.tsx |
 | 6 | 2026-05-21 | IndexedDB (idb) para persistencia guest | Sin límite práctico vs localStorage, 5 MB/archivo, sobrevive recargas | guestDb.ts |
 | 7 | 2026-05-21 | N2G como wrapper de FA6 | Misma API name-string — callers no cambian, solo el renderer | N2G.tsx |
 | 8 | 2026-05-21 | Pill FREE en header AvatarMenu (no en barra) | Barra más limpia; el tier es info secundaria, visible al abrir el menú | TabBar.tsx |
 | 9 | 2026-05-21 | Temas eliminados del menú Ver | Duplicado con AvatarMenu; centralizar en un solo lugar | VerSheet.tsx |
+| 10 | 2026-05-29 | Password hashing vía trigger Postgres + RPC SECURITY DEFINER | El hash nunca se expone al cliente; bcrypt se verifica en el servidor con pgcrypto | 001_files.sql, fileStore.ts |
 
 ### 🚧 Blockers
 | # | Description | Owner | Since | Notes |
@@ -133,19 +129,22 @@ Blockers     ▸ 🚧 0 active
 | 5 | 2026-05-21 | CM6: `EditorView({ state, extensions })` ignora completamente `extensions` cuando se pasa `state`. Las extensiones deben estar en `EditorState.create({ extensions: [...] })` |
 | 6 | 2026-05-21 | CM6: `StateEffect.reconfigure.of(ext)` reemplaza TODAS las extensiones del estado — incluyendo listeners. Usar `Compartment` + `compartment.reconfigure(ext)` para reconfigurar solo un subconjunto |
 | 7 | 2026-05-21 | FA6 free solid: `faFilePlus` no existe, el equivalente es `faFileCirclePlus` |
+| 8 | 2026-05-29 | SECURITY DEFINER en Postgres bypasses RLS completamente — permite leer `files` como anónimo. Por eso la policy `public_read_via_link` excluye links con password: solo el RPC los sirve |
+| 9 | 2026-05-29 | React Router v7 sin catch-all lanza su error boundary por defecto en rutas desconocidas — siempre añadir `{ path: '*' }` |
 
 ---
 
 ## 📅 Next Session
 
 **Remember:**
-- Google OAuth en local usa `flowType: 'implicit'`; en prod cambiar a PKCE
-- Archivos abiertos con "Abrir" son solo locales (no persisten en Supabase) — intencional por ahora
+- Código listo para producción — bloqueante es aplicar `001_files.sql` en Supabase
+- `flowType: 'implicit'` → `'pkce'` antes del primer deploy a prod (`src/lib/supabase.ts:33`)
+- Archivos abiertos con "Abrir" son solo locales — intencional por ahora
 - PreferencesPage sección Editor es placeholder ("Próximamente")
-- Dark mode barras completado; componentes internos de menus usan CSS vars
+- Password protection en links compartidos: el trigger + RPC existen en el schema pero no están activos hasta aplicar la migración
 
 **Start with:**
-— ▶️ Revisar pendientes de V3 según design handoff
+— ▶️ Aplicar `001_files.sql` en Supabase y hacer primer deploy a Vercel
 
 ---
 
@@ -156,3 +155,4 @@ Blockers     ▸ 🚧 0 active
 | 1 | 2026-05-19 | 3 | V3 UI Polish | Dropdown alignment + TabBar logo removal |
 | 2 | 2026-05-20 | 25 | V3 UI Polish | AvatarMenu, PreferencesPage, OAuth Google, guest mode IDB, bug fixes |
 | 3 | 2026-05-21 | 18 | V3 UI Polish | Fix guest auto-save (CM6 bug), LoginPage redesign, dark mode bars, FA icons, UI cleanup |
+| 4 | 2026-05-29 | 12 | Sharing & Deploy Prep | Public links RLS, SharedFilePage, password protection (bcrypt), DEPLOY.md, Playwright verify, bug fixes |
