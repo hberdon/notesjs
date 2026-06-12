@@ -422,8 +422,7 @@ export default function TabBar({
           padding: '0 1rem 0 1rem',
         }}
       >
-        {/* Logo placeholder */}
-        <div style={{ width: '1.714rem', height: '1.714rem', borderRadius: '0.357rem', background: 'rgba(16,185,129,0.15)', flexShrink: 0 }} />
+        <img src="/images/logo-drop-t.png" alt="notes.js" style={{ width: '1.857rem', height: 'auto', display: 'block', flexShrink: 0 }} />
         <span style={{ fontSize: '1.357rem', fontWeight: 800, letterSpacing: -0.5, color: 'var(--ink)', lineHeight: 1, whiteSpace: 'nowrap', userSelect: 'none' }}>
           notes<span style={{ color: '#10b981' }}>.js</span>
         </span>

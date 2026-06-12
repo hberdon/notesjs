@@ -81,6 +81,7 @@ export default function SharedFilePage() {
         gap:          '0.5rem',
         flexShrink:   0,
       }}>
+        <img src="/images/logo-drop-t.png" alt="notes.js" style={{ width: '1.857rem', height: 'auto', display: 'block', flexShrink: 0 }} />
         <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--ink)', letterSpacing: '-0.02em' }}>
           notes.js
         </span>

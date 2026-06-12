@@ -204,19 +204,28 @@ export default function LoginPage() {
               paddingRight: '4.286rem',
             }}
           >
-            {/* Wordmark — no icon */}
-            <span
-              style={{
-                fontSize: '1.857rem',
-                fontWeight: 900,
-                letterSpacing: -0.8,
-                color: '#111827',
-                lineHeight: 1,
-                fontFamily: 'var(--font-ui)',
-              }}
-            >
-              notes<span style={{ color: '#10b981' }}>.js</span>
-            </span>
+            {/* Logo + wordmark */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.857rem' }}>
+              <img
+                src="/images/logo-drop-t.png"
+                alt="notes.js"
+                style={{ width: 80, height: 'auto', display: 'block' }}
+              />
+              <span
+                style={{
+                  fontSize: '2.5rem',
+                  fontWeight: 900,
+                  letterSpacing: -0.8,
+                  color: '#111827',
+                  lineHeight: 1,
+                  fontFamily: 'var(--font-ui)',
+                  position: 'relative',
+                  top: 4,
+                }}
+              >
+                notes<span style={{ color: '#10b981' }}>.js</span>
+              </span>
+            </div>
 
             {/* Headline */}
             <h1
