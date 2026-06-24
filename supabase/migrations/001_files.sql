@@ -32,6 +32,7 @@ CREATE POLICY "Users can manage their own files"
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS trigger
 LANGUAGE plpgsql
+SET search_path = public, extensions, pg_temp
 AS $$
 BEGIN
   NEW.updated_at = now();
@@ -60,25 +61,17 @@ CREATE TABLE IF NOT EXISTS public_links (
 
 ALTER TABLE public_links ENABLE ROW LEVEL SECURITY;
 
--- Owner can do everything with their links
+-- Owner can do everything with their links. This is the ONLY policy on
+-- public_links: anonymous viewers never read this table directly — every public
+-- read goes through the get_shared_file() RPC (SECURITY DEFINER, bypasses RLS).
+--
+-- A previous "public_read" SELECT policy let anyone read every non-expired row,
+-- which exposed `password_hash` (bcrypt) and `token` to offline cracking /
+-- link enumeration. RLS is row-level, not column-level, so it cannot hide a
+-- single column — the correct fix is to not allow public SELECT at all and let
+-- the RPC be the sole gatekeeper for shared content.
 CREATE POLICY "owner_all" ON public_links
   FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-
--- Anyone can read a non-expired link
-CREATE POLICY "public_read" ON public_links
-  FOR SELECT USING (expires_at IS NULL OR expires_at > now());
-
--- Anyone can read a file that has at least one valid, non-password-protected public link.
--- Password-protected files are served exclusively via the get_shared_file() RPC.
-CREATE POLICY "public_read_via_link" ON files
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM public_links
-      WHERE public_links.file_id = files.id
-        AND (public_links.expires_at IS NULL OR public_links.expires_at > now())
-        AND public_links.password_hash IS NULL
-    )
-  );
 
 -- ── Password hashing ───────────────────────────────────────────────────────
 
@@ -87,7 +80,9 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- Auto-hash the password before storing it (bcrypt cost 8).
 -- The client sends the plain password; this trigger ensures only the hash is persisted.
 CREATE OR REPLACE FUNCTION hash_public_link_password()
-RETURNS trigger LANGUAGE plpgsql AS $$
+RETURNS trigger LANGUAGE plpgsql
+SET search_path = public, extensions, pg_temp
+AS $$
 BEGIN
   IF NEW.password_hash IS NOT NULL THEN
     NEW.password_hash = crypt(NEW.password_hash, gen_salt('bf', 8));
@@ -114,6 +109,7 @@ CREATE TRIGGER public_links_hash_password
 CREATE OR REPLACE FUNCTION get_shared_file(p_token text, p_password text DEFAULT NULL)
 RETURNS jsonb
 SECURITY DEFINER
+SET search_path = public, extensions, pg_temp
 LANGUAGE plpgsql
 AS $$
 DECLARE
