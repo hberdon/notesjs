@@ -362,6 +362,14 @@ interface TabBarProps {
   onCloseTab: (id: string) => void
   onNewTab: () => void
   isGuest?: boolean
+  /** Id of the tab currently being renamed (inline input shown), or null. */
+  renamingTabId?: string | null
+  /** Begin inline rename of a tab (e.g. on double-click). */
+  onRequestRename?: (id: string) => void
+  /** Commit a new filename for the tab. */
+  onCommitRename?: (id: string, filename: string) => void
+  /** Abort the inline rename without changes. */
+  onCancelRename?: () => void
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -373,12 +381,47 @@ export default function TabBar({
   onCloseTab,
   onNewTab,
   isGuest = false,
+  renamingTabId = null,
+  onRequestRename,
+  onCommitRename,
+  onCancelRename,
 }: TabBarProps) {
   const user = useAuthStore((s) => s.user)
   const [hoveredTabId, setHoveredTabId] = useState<string | null>(null)
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false)
   const [avatarImgError, setAvatarImgError] = useState(false)
   const rightZoneRef = useRef<HTMLDivElement>(null)
+
+  // ── Inline rename ──────────────────────────────────────────────────────────
+  const [draftName, setDraftName] = useState('')
+  const renameInputRef = useRef<HTMLInputElement>(null)
+
+  // When a rename starts, seed the draft with the current name and focus the
+  // input, selecting the basename (everything before the extension dot).
+  useEffect(() => {
+    if (!renamingTabId) return
+    const tab = tabs.find((t) => t.id === renamingTabId)
+    if (!tab) return
+    setDraftName(tab.filename)
+    requestAnimationFrame(() => {
+      const el = renameInputRef.current
+      if (!el) return
+      el.focus()
+      const dot = tab.filename.lastIndexOf('.')
+      el.setSelectionRange(0, dot > 0 ? dot : tab.filename.length)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [renamingTabId])
+
+  function commitRename(tabId: string) {
+    const name = draftName.trim()
+    const tab = tabs.find((t) => t.id === tabId)
+    if (name && tab && name !== tab.filename) {
+      onCommitRename?.(tabId, name)
+    } else {
+      onCancelRename?.()
+    }
+  }
 
   const email = user?.email ?? null
   const initials = getInitials(email)
@@ -486,21 +529,53 @@ export default function TabBar({
               >
                 <FormatPill ext={tab.language} size="s" />
 
-                <span
-                  style={{
-                    fontSize: '0.821rem',
-                    fontWeight: isActive ? 600 : 400,
-                    color: isActive ? 'var(--ink)' : 'var(--ink3)',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    flex: 1,
-                    minWidth: 0,
-                    lineHeight: 1,
-                  }}
-                >
-                  {tab.filename}
-                </span>
+                {renamingTabId === tab.id ? (
+                  <input
+                    ref={renameInputRef}
+                    value={draftName}
+                    onChange={(e) => setDraftName(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') { e.preventDefault(); commitRename(tab.id) }
+                      else if (e.key === 'Escape') { e.preventDefault(); onCancelRename?.() }
+                    }}
+                    onBlur={() => commitRename(tab.id)}
+                    spellCheck={false}
+                    style={{
+                      fontSize: '0.821rem',
+                      fontWeight: 600,
+                      fontFamily: 'var(--font-ui)',
+                      color: 'var(--ink)',
+                      background: 'var(--bg)',
+                      border: '1.5px solid var(--accent)',
+                      borderRadius: 'var(--r-sm)',
+                      outline: 'none',
+                      padding: '0 0.214rem',
+                      flex: 1,
+                      minWidth: 0,
+                      lineHeight: 1.4,
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                ) : (
+                  <span
+                    onDoubleClick={(e) => { e.stopPropagation(); onRequestRename?.(tab.id) }}
+                    title="Doble-click para renombrar"
+                    style={{
+                      fontSize: '0.821rem',
+                      fontWeight: isActive ? 600 : 400,
+                      color: isActive ? 'var(--ink)' : 'var(--ink3)',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      flex: 1,
+                      minWidth: 0,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {tab.filename}
+                  </span>
+                )}
 
                 {tab.isDirty && !(isHovered || isActive) && (
                   <span

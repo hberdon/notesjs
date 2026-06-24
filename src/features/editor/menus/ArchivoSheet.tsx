@@ -10,6 +10,8 @@ export interface ArchivoSheetProps {
   onOpenFile: () => void
   onRenameTab: () => void
   onDeleteTab: () => void
+  /** Open the trash (deleted files) modal */
+  onOpenTrash: () => void
 }
 
 // Fake recent items — will be replaced with real data in a future phase
@@ -19,7 +21,7 @@ const RECENTES = [
   { name: 'lista.txt',     time: 'ayer' },
 ]
 
-export function ArchivoSheet({ left, onNewTab, onOpenFile, onRenameTab, onDeleteTab }: ArchivoSheetProps) {
+export function ArchivoSheet({ left, onNewTab, onOpenFile, onRenameTab, onDeleteTab, onOpenTrash }: ArchivoSheetProps) {
   return (
     <MenuSheet width="18.571rem" left={left}>
         {/* Nuevo */}
@@ -71,6 +73,12 @@ export function ArchivoSheet({ left, onNewTab, onOpenFile, onRenameTab, onDelete
             shortcut="⌘⌫"
             variant="danger"
             onClick={onDeleteTab}
+          />
+          <MItem
+            icon="undo"
+            label="Papelera"
+            sub="restaurar eliminados"
+            onClick={onOpenTrash}
           />
         </MSection>
 

@@ -27,6 +27,19 @@ interface TabStore {
   /** Mark a tab as dirty (unsaved changes) or clean. */
   updateTabDirty: (tabId: string, isDirty: boolean) => void
 
+  /**
+   * Bind a (previously local) tab to a persisted DB file id, keeping the same
+   * tab.id so the mounted editor is not remounted. Used when an auth user's
+   * local "Untitled" tab is promoted to a real file on first edit.
+   */
+  setTabFileId: (tabId: string, fileId: string) => void
+
+  /**
+   * Rename a tab and re-derive its language from the new extension.
+   * Local only — persistence (DB or IndexedDB) is handled by the caller.
+   */
+  renameTab: (tabId: string, filename: string) => void
+
   /** Update the detected language of a tab (e.g. after paste detection). */
   updateTabLanguage: (tabId: string, language: Language) => void
 
@@ -41,6 +54,13 @@ interface TabStore {
 
   /** Open a local tab with a caller-provided stable ID. Used for IndexedDB guest hydration. */
   openGuestTab: (id: string, filename: string, content: string) => void
+
+  /**
+   * Open a persisted DB file as a tab (tab.id === fileId), seeding its content
+   * for the editor. Idempotent: re-activates an already-open tab instead of
+   * duplicating. Used to restore the auth user's session on reload.
+   */
+  openPersistedFile: (id: string, filename: string, content: string) => void
 }
 
 export const useTabStore = create<TabStore>((set, get) => ({
@@ -97,6 +117,20 @@ export const useTabStore = create<TabStore>((set, get) => ({
     }))
   },
 
+  setTabFileId(tabId, fileId) {
+    set((state) => ({
+      tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, fileId } : t)),
+    }))
+  },
+
+  renameTab(tabId, filename) {
+    set((state) => ({
+      tabs: state.tabs.map((t) =>
+        t.id === tabId ? { ...t, filename, language: detectLanguage(filename) } : t,
+      ),
+    }))
+  },
+
   updateTabLanguage(tabId, language) {
     set((state) => ({
       tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, language } : t)),
@@ -136,6 +170,27 @@ export const useTabStore = create<TabStore>((set, get) => ({
     const newTab: Tab = {
       id,
       fileId: null,
+      filename,
+      language: detectLanguage(filename),
+      isDirty: false,
+    }
+    set((state) => ({ tabs: [...state.tabs, newTab], activeTabId: id }))
+  },
+
+  openPersistedFile(id, filename, content) {
+    // Seed content and clear any stale CM6 snapshot so the editor rebuilds from
+    // the freshly fetched DB content.
+    localContentMap.set(id, content)
+    editorStateMap.delete(id)
+
+    if (get().tabs.some((t) => t.id === id)) {
+      set({ activeTabId: id })
+      return
+    }
+
+    const newTab: Tab = {
+      id,
+      fileId: id, // tab.id === fileId for persisted files
       filename,
       language: detectLanguage(filename),
       isDirty: false,
