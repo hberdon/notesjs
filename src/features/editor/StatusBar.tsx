@@ -5,14 +5,24 @@
 
 import { N2G } from '@/shared/components/N2G'
 import { FormatPill } from '@/shared/components/FormatPill'
+import { useEditorContentStore } from '@/store/editorContentStore'
+import { useSaveStatusStore } from '@/store/saveStatusStore'
 
 export interface StatusBarProps {
   language: string
-  content: string       // full editor text — used to compute word/char counts
   cursorLine: number    // 1-based
   cursorCol: number     // 1-based
-  saveStatus: 'idle' | 'saving' | 'saved'
-  lastSavedAt: number | null // ms timestamp
+}
+
+// ── Word-like rotating spinner ──────────────────────────────────────────────
+
+function SaveSpinner({ color }: { color: string }) {
+  return (
+    <svg className="nj-spin" width={15} height={15} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="9" stroke="#d1d5db" strokeWidth={3} opacity={0.4} />
+      <path d="M12 3 a9 9 0 0 1 9 9" stroke={color} strokeWidth={3} strokeLinecap="round" />
+    </svg>
+  )
 }
 
 // ── Relative time helper ────────────────────────────────────────────────────
@@ -28,12 +38,17 @@ function timeAgo(ts: number): string {
 
 export function StatusBar({
   language,
-  content,
   cursorLine,
   cursorCol,
-  saveStatus,
-  lastSavedAt,
 }: StatusBarProps) {
+  // Live editor content — subscribed here (leaf) so keystrokes don't re-render
+  // EditorPage or the surrounding chrome.
+  const content = useEditorContentStore((s) => s.content)
+
+  // Save status — subscribed here (leaf) so save ticks stay out of EditorPage.
+  const saveStatus  = useSaveStatusStore((s) => s.status)
+  const lastSavedAt = useSaveStatusStore((s) => s.lastSavedAt)
+
   // Word / char counts
   const wordCount = content.trim() === ''
     ? 0
@@ -79,12 +94,11 @@ export function StatusBar({
           whiteSpace: 'nowrap',
         }}
       >
-        <N2G
-          name={isSaving ? 'cloud-up' : 'cloud-check'}
-          size={15}
-          stroke={1.8}
-          color={pillColor}
-        />
+        {isSaving ? (
+          <SaveSpinner color={pillColor} />
+        ) : (
+          <N2G name="cloud-check" size={15} stroke={1.8} color={pillColor} />
+        )}
         {pillLabel}
       </span>
 

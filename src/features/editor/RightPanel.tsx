@@ -4,12 +4,12 @@
 import { useState } from 'react'
 import { marked } from 'marked'
 import { N2G } from '@/shared/components/N2G'
+import { useEditorContentStore } from '@/store/editorContentStore'
 
 // ── Public interface ──────────────────────────────────────────────────────────
 
 export interface RightPanelProps {
   type: 'tree' | 'preview'
-  content: string   // raw editor content
   onClose: () => void
 }
 
@@ -492,7 +492,11 @@ const MD_STYLES = `
 
 // ── RightPanel (root component) ───────────────────────────────────────────────
 
-export function RightPanel({ type, content, onClose }: RightPanelProps) {
+export function RightPanel({ type, onClose }: RightPanelProps) {
+  // Live editor content — subscribed here (leaf) so keystrokes re-render the
+  // panel only, not EditorPage or the editor chrome.
+  const content = useEditorContentStore((s) => s.content)
+
   // For the tree chip we need node counts; track them via a simple parse here
   // so the header can display them without re-doing the full tree render.
   let chipLabel: string

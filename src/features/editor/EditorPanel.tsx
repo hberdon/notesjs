@@ -2,11 +2,12 @@ import { useRef } from 'react'
 import { useEditorView } from './useEditorView'
 
 interface EditorPanelProps {
-  tabId:        string | null
-  fileId:       string | null
-  language:     string
-  isDark:       boolean
-  onGuestSave?: (tabId: string, content: string) => void
+  tabId:            string | null
+  fileId:           string | null
+  language:         string
+  isDark:           boolean
+  onGuestSave?:     (tabId: string, content: string) => void
+  onAuthLocalSave?: (tabId: string, content: string) => void
 }
 
 /**
@@ -22,10 +23,11 @@ export default function EditorPanel({
   language,
   isDark,
   onGuestSave,
+  onAuthLocalSave,
 }: EditorPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
-  useEditorView(containerRef, tabId, fileId, language, isDark, onGuestSave)
+  useEditorView(containerRef, tabId, fileId, language, isDark, onGuestSave, onAuthLocalSave)
 
   return (
     <div

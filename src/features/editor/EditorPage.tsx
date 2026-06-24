@@ -4,14 +4,13 @@ import { useThemeStore, getEffectiveTheme } from '@/store/themeStore'
 import { useFileStore } from '@/store/fileStore'
 import { useUIStore } from '@/store/uiStore'
 import { useAuthStore } from '@/features/auth/authStore'
-import { generateId } from '@/shared/utils'
 import { formatCode } from '@/lib/formatter'
 import { getActiveEditorView } from './useEditorView'
 import { loadGuestTabs, saveGuestTab, deleteGuestTab } from '@/lib/guestDb'
-import type { Tab } from '@/shared/types'
+import type { Tab, FileMeta } from '@/shared/types'
+import { DeletedFilesModal } from './DeletedFilesModal'
 import TabBar from './TabBar'
 import { MenuStrip } from './MenuStrip'
-import { EditorHeader } from './EditorHeader'
 import { RightPanel } from './RightPanel'
 import { StatusBar } from './StatusBar'
 import EditorPanel from './EditorPanel'
@@ -23,10 +22,8 @@ import LiteBar from './LiteBar'
  * Layout (flex column, 100% height):
  *   ┌─────────────────────────────────────┐  30px
  *   │ TabBar                              │
- *   ├─────────────────────────────────────┤  28px
- *   │ MenuStrip                           │
- *   ├─────────────────────────────────────┤  30px  ┐
- *   │ EditorHeader                        │        │
+ *   ├─────────────────────────────────────┤  28px  ┐
+ *   │ MenuStrip (+ panel toggle, right)   │        │
  *   ├───────────────────────┬─────────────┤  flex-1│ dimmed when menu open
  *   │ EditorPanel (flex-1)  │ RightPanel  │        │
  *   ├───────────────────────┴─────────────┤  22px  │
@@ -60,6 +57,9 @@ export default function EditorPage() {
   const setActiveTab   = useTabStore((s) => s.setActiveTab)
   const getEditorState = useTabStore((s) => s.getEditorState)
   const openGuestTab   = useTabStore((s) => s.openGuestTab)
+  const setTabFileId   = useTabStore((s) => s.setTabFileId)
+  const renameTab      = useTabStore((s) => s.renameTab)
+  const openPersistedFile = useTabStore((s) => s.openPersistedFile)
 
   // Storage usage indicator for LiteBar
   const [usedBytes, setUsedBytes] = useState(0)
@@ -84,6 +84,30 @@ export default function EditorPage() {
   // ── File store ─────────────────────────────────────────────────────────────
   const fetchFiles   = useFileStore((s) => s.fetchFiles)
   const createFile   = useFileStore((s) => s.createFile)
+  const updateFile   = useFileStore((s) => s.updateFile)
+  const renameFile   = useFileStore((s) => s.renameFile)
+  const loadFileContent = useFileStore((s) => s.loadFileContent)
+  const restoreFile  = useFileStore((s) => s.restoreFile)
+  const deleteFile   = useFileStore((s) => s.deleteFile)
+
+  // Trash (deleted files) modal — opened on demand from Archivo → Papelera.
+  const [trashOpen, setTrashOpen] = useState(false)
+
+  // Per-user key for persisting the open-tab session to localStorage.
+  const userId     = useAuthStore((s) => s.user?.id)
+  const sessionKey = userId ? `notesjs-session-${userId}` : null
+  // Gate: the persistence effect must NOT write until restore has fully
+  // completed, otherwise an early empty write clobbers the saved session —
+  // especially under React StrictMode's double-mount.
+  const [sessionRestored, setSessionRestored] = useState(false)
+
+  // Id of the tab being renamed inline (driven from TabBar double-click or the
+  // Archivo → Renombrar menu action).
+  const [renamingTabId, setRenamingTabId] = useState<string | null>(null)
+
+  // Tracks tabs mid-promotion so concurrent debounced saves don't create
+  // duplicate DB files during the async createFile window.
+  const promotingRef = useRef<Set<string>>(new Set())
 
   // ── Fetch files on mount (auth only) ──────────────────────────────────────
   useEffect(() => {
@@ -145,31 +169,76 @@ export default function EditorPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGuest])
 
-  // ── Ensure at least one tab exists on mount — auth mode only ──────────────
-  // Guest mode is handled by the hydration effect below.
+  // ── Restore the auth user's open-tab session on mount ──────────────────────
+  // Guest mode is handled by the IndexedDB hydration effect above. Tabs are
+  // reopened with content fetched lazily from the DB. Falls back to a blank tab
+  // when there's no saved session (or it's empty / corrupt).
   useEffect(() => {
     if (isGuest) return
-    if (tabs.length === 0) {
-      createDefaultTab()
+    let cancelled = false
+
+    async function restoreSession() {
+      const raw = sessionKey ? localStorage.getItem(sessionKey) : null
+
+      let entries: { fileId: string; filename: string }[] = []
+      let activeFileId: string | null = null
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw) as {
+            tabs?: { fileId: string; filename: string }[]
+            activeFileId?: string | null
+          }
+          entries = parsed.tabs ?? []
+          activeFileId = parsed.activeFileId ?? null
+        } catch {
+          /* corrupt session — ignore and fall back to a blank tab */
+        }
+      }
+
+      for (const entry of entries) {
+        const content = await loadFileContent(entry.fileId)
+        if (cancelled) return
+        // Skip files that were deleted since the session was saved.
+        if (content !== null) openPersistedFile(entry.fileId, entry.filename, content)
+      }
+      if (cancelled) return
+
+      if (activeFileId && useTabStore.getState().tabs.some((t) => t.id === activeFileId)) {
+        setActiveTab(activeFileId)
+      }
+      if (useTabStore.getState().tabs.length === 0) {
+        createDefaultTab()
+      }
+
+      // Restore done — only now may the persistence effect start writing.
+      setSessionRestored(true)
     }
+
+    restoreSession()
+    return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // ── Persist the open-tab session whenever it changes (auth only) ───────────
+  // Only tabs backed by a real file are persistable; unpromoted "Untitled" tabs
+  // have no DB row to reopen from.
+  useEffect(() => {
+    if (isGuest || !sessionKey || !sessionRestored) return
+    const persistable = tabs
+      .filter((t) => t.fileId)
+      .map((t) => ({ fileId: t.fileId as string, filename: t.filename }))
+    const activeFileId = tabs.find((t) => t.id === activeTabId)?.fileId ?? null
+    localStorage.setItem(sessionKey, JSON.stringify({ tabs: persistable, activeFileId }))
+  }, [tabs, activeTabId, isGuest, sessionKey, sessionRestored])
 
   // ── Tab helpers ────────────────────────────────────────────────────────────
 
   function createDefaultTab() {
-    const id = generateId()
-    const untitledFile = {
-      id,
-      name: 'Untitled',
-      content: '',
-      language: 'text' as const,
-      user_id: '',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_deleted: false,
-    }
-    addTabRaw(untitledFile)
+    // Unpersisted local tab (fileId: null). On first edit it is promoted:
+    // guests → IndexedDB (handleGuestSave), authed users → a real DB file
+    // (handleAuthLocalSave). Previously this used a fake file id, so auto-save
+    // ran UPDATE against a non-existent row and silently lost the content.
+    useTabStore.getState().openLocalTab('Untitled', '')
   }
 
   function handleNewTab() {
@@ -178,17 +247,6 @@ export default function EditorPage() {
 
   function handleSelectTab(id: string) {
     setActiveTab(id)
-  }
-
-  async function handleCloseTab(id: string) {
-    removeTab(id)
-    if (isGuest) {
-      await deleteGuestTab(id).catch(console.error)
-      const records = await loadGuestTabs()
-      setUsedBytes(
-        records.reduce((sum, r) => sum + new TextEncoder().encode(r.content).length, 0),
-      )
-    }
   }
 
   function handleDownloadActive() {
@@ -218,6 +276,102 @@ export default function EditorPage() {
     } catch (err) {
       console.error('[EditorPage] guest save failed:', err)
     }
+  }
+
+  // Promote an unpersisted auth tab to a real DB file on first edit. Keeps the
+  // same tab.id so the editor never remounts; the fileId swap flows back through
+  // props → useEditorView's fileIdRef, so later saves go straight to updateFile.
+  async function handleAuthLocalSave(tabId: string, content: string) {
+    if (promotingRef.current.has(tabId)) return
+    promotingRef.current.add(tabId)
+    try {
+      const tab = useTabStore.getState().tabs.find((t) => t.id === tabId)
+      if (!tab || tab.fileId !== null) return
+      const file = await createFile(tab.filename || 'Untitled.txt', content)
+      setTabFileId(tabId, file.id)
+
+      // Recover keystrokes typed during the async create window — those debounced
+      // saves were skipped by the guard. Only the active tab's live view is readable.
+      if (useTabStore.getState().activeTabId === tabId) {
+        const latest = getActiveEditorView()?.state.doc.toString()
+        if (latest != null && latest !== content) {
+          await updateFile(file.id, latest)
+        }
+      }
+    } catch (err) {
+      console.error('[EditorPage] auth local save (promotion) failed:', err)
+    } finally {
+      promotingRef.current.delete(tabId)
+    }
+  }
+
+  // Rename a tab: update locally (filename + language), then persist where the
+  // content lives — DB for promoted files, IndexedDB for guests. Naming a tab is
+  // a clear intent to keep it, so an unpromoted auth tab is promoted to a real
+  // file on rename (not only on first edit) — otherwise it has no DB row and
+  // can't be trashed/restored or survive a reload.
+  async function handleRename(tabId: string, filename: string) {
+    setRenamingTabId(null)
+    const tab = useTabStore.getState().tabs.find((t) => t.id === tabId)
+    if (!tab) return
+    renameTab(tabId, filename)
+
+    function currentContent(): string {
+      const view = getActiveEditorView()
+      return useTabStore.getState().activeTabId === tabId && view
+        ? view.state.doc.toString()
+        : getLocalContent(tabId) ?? ''
+    }
+
+    try {
+      if (tab.fileId) {
+        await renameFile(tab.fileId, filename)
+      } else if (isGuest) {
+        await saveGuestTab(tabId, filename, currentContent())
+      } else if (!promotingRef.current.has(tabId)) {
+        // Auth, unpromoted → create the file now under the new name.
+        promotingRef.current.add(tabId)
+        try {
+          const file = await createFile(filename, currentContent())
+          setTabFileId(tabId, file.id)
+        } finally {
+          promotingRef.current.delete(tabId)
+        }
+      }
+    } catch (err) {
+      console.error('[EditorPage] rename failed:', err)
+    }
+  }
+
+  // Move the active file to the trash: soft-delete the DB row (recoverable via
+  // the Papelera modal) and close its tab. Distinct from closing a tab, which
+  // leaves the file untouched. Guests have no server trash — their delete is
+  // a permanent IndexedDB removal.
+  async function handleMoveToTrash(tabId: string) {
+    const tab = useTabStore.getState().tabs.find((t) => t.id === tabId)
+    removeTab(tabId)
+    if (!tab) return
+    try {
+      if (tab.fileId) {
+        await deleteFile(tab.fileId)
+      } else if (isGuest) {
+        await deleteGuestTab(tabId)
+        const records = await loadGuestTabs()
+        setUsedBytes(
+          records.reduce((sum, r) => sum + new TextEncoder().encode(r.content).length, 0),
+        )
+      }
+    } catch (err) {
+      console.error('[EditorPage] move to trash failed:', err)
+    }
+  }
+
+  // Restore a soft-deleted file: clear is_deleted, then open it as a tab so the
+  // result is immediately visible (consistent with "files are tabs").
+  async function handleRestoreDeleted(file: FileMeta) {
+    await restoreFile(file.id)
+    const content = await loadFileContent(file.id)
+    openPersistedFile(file.id, file.name, content ?? '')
   }
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -268,6 +422,7 @@ export default function EditorPage() {
   const language   = activeTab?.language ?? 'text'
   const filename   = activeTab?.filename ?? 'Untitled'
   const hasPanel   = languageHasPanel(language)
+  const panelType  = panelTypeForLanguage(language)
 
   // ── Format active document ────────────────────────────────────────────────
 
@@ -294,11 +449,8 @@ export default function EditorPage() {
   // RightPanel is shown only when a panel is selected AND the language supports it
   const showRightPanel = rightPanel !== null && hasPanel
 
-  // ── Editor content for StatusBar + RightPanel ──────────────────────────────
-  const editorContent =
-    activeTabId != null
-      ? (getEditorState(activeTabId)?.doc.toString() ?? '')
-      : ''
+  // StatusBar and RightPanel read live content from editorContentStore directly
+  // (subscribed in those leaf components) so keystrokes don't re-render this page.
 
   // ── Dim styles ─────────────────────────────────────────────────────────────
   // Only the area below MenuStrip is dimmed when a menu is open
@@ -328,9 +480,13 @@ export default function EditorPage() {
         tabs={tabs}
         activeTabId={activeTabId}
         onSelectTab={handleSelectTab}
-        onCloseTab={handleCloseTab}
+        onCloseTab={handleMoveToTrash}
         onNewTab={handleNewTab}
         isGuest={isGuest}
+        renamingTabId={renamingTabId}
+        onRequestRename={setRenamingTabId}
+        onCommitRename={handleRename}
+        onCancelRename={() => setRenamingTabId(null)}
       />
 
       {/* ── Menu bar row — LiteBar for guests, MenuStrip for auth ── */}
@@ -342,18 +498,25 @@ export default function EditorPage() {
           onOpenFile={handleTriggerOpenFile}
           onFormat={handleFormat}
           usedBytes={usedBytes}
+          hasPanel={hasPanel}
+          rightPanel={rightPanel}
+          panelType={panelType}
+          onTogglePanel={toggleRightPanel}
         />
       ) : (
         <MenuStrip
-          saveStatus="saved"
-          activeTabId={activeTabId}
           onNewTab={handleNewFileFromArchivo}
           onOpenFile={handleTriggerOpenFile}
-          onRenameTab={() => { /* TODO: rename flow */ }}
-          onDeleteTab={() => { if (activeTabId) handleCloseTab(activeTabId) }}
+          onRenameTab={() => { closeMenu(); if (activeTabId) setRenamingTabId(activeTabId) }}
+          onOpenTrash={() => { closeMenu(); setTrashOpen(true) }}
+          onDeleteTab={() => { if (activeTabId) handleMoveToTrash(activeTabId) }}
           onFormat={handleFormat}
           onMinify={() => { /* TODO: CM6 minify */ }}
           fileId={activeTab?.fileId ?? null}
+          hasPanel={hasPanel}
+          rightPanel={rightPanel}
+          panelType={panelType}
+          onTogglePanel={toggleRightPanel}
         />
       )}
 
@@ -369,7 +532,8 @@ export default function EditorPage() {
           pointerEvents: isDimmed ? 'none' : undefined,
         }}
       >
-        {/* Editor body: EditorPanel + optional RightPanel */}
+        {/* Editor body: EditorPanel + optional RightPanel.
+            Panel toggle (tree/preview) lives in MenuStrip/LiteBar right region. */}
         <div
           style={{
             display:  'flex',
@@ -385,6 +549,7 @@ export default function EditorPage() {
                 language={language}
                 isDark={isDark}
                 onGuestSave={isGuest ? handleGuestSave : undefined}
+                onAuthLocalSave={!isGuest ? handleAuthLocalSave : undefined}
               />
             )}
           </div>
@@ -392,7 +557,6 @@ export default function EditorPage() {
           {showRightPanel && (
             <RightPanel
               type={panelTypeForLanguage(language)}
-              content={editorContent}
               onClose={() => setRightPanel(null)}
             />
           )}
@@ -401,13 +565,18 @@ export default function EditorPage() {
         {/* StatusBar */}
         <StatusBar
           language={language}
-          content={editorContent}
           cursorLine={1}
           cursorCol={1}
-          saveStatus="saved"
-          lastSavedAt={Date.now()}
         />
       </div>
+
+      {/* Trash modal — on-demand, overlays everything */}
+      {trashOpen && (
+        <DeletedFilesModal
+          onClose={() => setTrashOpen(false)}
+          onRestore={handleRestoreDeleted}
+        />
+      )}
     </div>
   )
 }

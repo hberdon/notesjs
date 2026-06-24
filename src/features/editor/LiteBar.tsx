@@ -14,6 +14,11 @@ export interface LiteBarProps {
   onOpenFile:   () => void
   onFormat:     () => void
   usedBytes:    number
+  /** Right-panel toggle — only rendered for panel-capable formats (json/markdown). */
+  hasPanel:     boolean
+  rightPanel:   'tree' | 'preview' | null
+  panelType:    'tree' | 'preview'
+  onTogglePanel: (panel: 'tree' | 'preview') => void
 }
 
 // ── Icon toggle button ────────────────────────────────────────────────────────
@@ -101,6 +106,10 @@ export default function LiteBar({
   onOpenFile,
   onFormat,
   usedBytes,
+  hasPanel,
+  rightPanel,
+  panelType,
+  onTogglePanel,
 }: LiteBarProps) {
   const [copied, setCopied] = useState(false)
   const showLineNumbers     = useUIStore((s) => s.editorSettings.showLineNumbers)
@@ -129,6 +138,11 @@ export default function LiteBar({
   const usageRatio  = usedBytes / GUEST_MAX_BYTES
   const storageWarn = usageRatio > 0.8
   const storageText = `${formatBytes(usedBytes)} de ${formatBytes(GUEST_MAX_BYTES)}`
+
+  // Panel toggle (json → árbol, markdown → vista previa)
+  const panelActive = rightPanel !== null
+  const panelLabel  = panelType === 'tree' ? 'Vista árbol' : 'Vista previa'
+  const panelIcon   = panelType === 'tree' ? 'list-ol' : 'eye'
 
   return (
     <div
@@ -165,6 +179,35 @@ export default function LiteBar({
           flexShrink: 0,
         }}
       >
+        {/* Panel toggle — only for panel-capable formats (json/markdown) */}
+        {hasPanel && (
+          <button
+            type="button"
+            onClick={() => onTogglePanel(panelType)}
+            title={panelLabel}
+            style={{
+              display:      'inline-flex',
+              alignItems:   'center',
+              gap:          '0.286rem',
+              height:       '1.571rem',
+              padding:      '0 0.571rem',
+              fontSize:     '0.786rem',
+              fontWeight:   600,
+              fontFamily:   'var(--font-ui)',
+              color:        panelActive ? 'var(--accent)' : 'var(--ink2)',
+              background:   panelActive ? 'var(--chrome)' : 'transparent',
+              border:       '1px solid var(--border)',
+              borderRadius: '0.286rem',
+              cursor:       'pointer',
+              whiteSpace:   'nowrap',
+              lineHeight:   1,
+            }}
+          >
+            <N2G name={panelIcon} size={13} stroke={1.8} color={panelActive ? 'var(--accent)' : 'var(--ink2)'} />
+            {panelLabel}
+          </button>
+        )}
+
         {/* Storage indicator — only show when something is stored */}
         {usedBytes > 0 && (
           <span

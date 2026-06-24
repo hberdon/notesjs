@@ -14,18 +14,22 @@ import { AyudaSheet }     from './menus/AyudaSheet'
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface MenuStripProps {
-  saveStatus: 'idle' | 'saving' | 'saved'
-  activeTabId: string | null
   /** Passed down to ArchivoSheet */
   onNewTab: () => void
   onOpenFile: () => void
   onRenameTab: () => void
   onDeleteTab: () => void
+  onOpenTrash: () => void
   /** Passed down to EditarSheet */
   onFormat: () => void
   onMinify: () => void
   /** fileId for CompartirSheet */
   fileId: string | null
+  /** Right-panel toggle — only rendered for panel-capable formats (json/markdown). */
+  hasPanel: boolean
+  rightPanel: 'tree' | 'preview' | null
+  panelType: 'tree' | 'preview'
+  onTogglePanel: (panel: 'tree' | 'preview') => void
 }
 
 // ── Menu config ───────────────────────────────────────────────────────────────
@@ -44,15 +48,18 @@ const MENUS: Array<{ id: MenuId; label: string }> = [
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function MenuStrip({
-  saveStatus,
-  activeTabId,
   onNewTab,
   onOpenFile,
   onRenameTab,
   onDeleteTab,
+  onOpenTrash,
   onFormat,
   onMinify,
   fileId,
+  hasPanel,
+  rightPanel,
+  panelType,
+  onTogglePanel,
 }: MenuStripProps) {
   const openMenuId  = useUIStore((s) => s.openMenuId)
   const toggleMenu  = useUIStore((s) => s.toggleMenu)
@@ -85,11 +92,10 @@ export function MenuStrip({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [closeMenu])
 
-  // Save pill content
-  const isSaving    = saveStatus === 'saving'
-  const pillIcon    = isSaving ? 'cloud-up' : 'cloud-check'
-  const pillLabel   = isSaving ? 'guardando…' : 'guardado'
-  const pillColor   = isSaving ? '#6b7280' : '#10b981'
+  // Panel toggle button (json → árbol, markdown → vista previa)
+  const panelActive = rightPanel !== null
+  const panelLabel  = panelType === 'tree' ? 'Vista árbol' : 'Vista previa'
+  const panelIcon   = panelType === 'tree' ? 'list-ol' : 'eye'
 
   return (
     <div
@@ -162,24 +168,42 @@ export function MenuStrip({
         })}
       </div>
 
-      {/* ── Right: save indicator + ⌘K chip ── */}
+      {/* ── Right: panel toggle + ⌘K chip ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.571rem', padding: '0 0.857rem' }}>
-        {/* Save indicator — only shown when activeTabId exists */}
-        {activeTabId !== null && (
-          <span
+        {/* Panel toggle — only for panel-capable formats (json/markdown) */}
+        {hasPanel && (
+          <button
+            type="button"
+            onClick={() => onTogglePanel(panelType)}
+            title={panelLabel}
             style={{
-              display:    'inline-flex',
-              alignItems: 'center',
-              gap:        '0.286rem',
-              fontSize:   '0.786rem',
-              fontWeight: 600,
-              color:      pillColor,
-              whiteSpace: 'nowrap',
+              display:      'inline-flex',
+              alignItems:   'center',
+              gap:          '0.286rem',
+              height:       '1.571rem',
+              padding:      '0 0.571rem',
+              fontSize:     '0.786rem',
+              fontWeight:   600,
+              fontFamily:   'var(--font-ui)',
+              color:        panelActive ? 'var(--accent)' : 'var(--ink2)',
+              background:   panelActive ? 'var(--chrome)' : 'transparent',
+              border:       '1px solid var(--border)',
+              borderRadius: '0.286rem',
+              cursor:       'pointer',
+              whiteSpace:   'nowrap',
+              lineHeight:   1,
+              transition:   'color 120ms, background 120ms',
+            }}
+            onMouseEnter={(e) => {
+              if (!panelActive) (e.currentTarget as HTMLButtonElement).style.background = 'var(--chrome)'
+            }}
+            onMouseLeave={(e) => {
+              if (!panelActive) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
             }}
           >
-            <N2G name={pillIcon} size={13} stroke={1.8} color={pillColor} />
-            {pillLabel}
-          </span>
+            <N2G name={panelIcon} size={13} stroke={1.8} color={panelActive ? 'var(--accent)' : 'var(--ink2)'} />
+            {panelLabel}
+          </button>
         )}
 
         {/* ⌘K chip */}
@@ -207,6 +231,7 @@ export function MenuStrip({
           onOpenFile={onOpenFile}
           onRenameTab={onRenameTab}
           onDeleteTab={onDeleteTab}
+          onOpenTrash={onOpenTrash}
         />
       )}
       {openMenuId === 'editar' && (

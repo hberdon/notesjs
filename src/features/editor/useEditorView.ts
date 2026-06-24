@@ -7,11 +7,13 @@ import { buildExtensions } from '@/lib/codemirror/extensions'
 import { useTabStore, getLocalContent } from '@/store/tabStore'
 import { useFileStore } from '@/store/fileStore'
 import { useUIStore } from '@/store/uiStore'
+import { useEditorContentStore } from '@/store/editorContentStore'
+import { useSaveStatusStore } from '@/store/saveStatusStore'
 import { detectLanguage, detectContentLanguage } from '@/shared/utils'
 import { formatCode } from '@/lib/formatter'
 
 /** Debounce delay (ms) before an auto-save fires after the last keystroke. */
-const DEBOUNCE_MS = 1500
+const DEBOUNCE_MS = 2000
 
 // Module-level singleton — always points to the currently mounted EditorView.
 let _activeView: EditorView | null = null
@@ -41,6 +43,7 @@ export function useEditorView(
   language: string,
   isDark: boolean,
   onGuestSave?: (tabId: string, content: string) => void,
+  onAuthLocalSave?: (tabId: string, content: string) => void,
 ) {
   // ── Stable refs ───────────────────────────────────────────────────────────
 
@@ -65,11 +68,21 @@ export function useEditorView(
   const onGuestSaveRef = useRef(onGuestSave)
   useEffect(() => { onGuestSaveRef.current = onGuestSave }, [onGuestSave])
 
+  const onAuthLocalSaveRef = useRef(onAuthLocalSave)
+  useEffect(() => { onAuthLocalSaveRef.current = onAuthLocalSave }, [onAuthLocalSave])
+
+  // fileId is captured once in the mount effect (deps=[]); keep a live ref so the
+  // auto-save listener sees the CURRENT id — critical after a local tab is
+  // promoted to a real file (null → uuid) without remounting the editor.
+  const fileIdRef = useRef(fileId)
+  useEffect(() => { fileIdRef.current = fileId }, [fileId])
+
   // The autoSaveListener and pasteDetector are created once in the mount effect
   // and stored here so the tab-switch effect can include them in fresh states.
   const autoSaveListenerRef   = useRef<Extension | null>(null)
   const pasteDetectorRef      = useRef<Extension | null>(null)
   const contentDetectRef      = useRef<Extension | null>(null)
+  const liveContentRef        = useRef<Extension | null>(null)
   const detectTimerRef        = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Compartment for theme/language — targeted reconfiguration that leaves
@@ -93,28 +106,43 @@ export function useEditorView(
     // EditorView constructor's `extensions` option. CM6 ignores the view-level
     // `extensions` when a `state` is provided — the listener would never fire.
     const autoSaveListener = EditorView.updateListener.of((update) => {
-if (!update.docChanged) return
+      if (!update.docChanged) return
 
       if (saveTimerRef.current !== null) {
         clearTimeout(saveTimerRef.current)
       }
 
-      if (fileId === null) {
-        // Guest path — fileId is always null for local/guest tabs
-        if (onGuestSaveRef.current && tabIdRef.current) {
+      // Read the CURRENT fileId, not the one captured at mount — it may have
+      // changed from null to a real id after a lazy promotion.
+      const currentFileId = fileIdRef.current
+      const tabId = tabIdRef.current
+
+      if (currentFileId === null) {
+        // Unpersisted tab. Guests save to IndexedDB; authed users get the tab
+        // promoted to a real DB file on first edit (onAuthLocalSave).
+        const localSave = onGuestSaveRef.current ?? onAuthLocalSaveRef.current
+        if (localSave && tabId) {
           saveTimerRef.current = setTimeout(() => {
-            const content = update.state.doc.toString()
-            onGuestSaveRef.current?.(tabIdRef.current!, content)
+            // Spinner shows only once the debounce elapses and the write actually
+            // starts (Word-like), not on every keystroke.
+            useSaveStatusStore.getState().setSaving()
+            // localSave is typed void but the impls return a Promise — wrap so we
+            // mark "saved" only once the write actually resolves.
+            Promise.resolve(localSave(tabId, update.state.doc.toString()))
+              .then(() => useSaveStatusStore.getState().setSaved())
+              .catch((err) => console.error('[useEditorView] local auto-save failed:', err))
           }, DEBOUNCE_MS)
         }
         return
       }
 
       saveTimerRef.current = setTimeout(() => {
-        const content = update.state.doc.toString()
-        updateFile(fileId, content).catch((err) => {
-          console.error('[useEditorView] auto-save failed:', err)
-        })
+        useSaveStatusStore.getState().setSaving()
+        updateFile(currentFileId, update.state.doc.toString())
+          .then(() => useSaveStatusStore.getState().setSaved())
+          .catch((err) => {
+            console.error('[useEditorView] auto-save failed:', err)
+          })
       }, DEBOUNCE_MS)
     })
 
@@ -171,6 +199,15 @@ if (!update.docChanged) return
     })
     contentDetectRef.current = contentDetectListener
 
+    // Push the live doc into editorContentStore so StatusBar counts and the
+    // RightPanel preview/tree update on every keystroke instead of staying
+    // pinned to the last EditorState snapshot.
+    const liveContentListener = EditorView.updateListener.of((update) => {
+      if (!update.docChanged) return
+      useEditorContentStore.getState().setContent(update.state.doc.toString())
+    })
+    liveContentRef.current = liveContentListener
+
     const existingState = getEditorState(tabId)
     const initialState =
       existingState ??
@@ -181,6 +218,7 @@ if (!update.docChanged) return
           autoSaveListener,
           pasteDetector,
           contentDetectListener,
+          liveContentListener,
         ],
       })
 
@@ -192,6 +230,10 @@ const view = new EditorView({
     viewRef.current = view
     prevTabIdRef.current = tabId
     _activeView = view
+
+    // Seed live content for the initial doc — the updateListener only fires on
+    // subsequent changes, not on first mount.
+    useEditorContentStore.getState().setContent(initialState.doc.toString())
 
     return () => {
       if (saveTimerRef.current !== null) {
@@ -209,6 +251,9 @@ const view = new EditorView({
       view.destroy()
       viewRef.current = null
       _activeView = null
+      // Editor is gone — clear live content so StatusBar doesn't show stale counts.
+      useEditorContentStore.getState().setContent('')
+      useSaveStatusStore.getState().reset()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -235,11 +280,16 @@ const view = new EditorView({
           autoSaveListenerRef.current!,
           pasteDetectorRef.current!,
           contentDetectRef.current!,
+          liveContentRef.current!,
         ],
       })
 
     view.setState(nextState)
     prevTabIdRef.current = tabId
+
+    // setState replaces the doc without firing a docChanged update — push the
+    // new tab's content so the StatusBar / RightPanel reflect the switch.
+    useEditorContentStore.getState().setContent(nextState.doc.toString())
   }, [tabId, language, isDark, snapshotState, getEditorState])
 
   // ── Theme / language reconfiguration ─────────────────────────────────────
