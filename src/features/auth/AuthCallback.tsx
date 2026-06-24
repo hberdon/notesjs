@@ -3,56 +3,43 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 
 /**
- * Handles the OAuth redirect callback for both implicit and PKCE flows.
+ * Handles the OAuth redirect callback for the PKCE flow.
  *
- * - Implicit flow: Supabase returns #access_token in the hash.
- *   detectSessionInUrl:true processes it automatically before this component mounts.
- *   We just call getSession() to confirm and navigate.
- *
- * - PKCE flow: Supabase returns ?code in the query string.
- *   We exchange it manually with exchangeCodeForSession().
+ * Supabase returns a `?code` query param; we exchange it for a session via
+ * exchangeCodeForSession(). No code present means the callback was reached
+ * without a valid OAuth redirect.
  */
 export default function AuthCallback() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const code = new URLSearchParams(window.location.search).get('code')
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
 
-    if (code) {
-      // PKCE flow
-      supabase.auth
-        .exchangeCodeForSession(code)
-        .then(({ error }) => {
-          if (error) {
-            navigate(`/login?error=${encodeURIComponent(error.message)}`, { replace: true })
-          } else {
-            navigate('/editor', { replace: true })
-          }
-        })
-        .catch(() => {
-          navigate('/login?error=callback_failed', { replace: true })
-        })
+    if (!code) {
+      // Surface the real reason instead of masking everything as missing_code.
+      // Supabase appends ?error=...&error_description=... to the callback when the
+      // provider exchange fails (bad GitHub callback URL, missing email scope,
+      // redirect not allowlisted, etc.).
+      const reason =
+        params.get('error_description') || params.get('error') || 'missing_code'
+      console.error('[AuthCallback] no code in callback URL →', window.location.href)
+      navigate(`/login?error=${encodeURIComponent(reason)}`, { replace: true })
       return
     }
 
-    // Implicit flow — detectSessionInUrl already processed the hash.
-    // Session should be available immediately via getSession().
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate('/editor', { replace: true })
-        return
-      }
-
-      // Fallback: wait for onAuthStateChange in case the SDK is still processing.
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        subscription.unsubscribe()
-        if (session) {
-          navigate('/editor', { replace: true })
+    supabase.auth
+      .exchangeCodeForSession(code)
+      .then(({ error }) => {
+        if (error) {
+          navigate(`/login?error=${encodeURIComponent(error.message)}`, { replace: true })
         } else {
-          navigate('/login?error=no_session', { replace: true })
+          navigate('/editor', { replace: true })
         }
       })
-    })
+      .catch(() => {
+        navigate('/login?error=callback_failed', { replace: true })
+      })
   }, [navigate])
 
   return (

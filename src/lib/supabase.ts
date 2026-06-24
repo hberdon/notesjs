@@ -22,14 +22,19 @@ if (!supabaseAnonKey) {
  * Singleton Supabase client typed against the Database schema.
  * Import this everywhere — never call createClient() a second time.
  *
- * Auth is configured for redirect-based OAuth (detectSessionInUrl: true)
- * so the /auth/callback route can exchange the ?code param automatically.
+ * Auth uses the PKCE flow (recommended for SPAs): OAuth returns a `?code`
+ * query param that AuthCallback exchanges manually via exchangeCodeForSession().
+ *
+ * detectSessionInUrl is OFF on purpose — with PKCE the SDK would otherwise
+ * auto-consume the `?code` before AuthCallback's manual exchange runs, causing
+ * an "auth code already used" error. The manual exchange is the single owner
+ * of the code.
  */
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
-    detectSessionInUrl: true,
+    detectSessionInUrl: false,
     persistSession: true,
     autoRefreshToken: true,
-    flowType: 'implicit',
+    flowType: 'pkce',
   },
 })
