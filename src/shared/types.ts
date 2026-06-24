@@ -38,6 +38,13 @@ export type DbFile = Omit<
   language: Language
 }
 
+/**
+ * File metadata without the (potentially large) `content` column.
+ * Used for the file list, which never needs the body — content is fetched
+ * lazily per file when it is actually opened (see fileStore.loadFileContent).
+ */
+export type FileMeta = Omit<DbFile, 'content'>
+
 // ── Editor UI types ─────────────────────────────────────────────────────────
 
 /**

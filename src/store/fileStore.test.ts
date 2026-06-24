@@ -60,7 +60,11 @@ describe('fetchFiles', () => {
     await useFileStore.getState().fetchFiles()
 
     expect(mockFrom).toHaveBeenCalledWith('files')
-    expect(chain.select).toHaveBeenCalledWith('*')
+    // Metadata only — content is excluded and loaded lazily per file.
+    expect(chain.select).toHaveBeenCalledWith(
+      'id, user_id, name, language, is_deleted, deleted_at, created_at, updated_at',
+    )
+    expect(chain.select).not.toHaveBeenCalledWith('*')
     expect(chain.eq).toHaveBeenCalledWith('is_deleted', false)
     expect(useFileStore.getState().files).toHaveLength(1)
     expect(useFileStore.getState().files[0].id).toBe('1')
@@ -172,13 +176,12 @@ describe('updateFile', () => {
     consoleSpy.mockRestore()
   })
 
-  it('updates the local files cache', async () => {
+  it('persists content to the DB without caching it on the metadata list', async () => {
     useFileStore.setState({
       files: [
         {
           id: 'file-1',
           name: 'a.ts',
-          content: 'old',
           language: 'typescript',
           user_id: 'u1',
           is_deleted: false,
@@ -194,7 +197,11 @@ describe('updateFile', () => {
     mockFrom.mockReturnValue({ update: mockUpdateFn } as any)
 
     await useFileStore.getState().updateFile('file-1', 'new content')
-    expect(useFileStore.getState().files[0].content).toBe('new content')
+
+    expect(mockUpdateFn).toHaveBeenCalledWith({ content: 'new content' })
+    expect(mockEqFn).toHaveBeenCalledWith('id', 'file-1')
+    // The list holds metadata only — content is never written back onto it.
+    expect(useFileStore.getState().files[0]).not.toHaveProperty('content')
   })
 })
 
@@ -207,7 +214,6 @@ describe('deleteFile', () => {
         {
           id: 'file-1',
           name: 'a.ts',
-          content: '',
           language: 'typescript',
           user_id: 'u1',
           is_deleted: false,
@@ -224,7 +230,9 @@ describe('deleteFile', () => {
 
     await useFileStore.getState().deleteFile('file-1')
 
-    expect(mockUpdateFn).toHaveBeenCalledWith({ is_deleted: true })
+    expect(mockUpdateFn).toHaveBeenCalledWith(
+      expect.objectContaining({ is_deleted: true, deleted_at: expect.any(String) }),
+    )
     expect(mockEqFn).toHaveBeenCalledWith('id', 'file-1')
   })
 
@@ -234,7 +242,6 @@ describe('deleteFile', () => {
         {
           id: 'file-1',
           name: 'a.ts',
-          content: '',
           language: 'typescript',
           user_id: 'u1',
           is_deleted: false,
@@ -244,7 +251,6 @@ describe('deleteFile', () => {
         {
           id: 'file-2',
           name: 'b.ts',
-          content: '',
           language: 'typescript',
           user_id: 'u1',
           is_deleted: false,
@@ -272,7 +278,6 @@ describe('deleteFile', () => {
         {
           id: 'file-1',
           name: 'a.ts',
-          content: '',
           language: 'typescript',
           user_id: 'u1',
           is_deleted: false,

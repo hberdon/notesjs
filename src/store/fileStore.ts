@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
-import type { DbFile, PublicLink, SharePermission } from '@/shared/types'
+import type { DbFile, FileMeta, PublicLink, SharePermission } from '@/shared/types'
 import { detectLanguage } from '@/shared/utils'
 
 export type SharedFileResult =
@@ -10,13 +10,41 @@ export type SharedFileResult =
 
 const SIZE_WARN_BYTES = 512_000 // 500 KB
 
+/** Trashed files older than this (by deleted_at) are hidden from the modal. */
+const TRASH_VISIBLE_DAYS = 7
+
 interface FileStore {
-  files: DbFile[]
+  files: FileMeta[]
   loading: boolean
   error: string | null
 
-  /** Load all non-deleted files for the current user, ordered by updated_at DESC. */
+  /**
+   * Load metadata (no content) for all non-deleted files of the current user,
+   * ordered by updated_at DESC. Content is fetched lazily per file via
+   * loadFileContent when a file is actually opened.
+   */
   fetchFiles: () => Promise<void>
+
+  /** Fetch the content body for a single file. Returns null on error. */
+  loadFileContent: (id: string) => Promise<string | null>
+
+  /**
+   * List soft-deleted files (the "trash"), metadata only, newest first.
+   * Only returns files trashed within the last TRASH_VISIBLE_DAYS — older ones
+   * stay in the DB but are hidden, and can only be cleared via emptyTrash().
+   */
+  fetchDeletedFiles: () => Promise<FileMeta[]>
+
+  /** Count ALL soft-deleted files of the user (visible + hidden) — drives the
+   * "Vaciar papelera" button visibility and its confirmation count. */
+  countTrash: () => Promise<number>
+
+  /** Permanently (hard) delete EVERY trashed file of the user — visible and
+   * hidden alike. Irreversible. Returns how many rows were removed. */
+  emptyTrash: () => Promise<number>
+
+  /** Restore a soft-deleted file by clearing is_deleted + deleted_at. */
+  restoreFile: (id: string) => Promise<void>
 
   /**
    * Create a new file with the given name.
@@ -32,6 +60,13 @@ interface FileStore {
    * Warns if content exceeds 500 KB.
    */
   updateFile: (id: string, content: string) => Promise<void>
+
+  /**
+   * Rename a persisted file: updates `name` and re-derives `language` from the
+   * new extension. Local tabs that aren't persisted yet are renamed in tabStore
+   * only — this is for files that already have a row.
+   */
+  renameFile: (id: string, name: string) => Promise<void>
 
   /** Soft-delete a file (sets is_deleted = true). Optimistically removes from local state. */
   deleteFile: (id: string) => Promise<void>
@@ -74,21 +109,37 @@ export const useFileStore = create<FileStore>((set, get) => ({
   async fetchFiles() {
     set({ loading: true, error: null })
     try {
+      // Select metadata only — never pull `content` for the list. A large
+      // workspace would otherwise drag every file body into memory on mount.
       const { data, error } = await supabase
         .from('files')
-        .select('*')
+        .select('id, user_id, name, language, is_deleted, deleted_at, created_at, updated_at')
         .eq('is_deleted', false)
         .order('updated_at', { ascending: false })
 
       if (error) throw error
 
-      set({ files: (data ?? []) as DbFile[] })
+      set({ files: (data ?? []) as FileMeta[] })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load files'
       set({ error: message })
     } finally {
       set({ loading: false })
     }
+  },
+
+  async loadFileContent(id) {
+    const { data, error } = await supabase
+      .from('files')
+      .select('content')
+      .eq('id', id)
+      .single()
+
+    if (error) {
+      console.error('[fileStore] loadFileContent error:', error.message)
+      return null
+    }
+    return data?.content ?? null
   },
 
   async createFile(name, content = '') {
@@ -135,10 +186,76 @@ export const useFileStore = create<FileStore>((set, get) => ({
       .eq('id', id)
 
     if (error) throw error
+    // No local cache update: the files list holds metadata only (no content),
+    // and the live editor doc is the source of truth for the open tab.
+  },
 
-    // Update local cache with new content
+  async fetchDeletedFiles() {
+    // Only the recent window: files trashed within the last TRASH_VISIBLE_DAYS.
+    const cutoff = new Date(Date.now() - TRASH_VISIBLE_DAYS * 24 * 60 * 60 * 1000).toISOString()
+    const { data, error } = await supabase
+      .from('files')
+      .select('id, user_id, name, language, is_deleted, deleted_at, created_at, updated_at')
+      .eq('is_deleted', true)
+      .gte('deleted_at', cutoff)
+      .order('deleted_at', { ascending: false })
+
+    if (error) {
+      console.error('[fileStore] fetchDeletedFiles error:', error.message)
+      return []
+    }
+    return (data ?? []) as FileMeta[]
+  },
+
+  async countTrash() {
+    // Count ALL trashed rows (no date window) — RLS scopes this to the user.
+    const { count, error } = await supabase
+      .from('files')
+      .select('id', { count: 'exact', head: true })
+      .eq('is_deleted', true)
+
+    if (error) {
+      console.error('[fileStore] countTrash error:', error.message)
+      return 0
+    }
+    return count ?? 0
+  },
+
+  async emptyTrash() {
+    // Hard-delete every trashed row of the user (visible + hidden). RLS ensures
+    // only the caller's rows are affected. `.select('id')` returns the removed
+    // rows so we can report the count.
+    const { data, error } = await supabase
+      .from('files')
+      .delete()
+      .eq('is_deleted', true)
+      .select('id')
+
+    if (error) throw error
+    return (data ?? []).length
+  },
+
+  async restoreFile(id) {
+    const { error } = await supabase
+      .from('files')
+      .update({ is_deleted: false, deleted_at: null })
+      .eq('id', id)
+
+    if (error) throw error
+  },
+
+  async renameFile(id, name) {
+    const language = detectLanguage(name)
+    const { error } = await supabase
+      .from('files')
+      .update({ name, language })
+      .eq('id', id)
+
+    if (error) throw error
+
+    // Keep the metadata list in sync (name + language only — no content there).
     set((state) => ({
-      files: state.files.map((f) => (f.id === id ? { ...f, content } : f)),
+      files: state.files.map((f) => (f.id === id ? { ...f, name, language } : f)),
     }))
   },
 
@@ -149,7 +266,7 @@ export const useFileStore = create<FileStore>((set, get) => ({
 
     const { error } = await supabase
       .from('files')
-      .update({ is_deleted: true })
+      .update({ is_deleted: true, deleted_at: new Date().toISOString() })
       .eq('id', id)
 
     if (error) {

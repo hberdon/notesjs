@@ -170,6 +170,34 @@ body {
   0%, 100% { opacity: 1 }
   50%       { opacity: 0 }
 }
+
+@keyframes njSpin {
+  to { transform: rotate(360deg); }
+}
+.nj-spin {
+  animation: njSpin 0.7s linear infinite;
+  transform-origin: center;
+}
+
+/* Papelera table — mirrors the privedge-platform dashboard table style */
+.nj-trash-table { width: 100%; border-collapse: collapse; }
+.nj-trash-table thead { border-bottom: 1px solid var(--border); }
+.nj-trash-table th {
+  font-size: 0.625rem; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted);
+  padding: 0.5rem 0.857rem; text-align: left;
+  white-space: nowrap;
+}
+.nj-trash-table td {
+  font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink);
+  padding: 0.357rem 0.857rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.nj-trash-table tbody tr { transition: background 0.08s ease; }
+.nj-trash-table tbody tr:hover { background: var(--chrome); }
 .nj-caret {
   display: inline-block;
   width: 1px;

@@ -20,6 +20,8 @@ export interface Database {
           language: string
           /** Soft-delete flag — true means the file is hidden from the list */
           is_deleted: boolean
+          /** ISO 8601 timestamp of soft-deletion, or null when not trashed */
+          deleted_at: string | null
           /** ISO 8601 timestamp — set by DB default */
           created_at: string
           /** ISO 8601 timestamp — auto-updated by trigger on every UPDATE */
@@ -32,6 +34,7 @@ export interface Database {
           content?: string
           language?: string
           is_deleted?: boolean
+          deleted_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -42,6 +45,7 @@ export interface Database {
           content?: string
           language?: string
           is_deleted?: boolean
+          deleted_at?: string | null
           created_at?: string
           updated_at?: string
         }
