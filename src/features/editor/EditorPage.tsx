@@ -82,7 +82,6 @@ export default function EditorPage() {
   const isDark = getEffectiveTheme(theme) === 'dark'
 
   // ── File store ─────────────────────────────────────────────────────────────
-  const fetchFiles   = useFileStore((s) => s.fetchFiles)
   const createFile   = useFileStore((s) => s.createFile)
   const updateFile   = useFileStore((s) => s.updateFile)
   const renameFile   = useFileStore((s) => s.renameFile)
@@ -108,11 +107,6 @@ export default function EditorPage() {
   // Tracks tabs mid-promotion so concurrent debounced saves don't create
   // duplicate DB files during the async createFile window.
   const promotingRef = useRef<Set<string>>(new Set())
-
-  // ── Fetch files on mount (auth only) ──────────────────────────────────────
-  useEffect(() => {
-    if (!isGuest) fetchFiles()
-  }, [fetchFiles, isGuest])
 
   // ── Hydrate guest tabs from IndexedDB ──────────────────────────────────────
   // Guard against React Strict Mode double-invocation: before opening any tab,
