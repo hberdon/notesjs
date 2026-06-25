@@ -45,5 +45,11 @@ coverage/
 # Claude Code tooling
 .atl/
 
-# context-progress sentinel
-.md/.context-progress-session
+# Internal planning notes — kept local, not published
+.md/
+
+# Design handoff (prototypes, screenshots, tokens) — kept local
+design/
+
+# Branding source masters (.ai/.eps/.svg) — kept local, out of the web build
+branding/

@@ -1,4 +1,0 @@
-- version lite
-- dividir pantalla
-- version lite solo loca
-- 
