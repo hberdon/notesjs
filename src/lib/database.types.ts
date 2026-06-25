@@ -115,7 +115,12 @@ export interface Database {
       }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      get_shared_file: {
+        Args: { p_token: string; p_password: string | null }
+        Returns: Record<string, unknown>
+      }
+    }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
   }

@@ -69,11 +69,10 @@ interface AvatarMenuDropdownProps {
   avatarUrl?: string
 }
 
-function AvatarMenuDropdown({ open, onClose, email, fullName, avatarUrl }: AvatarMenuDropdownProps) {
+function AvatarMenuDropdown({ open, onClose, email, fullName }: AvatarMenuDropdownProps) {
   const theme    = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
   const { signOut } = useAuth()
-  const navigate = useNavigate()
 
   const THEMES: Array<{ id: Theme; label: string }> = [
     { id: 'dark',  label: 'Oscuro' },

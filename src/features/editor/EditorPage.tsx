@@ -55,7 +55,6 @@ export default function EditorPage() {
   const addTabRaw      = useTabStore((s) => s.addTab)
   const removeTab      = useTabStore((s) => s.removeTab)
   const setActiveTab   = useTabStore((s) => s.setActiveTab)
-  const getEditorState = useTabStore((s) => s.getEditorState)
   const openGuestTab   = useTabStore((s) => s.openGuestTab)
   const setTabFileId   = useTabStore((s) => s.setTabFileId)
   const renameTab      = useTabStore((s) => s.renameTab)
@@ -241,21 +240,6 @@ export default function EditorPage() {
 
   function handleSelectTab(id: string) {
     setActiveTab(id)
-  }
-
-  function handleDownloadActive() {
-    if (!activeTabId) return
-    const content =
-      getEditorState(activeTabId)?.doc.toString() ??
-      getLocalContent(activeTabId) ??
-      ''
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href     = url
-    a.download = filename
-    a.click()
-    URL.revokeObjectURL(url)
   }
 
   async function handleGuestSave(tabId: string, content: string) {

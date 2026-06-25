@@ -12,22 +12,6 @@ import { N2G } from '@/shared/components/N2G'
 import type { Tab } from '@/shared/types'
 import type { Theme } from '@/shared/types'
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function getExt(filename: string): string {
-  const dot = filename.lastIndexOf('.')
-  if (dot === -1 || dot === filename.length - 1) return 'txt'
-  return filename.slice(dot + 1).toLowerCase()
-}
-
-function getInitials(email: string | null | undefined): string {
-  if (!email) return '?'
-  const [local] = email.split('@')
-  const parts = local.split(/[._\-+]/).filter(Boolean)
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
-  return local.slice(0, 2).toUpperCase()
-}
-
 // ── AvatarMenu ────────────────────────────────────────────────────────────────
 
 interface AvatarMenuProps {
@@ -44,8 +28,6 @@ function AvatarMenu({ open, onClose }: AvatarMenuProps) {
 
   const email = user?.email ?? null
   const fullName = (user?.user_metadata?.full_name as string | undefined) ?? email ?? 'Usuario'
-  const avatarUrl = user?.user_metadata?.avatar_url as string | undefined
-  const initials = getInitials(email)
 
   const THEMES: Array<{ id: Theme; label: string }> = [
     { id: 'dark', label: 'Oscuro' },
@@ -424,7 +406,6 @@ export default function TabBar({
   }
 
   const email = user?.email ?? null
-  const initials = getInitials(email)
   const avatarUrl = (user?.user_metadata?.avatar_url ?? user?.user_metadata?.picture) as string | undefined
   const fullName = (user?.user_metadata?.full_name as string | undefined) ?? email?.split('@')[0] ?? 'Usuario'
   const firstName = fullName.split(' ')[0]

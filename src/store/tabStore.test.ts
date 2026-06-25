@@ -15,6 +15,7 @@ function makeFile(overrides: Partial<DbFile> = {}): DbFile {
     language: 'typescript',
     user_id: 'user-1',
     is_deleted: false,
+    deleted_at: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...overrides,

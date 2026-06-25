@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { EditorState } from '@codemirror/state'
-import type { Tab, DbFile } from '@/shared/types'
+import type { Tab, DbFile, Language } from '@/shared/types'
 import { detectLanguage } from '@/shared/utils'
 
 const editorStateMap  = new Map<string, EditorState>()

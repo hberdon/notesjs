@@ -1,3 +1,4 @@
+import type { Plugin } from 'prettier'
 import type { Language } from '@/shared/types'
 
 // ── Native: JSON ──────────────────────────────────────────────────────────────
@@ -111,7 +112,7 @@ async function loadPrettierPlugins(parser: string) {
     plugins.push(p.default)
   }
 
-  return [prettier, plugins] as const
+  return [prettier, plugins as Plugin[]] as const
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
