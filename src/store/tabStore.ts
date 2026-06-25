@@ -61,6 +61,13 @@ interface TabStore {
    * duplicating. Used to restore the auth user's session on reload.
    */
   openPersistedFile: (id: string, filename: string, content: string) => void
+
+  /**
+   * Add a persisted DB file as a tab WITHOUT loading its content (lazy).
+   * Used to list all of the user's Supabase files as tabs on login — content
+   * is fetched on first activation. Does not change the active tab. Idempotent.
+   */
+  addPersistedMeta: (id: string, filename: string) => void
 }
 
 export const useTabStore = create<TabStore>((set, get) => ({
@@ -196,5 +203,20 @@ export const useTabStore = create<TabStore>((set, get) => ({
       isDirty: false,
     }
     set((state) => ({ tabs: [...state.tabs, newTab], activeTabId: id }))
+  },
+
+  addPersistedMeta(id, filename) {
+    if (get().tabs.some((t) => t.id === id)) return
+
+    const newTab: Tab = {
+      id,
+      fileId: id, // tab.id === fileId for persisted files
+      filename,
+      language: detectLanguage(filename),
+      isDirty: false,
+    }
+    // No activeTabId change and no localContentMap seed — getLocalContent stays
+    // undefined, which is the "content not loaded yet" marker for lazy loading.
+    set((state) => ({ tabs: [...state.tabs, newTab] }))
   },
 }))

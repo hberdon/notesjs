@@ -59,6 +59,7 @@ export default function EditorPage() {
   const setTabFileId   = useTabStore((s) => s.setTabFileId)
   const renameTab      = useTabStore((s) => s.renameTab)
   const openPersistedFile = useTabStore((s) => s.openPersistedFile)
+  const addPersistedMeta  = useTabStore((s) => s.addPersistedMeta)
 
   // Storage usage indicator for LiteBar
   const [usedBytes, setUsedBytes] = useState(0)
@@ -85,19 +86,13 @@ export default function EditorPage() {
   const updateFile   = useFileStore((s) => s.updateFile)
   const renameFile   = useFileStore((s) => s.renameFile)
   const loadFileContent = useFileStore((s) => s.loadFileContent)
+  const fetchFiles   = useFileStore((s) => s.fetchFiles)
   const restoreFile  = useFileStore((s) => s.restoreFile)
   const deleteFile   = useFileStore((s) => s.deleteFile)
 
   // Trash (deleted files) modal — opened on demand from Archivo → Papelera.
   const [trashOpen, setTrashOpen] = useState(false)
 
-  // Per-user key for persisting the open-tab session to localStorage.
-  const userId     = useAuthStore((s) => s.user?.id)
-  const sessionKey = userId ? `notesjs-session-${userId}` : null
-  // Gate: the persistence effect must NOT write until restore has fully
-  // completed, otherwise an early empty write clobbers the saved session —
-  // especially under React StrictMode's double-mount.
-  const [sessionRestored, setSessionRestored] = useState(false)
 
   // Id of the tab being renamed inline (driven from TabBar double-click or the
   // Archivo → Renombrar menu action).
@@ -162,67 +157,41 @@ export default function EditorPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGuest])
 
-  // ── Restore the auth user's open-tab session on mount ──────────────────────
-  // Guest mode is handled by the IndexedDB hydration effect above. Tabs are
-  // reopened with content fetched lazily from the DB. Falls back to a blank tab
-  // when there's no saved session (or it's empty / corrupt).
+  // ── Load all of the user's Supabase files as tabs on mount ─────────────────
+  // Guest mode is handled by the IndexedDB hydration effect above. Every
+  // non-deleted file the user owns is opened as a tab (Notepad++ style); content
+  // is fetched lazily on first activation. The most-recently-updated file is
+  // activated and its content loaded eagerly so the editor mounts ready.
+  // Source of truth is Supabase — NOT localStorage — so files are reachable from
+  // any device or origin. Falls back to a blank tab when the user has no files.
   useEffect(() => {
     if (isGuest) return
     let cancelled = false
 
-    async function restoreSession() {
-      const raw = sessionKey ? localStorage.getItem(sessionKey) : null
-
-      let entries: { fileId: string; filename: string }[] = []
-      let activeFileId: string | null = null
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw) as {
-            tabs?: { fileId: string; filename: string }[]
-            activeFileId?: string | null
-          }
-          entries = parsed.tabs ?? []
-          activeFileId = parsed.activeFileId ?? null
-        } catch {
-          /* corrupt session — ignore and fall back to a blank tab */
-        }
-      }
-
-      for (const entry of entries) {
-        const content = await loadFileContent(entry.fileId)
-        if (cancelled) return
-        // Skip files that were deleted since the session was saved.
-        if (content !== null) openPersistedFile(entry.fileId, entry.filename, content)
-      }
+    async function loadFiles() {
+      const metas = await fetchFiles()
       if (cancelled) return
 
-      if (activeFileId && useTabStore.getState().tabs.some((t) => t.id === activeFileId)) {
-        setActiveTab(activeFileId)
+      for (const meta of metas) addPersistedMeta(meta.id, meta.name)
+
+      // Eagerly load + activate the most recent file (metas are newest-first) so
+      // the editor mounts with real content instead of an empty doc.
+      const active = metas[0]
+      if (active) {
+        const content = await loadFileContent(active.id)
+        if (cancelled) return
+        openPersistedFile(active.id, active.name, content ?? '')
       }
+
       if (useTabStore.getState().tabs.length === 0) {
         createDefaultTab()
       }
-
-      // Restore done — only now may the persistence effect start writing.
-      setSessionRestored(true)
     }
 
-    restoreSession()
+    loadFiles()
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  // ── Persist the open-tab session whenever it changes (auth only) ───────────
-  // Only tabs backed by a real file are persistable; unpromoted "Untitled" tabs
-  // have no DB row to reopen from.
-  useEffect(() => {
-    if (isGuest || !sessionKey || !sessionRestored) return
-    const persistable = tabs
-      .filter((t) => t.fileId)
-      .map((t) => ({ fileId: t.fileId as string, filename: t.filename }))
-    const activeFileId = tabs.find((t) => t.id === activeTabId)?.fileId ?? null
-    localStorage.setItem(sessionKey, JSON.stringify({ tabs: persistable, activeFileId }))
-  }, [tabs, activeTabId, isGuest, sessionKey, sessionRestored])
 
   // ── Tab helpers ────────────────────────────────────────────────────────────
 
@@ -238,8 +207,17 @@ export default function EditorPage() {
     createDefaultTab()
   }
 
-  function handleSelectTab(id: string) {
-    setActiveTab(id)
+  async function handleSelectTab(id: string) {
+    // Lazy content load: tabs added via addPersistedMeta have no content yet
+    // (getLocalContent === undefined). Fetch on first activation, then seed +
+    // activate. Already-loaded tabs (incl. empty files, content '') just switch.
+    if (getLocalContent(id) === undefined) {
+      const tab = useTabStore.getState().tabs.find((t) => t.id === id)
+      const content = await loadFileContent(id)
+      openPersistedFile(id, tab?.filename ?? 'file', content ?? '')
+    } else {
+      setActiveTab(id)
+    }
   }
 
   async function handleGuestSave(tabId: string, content: string) {

@@ -18,6 +18,13 @@ interface FileStore {
   loading: boolean
   error: string | null
 
+  /**
+   * Fetch all of the user's non-deleted files (metadata only, no content body),
+   * newest first. Populates `files` and returns the list. Content is loaded
+   * lazily per file via loadFileContent when a tab is first activated.
+   */
+  fetchFiles: () => Promise<FileMeta[]>
+
   /** Fetch the content body for a single file. Returns null on error. */
   loadFileContent: (id: string) => Promise<string | null>
 
@@ -98,6 +105,24 @@ export const useFileStore = create<FileStore>((set, get) => ({
   files: [],
   loading: false,
   error: null,
+
+  async fetchFiles() {
+    set({ loading: true, error: null })
+    const { data, error } = await supabase
+      .from('files')
+      .select('id, user_id, name, language, is_deleted, deleted_at, created_at, updated_at')
+      .eq('is_deleted', false)
+      .order('updated_at', { ascending: false })
+
+    if (error) {
+      console.error('[fileStore] fetchFiles error:', error.message)
+      set({ loading: false, error: error.message })
+      return []
+    }
+    const files = (data ?? []) as FileMeta[]
+    set({ files, loading: false })
+    return files
+  },
 
   async loadFileContent(id) {
     const { data, error } = await supabase
