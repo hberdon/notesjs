@@ -1,7 +1,6 @@
 // VerSheet — 250px @ left 298px
 // Design reference: design/design_handoff_notesjs_v3/README.md § J — Ver
 
-import { useState } from 'react'
 import { useUIStore } from '@/store/uiStore'
 import { MenuSheet, MSection, MDivider } from './MenuPrimitives'
 import { N2G } from '@/shared/components/N2G'
@@ -14,8 +13,6 @@ export function VerSheet({ left }: { left: number }) {
   const updateEditorSettings = useUIStore((s) => s.updateEditorSettings)
 
   const { showLineNumbers, wrap, fontSize } = editorSettings
-
-  const [minimap, setMinimap] = useState(false)
 
   return (
     <MenuSheet width="17.857rem" left={left}>
@@ -36,8 +33,7 @@ export function VerSheet({ left }: { left: number }) {
         <ToggleRow
           label="Minimapa"
           icon="map"
-          value={minimap}
-          onChange={setMinimap}
+          wip
         />
       </MSection>
 
@@ -77,15 +73,18 @@ export function VerSheet({ left }: { left: number }) {
 interface ToggleRowProps {
   label: string
   icon:  string
-  value: boolean
-  onChange: (v: boolean) => void
+  value?: boolean
+  onChange?: (v: boolean) => void
+  wip?: boolean   // "en desarrollo" → disabled + badge instead of the toggle
 }
 
-function ToggleRow({ label, icon, value, onChange }: ToggleRowProps) {
+function ToggleRow({ label, icon, value = false, onChange, wip = false }: ToggleRowProps) {
   return (
     <button
       type="button"
-      onClick={() => onChange(!value)}
+      disabled={wip}
+      onClick={() => { if (!wip) onChange?.(!value) }}
+      title={wip ? 'En desarrollo' : undefined}
       style={{
         display:      'grid',
         gridTemplateColumns: '1.143rem 1fr auto',
@@ -97,41 +96,61 @@ function ToggleRow({ label, icon, value, onChange }: ToggleRowProps) {
         background:   'transparent',
         border:       'none',
         borderRadius: 'var(--r-sm)',
-        cursor:       'pointer',
+        cursor:       wip ? 'default' : 'pointer',
         textAlign:    'left',
         color:        'var(--ink)',
+        opacity:      wip ? 0.45 : 1,
       }}
-      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--chromeD)' }}
+      onMouseEnter={(e) => { if (!wip) (e.currentTarget as HTMLButtonElement).style.background = 'var(--chromeD)' }}
       onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
     >
       <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <N2G name={icon} size={13} stroke={1.8} color="var(--ink3)" />
       </span>
       <span style={{ fontSize: '0.821rem', fontWeight: 400, color: 'var(--ink)' }}>{label}</span>
-      <span
-        style={{
-          display:        'inline-flex',
-          alignItems:     'center',
-          width:          '1.857rem',
-          height:         '1rem',
-          borderRadius:   999,
-          background:     value ? 'var(--accent)' : 'var(--chromeDD)',
-          transition:     'background 150ms ease',
-          padding:        '0 0.143rem',
-          flexShrink:     0,
-          justifyContent: value ? 'flex-end' : 'flex-start',
-        }}
-      >
+      {wip ? (
         <span
           style={{
-            width:        '0.714rem',
-            height:       '0.714rem',
-            borderRadius: '50%',
-            background:   '#fff',
-            boxShadow:    '0 1px 2px rgba(0,0,0,0.18)',
+            fontSize:      '0.625rem',
+            fontWeight:    700,
+            letterSpacing: '0.4px',
+            textTransform: 'uppercase',
+            color:         'var(--muted)',
+            border:        '1px dashed var(--border)',
+            borderRadius:  '999px',
+            padding:       '0.071rem 0.357rem',
+            whiteSpace:    'nowrap',
+            flexShrink:    0,
           }}
-        />
-      </span>
+        >
+          pronto
+        </span>
+      ) : (
+        <span
+          style={{
+            display:        'inline-flex',
+            alignItems:     'center',
+            width:          '1.857rem',
+            height:         '1rem',
+            borderRadius:   999,
+            background:     value ? 'var(--accent)' : 'var(--chromeDD)',
+            transition:     'background 150ms ease',
+            padding:        '0 0.143rem',
+            flexShrink:     0,
+            justifyContent: value ? 'flex-end' : 'flex-start',
+          }}
+        >
+          <span
+            style={{
+              width:        '0.714rem',
+              height:       '0.714rem',
+              borderRadius: '50%',
+              background:   '#fff',
+              boxShadow:    '0 1px 2px rgba(0,0,0,0.18)',
+            }}
+          />
+        </span>
+      )}
     </button>
   )
 }

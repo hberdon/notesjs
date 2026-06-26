@@ -49,11 +49,12 @@ export function ArchivoSheet({ left, onNewTab, onOpenFile, onRenameTab, onDelete
             icon="download"
             label="Descargar copia"
             sub="txt · md"
+            wip
           />
           <MItem
             icon="type"
             label="Imprimir…"
-            shortcut="⌘P"
+            wip
           />
         </MSection>
 
@@ -84,7 +85,7 @@ export function ArchivoSheet({ left, onNewTab, onOpenFile, onRenameTab, onDelete
 
         <MDivider />
 
-        {/* Recientes */}
+        {/* Recientes — fake data, pending real recent-files tracking */}
         <MSection label="Recientes">
           {RECENTES.map((r) => (
             <MItem
@@ -92,6 +93,7 @@ export function ArchivoSheet({ left, onNewTab, onOpenFile, onRenameTab, onDelete
               icon="dot"
               label={r.name}
               sub={r.time}
+              wip
             />
           ))}
         </MSection>

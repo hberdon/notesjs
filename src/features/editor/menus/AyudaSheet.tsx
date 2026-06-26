@@ -11,17 +11,19 @@ export function AyudaSheet({ left }: { left: number }) {
         <MItem
           icon="keyboard"
           label="Atajos de teclado"
-          shortcut="⌘?"
           variant="accent"
+          wip
         />
         <MItem
           icon="info"
           label="Tour rápido"
           sub="2 min"
+          wip
         />
         <MItem
           icon="dot"
           label="Novedades"
+          wip
         />
       </MSection>
 
@@ -31,11 +33,13 @@ export function AyudaSheet({ left }: { left: number }) {
         <MItem
           icon="share"
           label="Contactar soporte"
+          wip
         />
         <MItem
           icon="check"
           label="Estado del servicio"
           sub="todo operativo"
+          wip
         />
       </MSection>
 

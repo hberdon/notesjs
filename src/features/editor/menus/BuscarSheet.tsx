@@ -11,7 +11,36 @@ export function BuscarSheet({ left }: { left: number }) {
 
   return (
     <MenuSheet width="18.571rem" left={left}>
-      <div style={{ padding: '0.286rem 0.714rem 0.429rem', display: 'flex', flexDirection: 'column', gap: '0.429rem' }}>
+      {/* Search & replace is not wired up yet — show the design as a disabled preview */}
+      <div style={{ padding: '0.5rem 0.714rem 0.143rem' }}>
+        <span
+          style={{
+            display:       'inline-block',
+            fontSize:      '0.625rem',
+            fontWeight:    700,
+            letterSpacing: '0.4px',
+            textTransform: 'uppercase',
+            color:         'var(--muted)',
+            border:        '1px dashed var(--border)',
+            borderRadius:  '999px',
+            padding:       '0.143rem 0.5rem',
+          }}
+        >
+          🚧 En desarrollo
+        </span>
+      </div>
+      <div
+        aria-disabled
+        style={{
+          padding:       '0.286rem 0.714rem 0.429rem',
+          display:       'flex',
+          flexDirection: 'column',
+          gap:           '0.429rem',
+          opacity:       0.5,
+          pointerEvents: 'none',
+          userSelect:    'none',
+        }}
+      >
 
         {/* Search input */}
         <div style={{ position: 'relative' }}>

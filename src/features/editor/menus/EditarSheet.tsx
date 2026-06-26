@@ -14,26 +14,26 @@ export function EditarSheet({ left, onFormat, onMinify }: EditarSheetProps) {
     <MenuSheet width="17.143rem" left={left}>
       {/* Historial */}
       <MSection>
-        <MItem icon="undo" label="Deshacer" shortcut="⌘Z" />
-        <MItem icon="redo" label="Rehacer"  shortcut="⌘⇧Z" />
+        <MItem icon="undo" label="Deshacer" wip />
+        <MItem icon="redo" label="Rehacer"  wip />
       </MSection>
 
       <MDivider />
 
       {/* Portapapeles */}
       <MSection>
-        <MItem icon="cut"   label="Cortar"           shortcut="⌘X" />
-        <MItem icon="copy"  label="Copiar"            shortcut="⌘C" />
-        <MItem icon="paste" label="Pegar"             shortcut="⌘V" />
-        <MItem icon="paste" label="Pegar sin formato" shortcut="⌘⇧V" />
+        <MItem icon="cut"   label="Cortar"           wip />
+        <MItem icon="copy"  label="Copiar"           wip />
+        <MItem icon="paste" label="Pegar"            wip />
+        <MItem icon="paste" label="Pegar sin formato" wip />
       </MSection>
 
       <MDivider />
 
       {/* Selección */}
       <MSection>
-        <MItem icon="type"    label="Seleccionar todo"  shortcut="⌘A" />
-        <MItem icon="comment" label="Comentar línea"    shortcut="⌘/" />
+        <MItem icon="type"    label="Seleccionar todo"  wip />
+        <MItem icon="comment" label="Comentar línea"    wip />
       </MSection>
 
       <MDivider />

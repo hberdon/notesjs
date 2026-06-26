@@ -15,6 +15,7 @@ export interface MItemProps {
   on?: boolean                               // selected state → accentSoft bg
   onClick?: () => void
   disabled?: boolean
+  wip?: boolean                              // "en desarrollo" → disabled + badge
 }
 
 export function MItem({
@@ -26,7 +27,10 @@ export function MItem({
   on = false,
   onClick,
   disabled = false,
+  wip = false,
 }: MItemProps) {
+  // A work-in-progress item is always non-interactive.
+  const isDisabled = disabled || wip
   const labelColor =
     variant === 'danger'
       ? 'var(--err)'
@@ -40,8 +44,9 @@ export function MItem({
   return (
     <button
       type="button"
-      disabled={disabled}
+      disabled={isDisabled}
       onClick={onClick}
+      title={wip ? 'En desarrollo' : undefined}
       style={{
         display:         'grid',
         gridTemplateColumns: '1.143rem 1fr auto',
@@ -52,13 +57,13 @@ export function MItem({
         background:      on ? 'var(--accentSoft)' : 'transparent',
         border:          'none',
         borderRadius:    '0.286rem',
-        cursor:          disabled ? 'default' : 'pointer',
+        cursor:          isDisabled ? 'default' : 'pointer',
         textAlign:       'left',
         color:           labelColor,
-        opacity:         disabled ? 0.45 : 1,
+        opacity:         isDisabled ? 0.45 : 1,
       } as CSSProperties}
       onMouseEnter={(e) => {
-        if (!disabled) {
+        if (!isDisabled) {
           (e.currentTarget as HTMLButtonElement).style.background = on
             ? 'var(--accentSoft)'
             : 'var(--chrome)'
@@ -107,8 +112,25 @@ export function MItem({
         )}
       </span>
 
-      {/* Shortcut chip */}
-      {shortcut && (
+      {/* Right slot — a WIP badge takes precedence over the shortcut chip */}
+      {wip ? (
+        <span
+          style={{
+            fontSize:      '0.625rem',
+            fontWeight:    700,
+            letterSpacing: '0.4px',
+            textTransform: 'uppercase',
+            color:         'var(--muted)',
+            border:        '1px dashed var(--border)',
+            borderRadius:  '999px',
+            padding:       '0.071rem 0.357rem',
+            whiteSpace:    'nowrap',
+            flexShrink:    0,
+          }}
+        >
+          pronto
+        </span>
+      ) : shortcut ? (
         <span
           style={{
             fontFamily:   'var(--font-mono)',
@@ -121,7 +143,7 @@ export function MItem({
         >
           {shortcut}
         </span>
-      )}
+      ) : null}
     </button>
   )
 }
