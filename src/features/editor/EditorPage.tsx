@@ -43,6 +43,36 @@ function panelTypeForLanguage(language: string): 'tree' | 'preview' {
   return language === 'json' ? 'tree' : 'preview'
 }
 
+/**
+ * Welcome scratch shown as the first tab when there are no files yet.
+ * Guests see a "no account needed / sign in to sync" hint; signed-in users
+ * see a "your files sync, start typing" hint instead.
+ */
+function welcomeContent(signedIn: boolean): string {
+  const hint = signedIn
+    ? [
+        '// You are signed in — every file you create syncs across your devices.',
+        '// Start typing to create your first file (it saves automatically),',
+        '// or use the File menu to make a new one.',
+      ]
+    : [
+        '// Your files are saved automatically — no account needed.',
+        '// Sign in to sync across devices and unlock more features.',
+      ]
+  return [
+    '// Welcome to notes.js!',
+    '// A lightweight code editor that lives in your browser.',
+    '//',
+    ...hint,
+    '',
+    'function greet(name) {',
+    "  console.log(`Welcome to notes.js, ${name}!`);",
+    '}',
+    '',
+    "greet('world');",
+  ].join('\n')
+}
+
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export default function EditorPage() {
@@ -123,19 +153,7 @@ export default function EditorPage() {
           return
         }
         const id      = crypto.randomUUID()
-        const welcome = [
-          '// Welcome to notes.js!',
-          '// A lightweight code editor that lives in your browser.',
-          '//',
-          '// Your files are saved automatically — no account needed.',
-          '// Sign in to sync across devices and unlock more features.',
-          '',
-          'function greet(name) {',
-          "  console.log(`Welcome to notes.js, ${name}!`);",
-          '}',
-          '',
-          "greet('world');",
-        ].join('\n')
+        const welcome = welcomeContent(false)
         openGuestTab(id, 'welcome.js', welcome)
         await saveGuestTab(id, 'welcome.js', welcome).catch(console.error)
         setUsedBytes(new TextEncoder().encode(welcome).length)
@@ -184,7 +202,10 @@ export default function EditorPage() {
       }
 
       if (useTabStore.getState().tabs.length === 0) {
-        createDefaultTab()
+        // No files yet — greet the signed-in user with a welcome scratch instead
+        // of a blank "Untitled". Stays a local tab until first edit, then it is
+        // promoted to a real DB file (handleAuthLocalSave), just like any new tab.
+        useTabStore.getState().openLocalTab('welcome.js', welcomeContent(true))
       }
     }
 
