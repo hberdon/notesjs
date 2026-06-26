@@ -128,7 +128,7 @@ export function MItem({
             flexShrink:    0,
           }}
         >
-          pronto
+          beta
         </span>
       ) : shortcut ? (
         <span

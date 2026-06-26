@@ -26,7 +26,7 @@ export function BuscarSheet({ left }: { left: number }) {
             padding:       '0.143rem 0.5rem',
           }}
         >
-          🚧 En desarrollo
+          beta
         </span>
       </div>
       <div

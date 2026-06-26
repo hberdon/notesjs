@@ -123,7 +123,7 @@ function ToggleRow({ label, icon, value = false, onChange, wip = false }: Toggle
             flexShrink:    0,
           }}
         >
-          pronto
+          beta
         </span>
       ) : (
         <span
