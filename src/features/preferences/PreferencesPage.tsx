@@ -291,21 +291,6 @@ function TopBar({ email, avatarUrl, fullName }: { email: string; avatarUrl?: str
         <span style={{ fontSize: '1.143rem', fontWeight: 800, letterSpacing: -0.4, color: '#111827', lineHeight: 1 }}>
           notes<span style={{ color: '#10b981' }}>.js</span>
         </span>
-        <span
-          style={{
-            fontSize:      '0.714rem',
-            fontWeight:    700,
-            textTransform: 'uppercase',
-            letterSpacing: 0.5,
-            color:         '#6b7280',
-            border:        '1px solid #d1d5db',
-            borderRadius:  999,
-            padding:       '1px 0.429rem',
-            lineHeight:    1,
-          }}
-        >
-          FREE
-        </span>
       </div>
 
       {/* Spacer */}

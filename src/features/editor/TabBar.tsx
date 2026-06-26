@@ -58,7 +58,7 @@ function AvatarMenu({ open, onClose }: AvatarMenuProps) {
         userSelect: 'none',
       }}
     >
-      {/* ── Header: name + email + plan chip ── */}
+      {/* ── Header: name + email ── */}
       <div style={{ padding: '0.714rem 0.857rem 0.643rem' }}>
         <div style={{ fontSize: '0.893rem', fontWeight: 700, color: 'var(--ink)', lineHeight: 1.3, fontFamily: 'var(--font-ui)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {fullName}
@@ -66,24 +66,6 @@ function AvatarMenu({ open, onClose }: AvatarMenuProps) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.429rem', marginTop: '0.143rem' }}>
           <span style={{ fontSize: '0.786rem', color: 'var(--ink3)', lineHeight: 1.3, fontFamily: 'var(--font-ui)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0 }}>
             {email}
-          </span>
-          <span
-            style={{
-              fontSize:      '0.607rem',
-              fontWeight:    700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.4px',
-              color:         'var(--muted)',
-              border:        '1px solid var(--borderD)',
-              borderRadius:  999,
-              padding:       '1px 0.357rem',
-              lineHeight:    1.4,
-              userSelect:    'none',
-              flexShrink:    0,
-              fontFamily:    'var(--font-ui)',
-            }}
-          >
-            FREE
           </span>
         </div>
       </div>
