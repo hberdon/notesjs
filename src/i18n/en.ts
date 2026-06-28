@@ -21,6 +21,7 @@ const en = {
     abrir:         'Open',
     subLocal:      'local file',
     guardar:       'Save',
+    subGuardar:    'download local copy',
     guardarComo:   'Save as…',
     imprimir:      'Print…',
     secOrganizar:  'Organize',

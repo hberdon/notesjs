@@ -50,6 +50,7 @@ export function ArchivoSheet({ left, onNewTab, onOpenFile, onSave, onSaveAs, onP
             icon="download"
             label={t.archivo.guardar}
             shortcut="⌘S"
+            sub={t.archivo.subGuardar}
             onClick={onSave}
           />
           <MItem

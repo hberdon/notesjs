@@ -23,6 +23,7 @@ const es: Translations = {
     abrir:         'Abrir',
     subLocal:      'archivo local',
     guardar:       'Guardar',
+    subGuardar:    'descargar copia local',
     guardarComo:   'Guardar como…',
     imprimir:      'Imprimir…',
     secOrganizar:  'Organizar',
