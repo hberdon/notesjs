@@ -498,6 +498,30 @@ export default function EditorPage() {
           onPrint={() => window.print()}
           onUndo={() => { const v = getActiveEditorView(); if (v) undo(v) }}
           onRedo={() => { const v = getActiveEditorView(); if (v) redo(v) }}
+          onCut={() => {
+            const v = getActiveEditorView()
+            if (!v) return
+            const sel = v.state.selection.main
+            const text = v.state.sliceDoc(sel.from, sel.to)
+            if (!text) return
+            navigator.clipboard.writeText(text).catch(console.error)
+            v.dispatch({ changes: { from: sel.from, to: sel.to, insert: '' } })
+          }}
+          onCopy={() => {
+            const v = getActiveEditorView()
+            if (!v) return
+            const sel = v.state.selection.main
+            const text = v.state.sliceDoc(sel.from, sel.to)
+            navigator.clipboard.writeText(text).catch(console.error)
+          }}
+          onPaste={() => {
+            const v = getActiveEditorView()
+            if (!v) return
+            navigator.clipboard.readText().then((text) => {
+              const sel = v.state.selection.main
+              v.dispatch({ changes: { from: sel.from, to: sel.to, insert: text } })
+            }).catch(console.error)
+          }}
           onRenameTab={() => { closeMenu(); if (activeTabId) setRenamingTabId(activeTabId) }}
           onOpenTrash={() => { closeMenu(); setTrashOpen(true) }}
           onDeleteTab={() => { if (activeTabId) handleMoveToTrash(activeTabId) }}

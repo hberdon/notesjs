@@ -26,6 +26,9 @@ export interface MenuStripProps {
   /** Passed down to EditarSheet */
   onUndo: () => void
   onRedo: () => void
+  onCut: () => void
+  onCopy: () => void
+  onPaste: () => void
   onFormat: () => void
   onMinify: () => void
   /** fileId for CompartirSheet */
@@ -55,6 +58,9 @@ export function MenuStrip({
   onOpenTrash,
   onUndo,
   onRedo,
+  onCut,
+  onCopy,
+  onPaste,
   onFormat,
   onMinify,
   fileId,
@@ -240,7 +246,7 @@ export function MenuStrip({
         />
       )}
       {openMenuId === 'editar' && (
-        <EditarSheet left={sheetLeft} onUndo={onUndo} onRedo={onRedo} onFormat={onFormat} onMinify={onMinify} />
+        <EditarSheet left={sheetLeft} onUndo={onUndo} onRedo={onRedo} onCut={onCut} onCopy={onCopy} onPaste={onPaste} onFormat={onFormat} onMinify={onMinify} />
       )}
       {openMenuId === 'buscar' && <BuscarSheet left={sheetLeft} />}
       {openMenuId === 'compartir' && <CompartirSheet left={sheetLeft} fileId={fileId} />}

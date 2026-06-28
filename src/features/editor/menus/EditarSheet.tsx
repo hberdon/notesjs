@@ -8,27 +8,30 @@ export interface EditarSheetProps {
   left: number
   onUndo: () => void
   onRedo: () => void
+  onCut: () => void
+  onCopy: () => void
+  onPaste: () => void
   onFormat: () => void
   onMinify: () => void
 }
 
-export function EditarSheet({ left, onUndo, onRedo, onFormat, onMinify }: EditarSheetProps) {
+export function EditarSheet({ left, onUndo, onRedo, onCut, onCopy, onPaste, onFormat, onMinify }: EditarSheetProps) {
   const t = useI18nStore((s) => s.t)
 
   return (
     <MenuSheet width="17.143rem" left={left}>
       <MSection>
-        <MItem icon="undo" label={t.editar.deshacer} shortcut="⌘Z"       onClick={onUndo} />
-        <MItem icon="redo" label={t.editar.rehacer}  shortcut="⌘⇧Z"      onClick={onRedo} />
+        <MItem icon="undo" label={t.editar.deshacer} shortcut="⌘Z"  onClick={onUndo} />
+        <MItem icon="redo" label={t.editar.rehacer}  shortcut="⌘⇧Z" onClick={onRedo} />
       </MSection>
 
       <MDivider />
 
       <MSection>
-        <MItem icon="cut"   label={t.editar.cortar}    wip />
-        <MItem icon="copy"  label={t.editar.copiar}    wip />
-        <MItem icon="paste" label={t.editar.pegar}     wip />
-        <MItem icon="paste" label={t.editar.pegarSin}  wip />
+        <MItem icon="cut"   label={t.editar.cortar}   shortcut="⌘X" onClick={onCut}   />
+        <MItem icon="copy"  label={t.editar.copiar}   shortcut="⌘C" onClick={onCopy}  />
+        <MItem icon="paste" label={t.editar.pegar}    shortcut="⌘V" onClick={onPaste} />
+        <MItem icon="paste" label={t.editar.pegarSin}               onClick={onPaste} />
       </MSection>
 
       <MDivider />
