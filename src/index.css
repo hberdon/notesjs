@@ -234,6 +234,11 @@ pre,
     visibility: visible;
   }
 
+  .cm-gutters {
+    visibility: hidden;
+    display: none;
+  }
+
   .cm-editor {
     position: fixed;
     inset: 0;
@@ -246,5 +251,12 @@ pre,
 
   .cm-scroller {
     overflow: visible !important;
+  }
+
+  .cm-content,
+  .cm-line {
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
+    overflow-wrap: anywhere !important;
   }
 }
