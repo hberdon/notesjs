@@ -246,17 +246,21 @@ pre,
   }
 
   .cm-editor {
-    position: fixed;
-    inset: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: auto;
-    overflow: visible;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
     background: white;
     font-size: 12pt;
   }
 
   .cm-scroller {
     overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
   }
 
   .cm-content {
