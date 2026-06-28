@@ -156,7 +156,7 @@ export default function EditorPage() {
   const isDark = getEffectiveTheme(theme) === 'dark'
 
   // ── File store ─────────────────────────────────────────────────────────────
-  const files        = useFileStore((s) => s.files)
+
   const createFile   = useFileStore((s) => s.createFile)
   const updateFile   = useFileStore((s) => s.updateFile)
   const renameFile   = useFileStore((s) => s.renameFile)
