@@ -10,7 +10,8 @@ export interface ArchivoSheetProps {
   onNewTab: () => void
   /** Trigger the persistent file picker in EditorPage */
   onOpenFile: () => void
-  onDownload: () => void
+  onSave: () => void
+  onSaveAs: () => void
   onPrint: () => void
   onRenameTab: () => void
   onDeleteTab: () => void
@@ -21,7 +22,7 @@ export interface ArchivoSheetProps {
   onOpenRecent: (entry: RecentEntry) => void
 }
 
-export function ArchivoSheet({ left, onNewTab, onOpenFile, onDownload, onPrint, onRenameTab, onDeleteTab, onOpenTrash, recentFiles, onOpenRecent }: ArchivoSheetProps) {
+export function ArchivoSheet({ left, onNewTab, onOpenFile, onSave, onSaveAs, onPrint, onRenameTab, onDeleteTab, onOpenTrash, recentFiles, onOpenRecent }: ArchivoSheetProps) {
   const t = useI18nStore((s) => s.t)
 
   return (
@@ -47,9 +48,15 @@ export function ArchivoSheet({ left, onNewTab, onOpenFile, onDownload, onPrint, 
           />
           <MItem
             icon="download"
-            label={t.archivo.descargar}
-            sub={t.archivo.subDescargar}
-            onClick={onDownload}
+            label={t.archivo.guardar}
+            shortcut="⌘S"
+            onClick={onSave}
+          />
+          <MItem
+            icon="download"
+            label={t.archivo.guardarComo}
+            shortcut="⌘⇧S"
+            onClick={onSaveAs}
           />
           <MItem
             icon="type"

@@ -552,8 +552,35 @@ export default function EditorPage() {
         <MenuStrip
           onNewTab={handleNewFileFromArchivo}
           onOpenFile={handleTriggerOpenFile}
-          onDownload={() => {
+          onSave={() => {
             const content = getActiveEditorView()?.state.doc.toString() ?? ''
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+            const url  = URL.createObjectURL(blob)
+            const a    = document.createElement('a')
+            a.href     = url
+            a.download = filename
+            a.click()
+            URL.revokeObjectURL(url)
+          }}
+          onSaveAs={async () => {
+            const content = getActiveEditorView()?.state.doc.toString() ?? ''
+            if ('showSaveFilePicker' in window) {
+              try {
+                const handle = await (window as Window & typeof globalThis & {
+                  showSaveFilePicker: (opts?: object) => Promise<FileSystemFileHandle>
+                }).showSaveFilePicker({
+                  suggestedName: filename,
+                  types: [{ description: 'Text file', accept: { 'text/plain': ['.txt', '.md', '.js', '.ts', '.json', '.xml', '.yaml', '.yml', '.html', '.css'] } }],
+                })
+                const writable = await handle.createWritable()
+                await writable.write(content)
+                await writable.close()
+                return
+              } catch (err) {
+                if ((err as Error).name === 'AbortError') return
+              }
+            }
+            // Fallback for browsers without File System Access API
             const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
             const url  = URL.createObjectURL(blob)
             const a    = document.createElement('a')
