@@ -444,7 +444,7 @@ export default function EditorPage() {
   const hasPanel   = languageHasPanel(language)
   const panelType  = panelTypeForLanguage(language)
 
-  const [panelWidth, setPanelWidth] = useState(400)
+  const [panelWidth, setPanelWidth] = useState(() => Math.floor(window.innerWidth / 2))
 
   // ── Format active document ────────────────────────────────────────────────
 
