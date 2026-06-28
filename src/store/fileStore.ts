@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
-import type { DbFile, FileMeta, PublicLink, SharePermission } from '@/shared/types'
+import type { DbFile, FileMeta, Language, PublicLink, SharePermission } from '@/shared/types'
 import { detectLanguage } from '@/shared/utils'
 
 export type SharedFileResult =
@@ -69,7 +69,7 @@ interface FileStore {
   renameFile: (id: string, name: string) => Promise<void>
 
   /** Persist a language change detected from content (e.g. XML pasted into a .txt). */
-  updateFileLanguage: (id: string, language: string) => Promise<void>
+  updateFileLanguage: (id: string, language: Language) => Promise<void>
 
   /** Soft-delete a file (sets is_deleted = true). Optimistically removes from local state. */
   deleteFile: (id: string) => Promise<void>
@@ -243,7 +243,7 @@ export const useFileStore = create<FileStore>((set, get) => ({
     if (error) throw error
   },
 
-  async updateFileLanguage(id, language) {
+  async updateFileLanguage(id: string, language: Language) {
     const { error } = await supabase
       .from('files')
       .update({ language })
