@@ -74,6 +74,48 @@ function welcomeContent(signedIn: boolean): string {
   ].join('\n')
 }
 
+// ── PanelResizer ───────────────────────────────────────────────────────────────
+
+function PanelResizer({ onResize }: { onResize: (w: number) => void }) {
+  const [dragging, setDragging] = useState(false)
+
+  function handleMouseDown(e: React.MouseEvent) {
+    e.preventDefault()
+    setDragging(true)
+
+    function onMove(ev: MouseEvent) {
+      const containerWidth = document.documentElement.clientWidth
+      const newWidth = containerWidth - ev.clientX
+      onResize(Math.max(200, Math.min(newWidth, containerWidth - 300)))
+    }
+
+    function onUp() {
+      setDragging(false)
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+    }
+
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+  }
+
+  return (
+    <div
+      onMouseDown={handleMouseDown}
+      style={{
+        width: 4,
+        flexShrink: 0,
+        cursor: 'col-resize',
+        background: dragging ? 'var(--accent)' : 'transparent',
+        transition: 'background 120ms',
+        zIndex: 10,
+      }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = 'var(--accent)' }}
+      onMouseLeave={(e) => { if (!dragging) (e.currentTarget as HTMLDivElement).style.background = 'transparent' }}
+    />
+  )
+}
+
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export default function EditorPage() {
@@ -402,6 +444,8 @@ export default function EditorPage() {
   const hasPanel   = languageHasPanel(language)
   const panelType  = panelTypeForLanguage(language)
 
+  const [panelWidth, setPanelWidth] = useState(400)
+
   // ── Format active document ────────────────────────────────────────────────
 
   const handleFormat = useCallback(async () => {
@@ -556,7 +600,7 @@ export default function EditorPage() {
             overflow: 'hidden',
           }}
         >
-          <div style={{ flex: 1, overflow: 'hidden' }}>
+          <div style={{ flex: 1, overflow: 'hidden', minWidth: 200 }}>
             {activeTabId !== null && hydratedGuest && (
               <EditorPanel
                 tabId={activeTabId}
@@ -570,11 +614,17 @@ export default function EditorPage() {
           </div>
 
           {showRightPanel && (
-            <RightPanel
-              type={panelTypeForLanguage(language)}
-              language={language}
-              onClose={() => setRightPanel(null)}
-            />
+            <PanelResizer onResize={setPanelWidth} />
+          )}
+
+          {showRightPanel && (
+            <div style={{ width: panelWidth, flexShrink: 0, display: 'flex', borderLeft: '1px solid #e5e7eb', minWidth: 200 }}>
+              <RightPanel
+                type={panelTypeForLanguage(language)}
+                language={language}
+                onClose={() => setRightPanel(null)}
+              />
+            </div>
           )}
         </div>
 

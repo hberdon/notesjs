@@ -569,9 +569,7 @@ export function RightPanel({ type, language, onClose }: RightPanelProps) {
   return (
     <div
       style={{
-        width: 290,
-        flexShrink: 0,
-        borderLeft: '1px solid #e5e7eb',
+        width: '100%',
         display: 'flex',
         flexDirection: 'column',
         background: '#ffffff',
