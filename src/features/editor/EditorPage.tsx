@@ -484,6 +484,16 @@ export default function EditorPage() {
         <MenuStrip
           onNewTab={handleNewFileFromArchivo}
           onOpenFile={handleTriggerOpenFile}
+          onDownload={() => {
+            const content = getActiveEditorView()?.state.doc.toString() ?? ''
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+            const url  = URL.createObjectURL(blob)
+            const a    = document.createElement('a')
+            a.href     = url
+            a.download = filename
+            a.click()
+            URL.revokeObjectURL(url)
+          }}
           onRenameTab={() => { closeMenu(); if (activeTabId) setRenamingTabId(activeTabId) }}
           onOpenTrash={() => { closeMenu(); setTrashOpen(true) }}
           onDeleteTab={() => { if (activeTabId) handleMoveToTrash(activeTabId) }}

@@ -18,6 +18,7 @@ export interface MenuStripProps {
   /** Passed down to ArchivoSheet */
   onNewTab: () => void
   onOpenFile: () => void
+  onDownload: () => void
   onRenameTab: () => void
   onDeleteTab: () => void
   onOpenTrash: () => void
@@ -44,6 +45,7 @@ const MENU_IDS: MenuId[] = ['archivo', 'editar', 'buscar', 'compartir', 'ver', '
 export function MenuStrip({
   onNewTab,
   onOpenFile,
+  onDownload,
   onRenameTab,
   onDeleteTab,
   onOpenTrash,
@@ -224,6 +226,7 @@ export function MenuStrip({
           left={sheetLeft}
           onNewTab={onNewTab}
           onOpenFile={onOpenFile}
+          onDownload={onDownload}
           onRenameTab={onRenameTab}
           onDeleteTab={onDeleteTab}
           onOpenTrash={onOpenTrash}

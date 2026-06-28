@@ -9,6 +9,7 @@ export interface ArchivoSheetProps {
   onNewTab: () => void
   /** Trigger the persistent file picker in EditorPage */
   onOpenFile: () => void
+  onDownload: () => void
   onRenameTab: () => void
   onDeleteTab: () => void
   /** Open the trash (deleted files) modal */
@@ -21,7 +22,7 @@ const RECENTES = [
   { name: 'lista.txt',   time: 'ayer'        },
 ]
 
-export function ArchivoSheet({ left, onNewTab, onOpenFile, onRenameTab, onDeleteTab, onOpenTrash }: ArchivoSheetProps) {
+export function ArchivoSheet({ left, onNewTab, onOpenFile, onDownload, onRenameTab, onDeleteTab, onOpenTrash }: ArchivoSheetProps) {
   const t = useI18nStore((s) => s.t)
 
   return (
@@ -49,7 +50,7 @@ export function ArchivoSheet({ left, onNewTab, onOpenFile, onRenameTab, onDelete
             icon="download"
             label={t.archivo.descargar}
             sub={t.archivo.subDescargar}
-            wip
+            onClick={onDownload}
           />
           <MItem
             icon="type"
