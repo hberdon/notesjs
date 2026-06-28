@@ -167,6 +167,10 @@ export function useEditorView(
         ;(async () => {
           const formatted = await formatCode(text, detected)
           store.updateTabLanguage(tabIdRef.current!, detected)
+          const tab = store.tabs.find((t) => t.id === tabIdRef.current)
+          if (tab?.fileId) {
+            useFileStore.getState().updateFileLanguage(tab.fileId, detected).catch(console.error)
+          }
           view.dispatch({
             changes: { from: 0, to: view.state.doc.length, insert: formatted },
           })
@@ -192,6 +196,10 @@ export function useEditorView(
         const detected = detectContentLanguage(content)
         if (!detected) return
         useTabStore.getState().updateTabLanguage(tabIdRef.current!, detected)
+        const updatedTab = useTabStore.getState().tabs.find((t) => t.id === tabIdRef.current)
+        if (updatedTab?.fileId) {
+          useFileStore.getState().updateFileLanguage(updatedTab.fileId, detected).catch(console.error)
+        }
         const formatted = await formatCode(content, detected)
         if (formatted === content) return
         view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: formatted } })

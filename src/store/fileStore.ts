@@ -68,6 +68,9 @@ interface FileStore {
    */
   renameFile: (id: string, name: string) => Promise<void>
 
+  /** Persist a language change detected from content (e.g. XML pasted into a .txt). */
+  updateFileLanguage: (id: string, language: string) => Promise<void>
+
   /** Soft-delete a file (sets is_deleted = true). Optimistically removes from local state. */
   deleteFile: (id: string) => Promise<void>
 
@@ -238,6 +241,19 @@ export const useFileStore = create<FileStore>((set, get) => ({
       .eq('id', id)
 
     if (error) throw error
+  },
+
+  async updateFileLanguage(id, language) {
+    const { error } = await supabase
+      .from('files')
+      .update({ language })
+      .eq('id', id)
+
+    if (error) throw error
+
+    set((state) => ({
+      files: state.files.map((f) => (f.id === id ? { ...f, language } : f)),
+    }))
   },
 
   async renameFile(id, name) {
