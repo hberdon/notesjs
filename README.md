@@ -2,7 +2,7 @@
 
 A lightweight, in-browser code & notes editor — a Notepad++-style scratchpad that lives in your browser. Open it anywhere, jot down code, logs, JSON or Markdown, and (optionally) sign in to sync everything across your devices.
 
-**Live:** https://notesjs.pages.dev · custom domain `notes.js.org` coming soon
+**Live:** https://notes.js.org
 
 ---
 
