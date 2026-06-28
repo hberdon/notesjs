@@ -1,16 +1,14 @@
 // PreferencesPage — user settings screen
 
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { UserIdentity } from '@supabase/supabase-js'
 import { useAuthStore } from '@/features/auth/authStore'
-import { useThemeStore } from '@/store/themeStore'
 import { useI18nStore } from '@/store/i18nStore'
-import { useAuth } from '@/features/auth/useAuth'
 import { N2G } from '@/shared/components/N2G'
+import { AppHeader } from '@/shared/components/AppHeader'
 import { supabase } from '@/lib/supabase'
-import type { Theme } from '@/shared/types'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -48,313 +46,19 @@ function EmailProviderIcon() {
         width:          18,
         height:         18,
         borderRadius:   '50%',
-        background:     '#6b7280',
+        background:     'var(--ink3)',
         display:        'flex',
         alignItems:     'center',
         justifyContent: 'center',
         flexShrink:     0,
       }}
     >
-      <N2G name="chev-right" size={11} stroke={2.5} color="#fff" />
+      <N2G name="chev-right" size={11} stroke={2.5} color="var(--bg)" />
     </span>
   )
 }
 
-// ── AvatarMenu (full — same structure as TabBar, Preferencias disabled) ───────
 
-interface AvatarMenuDropdownProps {
-  open: boolean
-  onClose: () => void
-  email: string
-  fullName: string
-  avatarUrl?: string
-}
-
-function AvatarMenuDropdown({ open, onClose, email, fullName }: AvatarMenuDropdownProps) {
-  const theme    = useThemeStore((s) => s.theme)
-  const setTheme = useThemeStore((s) => s.setTheme)
-  const t        = useI18nStore((s) => s.t)
-  const { signOut } = useAuth()
-
-  const THEMES: Array<{ id: Theme; label: string }> = [
-    { id: 'dark',  label: t.avatar.temaOscuro },
-    { id: 'light', label: t.avatar.temaClaro  },
-    { id: 'auto',  label: t.avatar.temaAuto   },
-  ]
-
-  async function handleSignOut() {
-    onClose()
-    try { await signOut() } catch { /* ignore */ }
-  }
-
-  if (!open) return null
-
-  return (
-    <div
-      style={{
-        position:     'absolute',
-        top:          '100%',
-        right:        0,
-        width:        '15rem',
-        background:   '#ffffff',
-        borderTop:    '2px solid #10b981',
-        borderRadius: '0.429rem 0 0.429rem 0.429rem',
-        boxShadow:    '0 10px 24px -8px rgba(15,23,42,0.22), 0 2px 4px rgba(15,23,42,0.05)',
-        zIndex:       200,
-        overflow:     'hidden',
-        userSelect:   'none',
-      }}
-    >
-      {/* Header */}
-      <div style={{ padding: '0.714rem 0.857rem 0.643rem' }}>
-        <div style={{ fontSize: '0.893rem', fontWeight: 700, color: '#111827', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {fullName}
-        </div>
-        <div style={{ fontSize: '0.786rem', color: '#6b7280', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {email}
-        </div>
-      </div>
-
-      <MenuDivider />
-
-      {/* Preferencias + Novedades */}
-      <div style={{ padding: '0.286rem 0' }}>
-        <MenuRowItem icon="settings" label={t.avatar.preferencias} disabled onClick={() => { /* already here */ }} />
-        <MenuRowItem icon="bell"     label={t.avatar.novedades}    onClick={onClose} />
-      </div>
-
-      <MenuDivider />
-
-      {/* Tema */}
-      <div style={{ padding: '0.286rem 0' }}>
-        <MenuSectionLabel>{t.avatar.secTema}</MenuSectionLabel>
-        {THEMES.map(({ id, label }) => (
-          <ThemeRowItem
-            key={id}
-            label={label}
-            active={theme === id}
-            onClick={() => setTheme(id)}
-          />
-        ))}
-      </div>
-
-      <MenuDivider />
-
-      {/* Cerrar sesión */}
-      <div style={{ padding: '0.286rem 0' }}>
-        <MenuRowItem icon="log-out" label={t.avatar.cerrarSesion} onClick={handleSignOut} />
-      </div>
-    </div>
-  )
-}
-
-// ── Shared menu sub-components ────────────────────────────────────────────────
-
-function MenuDivider() {
-  return <div style={{ height: 1, background: '#e5e7eb', margin: '0.143rem 0' }} />
-}
-
-function MenuSectionLabel({ children }: { children: ReactNode }) {
-  return (
-    <div
-      style={{
-        padding:       '0.357rem 0.857rem 0.143rem',
-        fontSize:      '0.714rem',
-        fontWeight:    700,
-        letterSpacing: '0.6px',
-        textTransform: 'uppercase',
-        color:         '#9ca3af',
-        lineHeight:    1,
-        fontFamily:    'var(--font-ui)',
-        userSelect:    'none',
-      }}
-    >
-      {children}
-    </div>
-  )
-}
-
-function MenuRowItem({
-  label, icon, disabled, onClick,
-}: {
-  label: string; icon: string; disabled?: boolean; onClick: () => void
-}) {
-  const [hovered, setHovered] = useState(false)
-  const color = disabled ? '#9ca3af' : '#374151'
-
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onClick}
-      onMouseEnter={() => { if (!disabled) setHovered(true)  }}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display:    'flex',
-        alignItems: 'center',
-        gap:        '0.571rem',
-        width:      '100%',
-        padding:    '0.357rem 0.857rem',
-        background: hovered ? '#f7f7f9' : 'transparent',
-        border:     'none',
-        cursor:     disabled ? 'default' : 'pointer',
-        fontFamily: 'var(--font-ui)',
-        color,
-        opacity:    disabled ? 0.5 : 1,
-      }}
-    >
-      <N2G name={icon} size={14} stroke={2} color={color} />
-      <span style={{ fontSize: '0.857rem', fontWeight: 500, lineHeight: 1 }}>{label}</span>
-    </button>
-  )
-}
-
-function ThemeRowItem({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  const [hovered, setHovered] = useState(false)
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display:    'flex',
-        alignItems: 'center',
-        gap:        '0.571rem',
-        width:      '100%',
-        padding:    '0.357rem 0.857rem',
-        background: hovered ? '#f7f7f9' : 'transparent',
-        border:     'none',
-        cursor:     'pointer',
-        fontFamily: 'var(--font-ui)',
-      }}
-    >
-      <span
-        style={{
-          width:        '0.429rem',
-          height:       '0.429rem',
-          borderRadius: '50%',
-          background:   active ? '#10b981' : 'transparent',
-          border:       active ? 'none' : '1.5px solid #d1d5db',
-          flexShrink:   0,
-        }}
-      />
-      <span style={{ fontSize: '0.857rem', fontWeight: active ? 600 : 400, color: active ? '#111827' : '#374151', lineHeight: 1 }}>
-        {label}
-      </span>
-    </button>
-  )
-}
-
-// ── TopBar ────────────────────────────────────────────────────────────────────
-
-function TopBar({ email, avatarUrl, fullName }: { email: string; avatarUrl?: string; fullName: string }) {
-  const initials = getInitials(email)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const rightRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!menuOpen) return
-    function handleMouseDown(e: MouseEvent) {
-      if (rightRef.current && !rightRef.current.contains(e.target as Node)) {
-        setMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleMouseDown)
-    return () => document.removeEventListener('mousedown', handleMouseDown)
-  }, [menuOpen])
-
-  return (
-    <div
-      style={{
-        display:      'flex',
-        alignItems:   'center',
-        height:       '2.143rem',
-        background:   '#ffffff',
-        borderBottom: '1px solid #e5e7eb',
-        flexShrink:   0,
-        fontFamily:   'var(--font-ui)',
-        userSelect:   'none',
-      }}
-    >
-      {/* Brand */}
-      <div
-        style={{
-          display:     'flex',
-          alignItems:  'center',
-          gap:         '0.571rem',
-          padding:     '0 0.857rem',
-          height:      '100%',
-          borderRight: '1px solid #e5e7eb',
-          flexShrink:  0,
-        }}
-      >
-        <span style={{ fontSize: '1.143rem', fontWeight: 800, letterSpacing: -0.4, color: '#111827', lineHeight: 1 }}>
-          notes<span style={{ color: '#10b981' }}>.js</span>
-        </span>
-      </div>
-
-      {/* Spacer */}
-      <div style={{ flex: 1 }} />
-
-      {/* Right: email + avatar */}
-      <div
-        ref={rightRef}
-        style={{
-          display:    'flex',
-          alignItems: 'center',
-          gap:        '0.571rem',
-          padding:    '0 0.857rem',
-          height:     '100%',
-          borderLeft: '1px solid #e5e7eb',
-          flexShrink: 0,
-          position:   'relative',
-        }}
-      >
-        {email && (
-          <span style={{ fontSize: '0.821rem', color: '#6b7280', whiteSpace: 'nowrap' }}>
-            {email}
-          </span>
-        )}
-        <button
-          type="button"
-          onClick={() => setMenuOpen((v) => !v)}
-          style={{
-            width:        '1.429rem',
-            height:       '1.429rem',
-            borderRadius: '50%',
-            background:   'linear-gradient(135deg, #10b981, #047857)',
-            border:       menuOpen ? '2px solid #10b981' : '2px solid transparent',
-            padding:      0,
-            cursor:       'pointer',
-            overflow:     'hidden',
-            display:      'flex',
-            alignItems:   'center',
-            justifyContent: 'center',
-            transition:   'border-color 120ms',
-          }}
-        >
-          {avatarUrl ? (
-            <img src={avatarUrl} alt={email} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          ) : (
-            <span style={{ fontSize: '0.643rem', fontWeight: 700, color: 'white', lineHeight: 1 }}>
-              {initials}
-            </span>
-          )}
-        </button>
-
-        <AvatarMenuDropdown
-          open={menuOpen}
-          onClose={() => setMenuOpen(false)}
-          email={email}
-          fullName={fullName}
-          avatarUrl={avatarUrl}
-        />
-      </div>
-    </div>
-  )
-}
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
 
@@ -376,15 +80,14 @@ function Sidebar({ activeSection, onSectionChange, onBack }: SidebarProps) {
       style={{
         width:         '16.429rem',
         flexShrink:    0,
-        background:    '#ffffff',
-        borderRight:   '1px solid #e5e7eb',
+        background:    'var(--chrome)',
+        borderRight:   '1px solid var(--border)',
         display:       'flex',
         flexDirection: 'column',
         padding:       '0.857rem 0',
         fontFamily:    'var(--font-ui)',
       }}
     >
-      {/* Back link */}
       <button
         type="button"
         onClick={onBack}
@@ -397,12 +100,12 @@ function Sidebar({ activeSection, onSectionChange, onBack }: SidebarProps) {
           border:       'none',
           cursor:       'pointer',
           fontSize:     '0.893rem',
-          color:        '#6b7280',
+          color:        'var(--ink3)',
           fontFamily:   'var(--font-ui)',
           marginBottom: '0.857rem',
         }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#374151' }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = '#6b7280' }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink2)' }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink3)' }}
       >
         <span style={{ display: 'flex', transform: 'rotate(180deg)' }}>
           <N2G name="chev-right" size={13} stroke={2.5} color="currentColor" />
@@ -410,7 +113,6 @@ function Sidebar({ activeSection, onSectionChange, onBack }: SidebarProps) {
         {t.prefs.volver}
       </button>
 
-      {/* Section label */}
       <span
         style={{
           display:       'block',
@@ -419,14 +121,13 @@ function Sidebar({ activeSection, onSectionChange, onBack }: SidebarProps) {
           fontWeight:    700,
           letterSpacing: '0.8px',
           textTransform: 'uppercase',
-          color:         '#9ca3af',
+          color:         'var(--muted)',
           lineHeight:    1,
         }}
       >
         {t.prefs.ajustes}
       </span>
 
-      {/* Nav items */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '0 0.571rem' }}>
         {NAV.map(({ id, label, icon }) => {
           const active = activeSection === id
@@ -440,24 +141,24 @@ function Sidebar({ activeSection, onSectionChange, onBack }: SidebarProps) {
                 alignItems:   'center',
                 gap:          '0.571rem',
                 padding:      '0.429rem 0.571rem',
-                background:   active ? '#ecfdf5' : 'transparent',
+                background:   active ? 'var(--accentSoft)' : 'transparent',
                 border:       'none',
                 borderRadius: '0.357rem',
                 cursor:       'pointer',
                 fontFamily:   'var(--font-ui)',
                 fontSize:     '0.893rem',
                 fontWeight:   active ? 600 : 400,
-                color:        active ? '#065f46' : '#374151',
+                color:        active ? 'var(--accent-text)' : 'var(--ink2)',
                 textAlign:    'left',
               }}
               onMouseEnter={(e) => {
-                if (!active) (e.currentTarget as HTMLButtonElement).style.background = '#f7f7f9'
+                if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--chromeD)'
               }}
               onMouseLeave={(e) => {
                 if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
               }}
             >
-              <N2G name={icon} size={15} stroke={1.8} color={active ? '#10b981' : '#9ca3af'} />
+              <N2G name={icon} size={15} stroke={1.8} color={active ? 'var(--accent)' : 'var(--muted)'} />
               {label}
             </button>
           )
@@ -481,11 +182,11 @@ function FormRow({ label, sub, children }: { label: string; sub?: string; childr
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.214rem', paddingTop: '0.429rem' }}>
-        <span style={{ fontSize: '0.893rem', fontWeight: 600, color: '#111827', lineHeight: 1.3 }}>
+        <span style={{ fontSize: '0.893rem', fontWeight: 600, color: 'var(--ink)', lineHeight: 1.3 }}>
           {label}
         </span>
         {sub && (
-          <span style={{ fontSize: '0.786rem', color: '#6b7280', lineHeight: 1.4 }}>
+          <span style={{ fontSize: '0.786rem', color: 'var(--ink3)', lineHeight: 1.4 }}>
             {sub}
           </span>
         )}
@@ -496,7 +197,7 @@ function FormRow({ label, sub, children }: { label: string; sub?: string; childr
 }
 
 function RowDivider() {
-  return <div style={{ height: 1, background: '#e5e7eb', margin: '0 1.143rem' }} />
+  return <div style={{ height: 1, background: 'var(--border)', margin: '0 1.143rem' }} />
 }
 
 function Input({
@@ -519,15 +220,15 @@ function Input({
           paddingRight: suffix ? '7rem' : '0.714rem',
           fontSize:     '0.893rem',
           fontFamily:   'var(--font-ui)',
-          color:        '#111827',
-          background:   disabled || readOnly ? '#f9fafb' : '#ffffff',
-          border:       '1px solid #e5e7eb',
+          color:        'var(--ink)',
+          background:   disabled || readOnly ? 'var(--chrome)' : 'var(--bg)',
+          border:       '1px solid var(--border)',
           borderRadius: '0.357rem',
           outline:      'none',
           boxSizing:    'border-box',
         }}
-        onFocus={(e) => { if (!readOnly && !disabled) e.currentTarget.style.borderColor = '#10b981' }}
-        onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb' }}
+        onFocus={(e) => { if (!readOnly && !disabled) e.currentTarget.style.borderColor = 'var(--accent)' }}
+        onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border)' }}
       />
       {suffix && (
         <div style={{ position: 'absolute', right: '0.571rem' }}>
@@ -550,14 +251,14 @@ function PageHeading({ section }: { section: string }) {
         gap:        '0.429rem',
         fontSize:   '1.5rem',
         fontWeight: 800,
-        color:      '#111827',
+        color:      'var(--ink)',
         margin:     '0 0 0.286rem',
         lineHeight: 1.2,
         fontFamily: 'var(--font-ui)',
       }}
     >
-      <span style={{ color: '#9ca3af', fontWeight: 600 }}>{t.prefs.heading}</span>
-      <span style={{ color: '#d1d5db', fontWeight: 400, fontSize: '1.25rem' }}>›</span>
+      <span style={{ color: 'var(--muted)', fontWeight: 600 }}>{t.prefs.heading}</span>
+      <span style={{ color: 'var(--borderD)', fontWeight: 400, fontSize: '1.25rem' }}>›</span>
       <span>{section}</span>
     </h1>
   )
@@ -578,11 +279,11 @@ function IdentityRow({ identity }: { identity: UserIdentity }) {
         {isGoogle ? <GoogleIcon /> : <EmailProviderIcon />}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: '0.893rem', fontWeight: 600, color: '#111827', lineHeight: 1.3 }}>
+        <div style={{ fontSize: '0.893rem', fontWeight: 600, color: 'var(--ink)', lineHeight: 1.3 }}>
           {isGoogle ? t.prefs.identiGoogle : t.prefs.identiEmail}
         </div>
         {sub && (
-          <div style={{ fontSize: '0.786rem', color: '#6b7280', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <div style={{ fontSize: '0.786rem', color: 'var(--ink3)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {sub}
           </div>
         )}
@@ -596,15 +297,15 @@ function IdentityRow({ identity }: { identity: UserIdentity }) {
           alignItems:     'center',
           justifyContent: 'center',
           background:     'transparent',
-          border:         '1px solid #e5e7eb',
+          border:         '1px solid var(--border)',
           borderRadius:   '0.286rem',
           cursor:         'pointer',
           flexShrink:     0,
         }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#f7f7f9' }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--chrome)' }}
         onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
       >
-        <N2G name="rename" size={13} stroke={1.8} color="#6b7280" />
+        <N2G name="rename" size={13} stroke={1.8} color="var(--ink3)" />
       </button>
     </div>
   )
@@ -629,21 +330,21 @@ function CuentaSection({
   return (
     <div style={{ maxWidth: '50rem' }}>
       <PageHeading section={t.prefs.cuentaTitulo} />
-      <p style={{ fontSize: '0.893rem', color: '#6b7280', margin: '0 0 1.714rem', lineHeight: 1.5 }}>
+      <p style={{ fontSize: '0.893rem', color: 'var(--ink3)', margin: '0 0 1.714rem', lineHeight: 1.5 }}>
         {t.prefs.cuentaDesc}
       </p>
 
-      <h2 style={{ fontSize: '1.071rem', fontWeight: 700, color: '#111827', margin: '0 0 0.357rem', lineHeight: 1.3 }}>
+      <h2 style={{ fontSize: '1.071rem', fontWeight: 700, color: 'var(--ink)', margin: '0 0 0.357rem', lineHeight: 1.3 }}>
         {t.prefs.perfilTitulo}
       </h2>
-      <p style={{ fontSize: '0.821rem', color: '#6b7280', margin: '0 0 0.857rem', lineHeight: 1.5 }}>
+      <p style={{ fontSize: '0.821rem', color: 'var(--ink3)', margin: '0 0 0.857rem', lineHeight: 1.5 }}>
         {t.prefs.perfilDesc}
       </p>
 
       <div
         style={{
-          background:   '#ffffff',
-          border:       '1px solid #e5e7eb',
+          background:   'var(--bg)',
+          border:       '1px solid var(--border)',
           borderRadius: '0.571rem',
           overflow:     'hidden',
           marginBottom: '2rem',
@@ -668,8 +369,8 @@ function CuentaSection({
                   fontWeight:    700,
                   letterSpacing: '0.6px',
                   textTransform: 'uppercase',
-                  color:         '#10b981',
-                  border:        '1px solid #10b981',
+                  color:         'var(--accent)',
+                  border:        '1px solid var(--accentBorder)',
                   borderRadius:  '0.286rem',
                   padding:       '2px 0.429rem',
                   lineHeight:    1,
@@ -694,7 +395,7 @@ function CuentaSection({
             display:        'flex',
             justifyContent: 'flex-end',
             padding:        '0.857rem 1.143rem',
-            borderTop:      '1px solid #e5e7eb',
+            borderTop:      '1px solid var(--border)',
           }}
         >
           <button
@@ -707,37 +408,37 @@ function CuentaSection({
               fontWeight:   600,
               fontFamily:   'var(--font-ui)',
               color:        '#ffffff',
-              background:   saving ? '#6ee7b7' : '#10b981',
+              background:   saving ? 'var(--accentBorder)' : 'var(--accent)',
               border:       'none',
               borderRadius: '0.357rem',
               cursor:       saving ? 'default' : 'pointer',
               transition:   'background 120ms',
             }}
-            onMouseEnter={(e) => { if (!saving) (e.currentTarget as HTMLButtonElement).style.background = '#059669' }}
-            onMouseLeave={(e) => { if (!saving) (e.currentTarget as HTMLButtonElement).style.background = '#10b981' }}
+            onMouseEnter={(e) => { if (!saving) (e.currentTarget as HTMLButtonElement).style.background = 'var(--accentDeep)' }}
+            onMouseLeave={(e) => { if (!saving) (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent)' }}
           >
             {saving ? t.prefs.guardando : t.prefs.guardar}
           </button>
         </div>
       </div>
 
-      <h2 style={{ fontSize: '1.071rem', fontWeight: 700, color: '#111827', margin: '0 0 0.357rem', lineHeight: 1.3 }}>
+      <h2 style={{ fontSize: '1.071rem', fontWeight: 700, color: 'var(--ink)', margin: '0 0 0.357rem', lineHeight: 1.3 }}>
         {t.prefs.cuentasTitulo}
       </h2>
-      <p style={{ fontSize: '0.821rem', color: '#6b7280', margin: '0 0 0.857rem', lineHeight: 1.5 }}>
+      <p style={{ fontSize: '0.821rem', color: 'var(--ink3)', margin: '0 0 0.857rem', lineHeight: 1.5 }}>
         {t.prefs.cuentasDesc}
       </p>
 
       <div
         style={{
-          background:   '#ffffff',
-          border:       '1px solid #e5e7eb',
+          background:   'var(--bg)',
+          border:       '1px solid var(--border)',
           borderRadius: '0.571rem',
           overflow:     'hidden',
         }}
       >
         {identities.length === 0 ? (
-          <div style={{ padding: '1.143rem', fontSize: '0.893rem', color: '#9ca3af' }}>
+          <div style={{ padding: '1.143rem', fontSize: '0.893rem', color: 'var(--muted)' }}>
             {t.prefs.noConectadas}
           </div>
         ) : (
@@ -760,17 +461,17 @@ function EditorSection() {
   return (
     <div style={{ maxWidth: '50rem' }}>
       <PageHeading section={t.prefs.navEditor} />
-      <p style={{ fontSize: '0.893rem', color: '#6b7280', margin: '0 0 1.714rem', lineHeight: 1.5 }}>
+      <p style={{ fontSize: '0.893rem', color: 'var(--ink3)', margin: '0 0 1.714rem', lineHeight: 1.5 }}>
         {t.prefs.editorDesc}
       </p>
       <div
         style={{
-          background:   '#ffffff',
-          border:       '1px solid #e5e7eb',
+          background:   'var(--bg)',
+          border:       '1px solid var(--border)',
           borderRadius: '0.571rem',
           padding:      '2rem',
           textAlign:    'center',
-          color:        '#9ca3af',
+          color:        'var(--muted)',
           fontSize:     '0.893rem',
         }}
       >
@@ -813,8 +514,8 @@ export default function PreferencesPage() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: 'var(--font-ui)' }}>
-      <TopBar email={email} avatarUrl={avatarUrl} fullName={fullName} />
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: 'var(--font-ui)', background: 'var(--bg)', color: 'var(--ink)' }}>
+      <AppHeader disablePreferences />
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <Sidebar
@@ -827,7 +528,7 @@ export default function PreferencesPage() {
           style={{
             flex:       1,
             overflowY:  'auto',
-            background: '#ffffff',
+            background: 'var(--chromeD)',
             padding:    '2rem 2.5rem',
           }}
         >

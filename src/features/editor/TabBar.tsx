@@ -4,245 +4,13 @@
 import { useState, useRef, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/features/auth/authStore'
 import { useThemeStore, getEffectiveTheme } from '@/store/themeStore'
 import { useI18nStore } from '@/store/i18nStore'
-import { useAuth } from '@/features/auth/useAuth'
 import { FormatPill } from '@/shared/components/FormatPill'
 import { N2G } from '@/shared/components/N2G'
+import { AppHeader } from '@/shared/components/AppHeader'
 import type { Tab } from '@/shared/types'
-import type { Theme } from '@/shared/types'
-import type { Lang } from '@/i18n'
 
-// ── AvatarMenu ────────────────────────────────────────────────────────────────
-
-interface AvatarMenuProps {
-  open: boolean
-  onClose: () => void
-}
-
-function AvatarMenu({ open, onClose }: AvatarMenuProps) {
-  const user     = useAuthStore((s) => s.user)
-  const theme    = useThemeStore((s) => s.theme)
-  const setTheme = useThemeStore((s) => s.setTheme)
-  const t        = useI18nStore((s) => s.t)
-  const lang     = useI18nStore((s) => s.lang)
-  const setLang  = useI18nStore((s) => s.setLang)
-  const { signOut } = useAuth()
-  const navigate = useNavigate()
-
-  const email    = user?.email ?? null
-  const fullName = (user?.user_metadata?.full_name as string | undefined) ?? email ?? 'Usuario'
-
-  const THEMES: Array<{ id: Theme; label: string }> = [
-    { id: 'dark',  label: t.avatar.temaOscuro },
-    { id: 'light', label: t.avatar.temaClaro  },
-    { id: 'auto',  label: t.avatar.temaAuto   },
-  ]
-
-  const LANGS: Array<{ id: Lang; label: string }> = [
-    { id: 'es', label: t.lang.es },
-    { id: 'en', label: t.lang.en },
-  ]
-
-  async function handleSignOut() {
-    onClose()
-    try { await signOut() } catch { /* ignore */ }
-  }
-
-  if (!open) return null
-
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        top: '100%',
-        right: 0,
-        width: '15rem',
-        background: 'var(--bg)',
-        borderTop: '2px solid #10b981',
-        borderRadius: '0.429rem 0 0.429rem 0.429rem',
-        boxShadow: '0 10px 24px -8px rgba(15,23,42,0.22), 0 2px 4px rgba(15,23,42,0.05)',
-        zIndex: 200,
-        overflow: 'hidden',
-        userSelect: 'none',
-      }}
-    >
-      {/* ── Header: name + email ── */}
-      <div style={{ padding: '0.714rem 0.857rem 0.643rem' }}>
-        <div style={{ fontSize: '0.893rem', fontWeight: 700, color: 'var(--ink)', lineHeight: 1.3, fontFamily: 'var(--font-ui)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {fullName}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.429rem', marginTop: '0.143rem' }}>
-          <span style={{ fontSize: '0.786rem', color: 'var(--ink3)', lineHeight: 1.3, fontFamily: 'var(--font-ui)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0 }}>
-            {email}
-          </span>
-        </div>
-      </div>
-
-      {/* ── Divider ── */}
-      <Divider />
-
-      {/* ── Account section ── */}
-      <div style={{ padding: '0.286rem 0' }}>
-        <MenuRow icon="settings" label={t.avatar.preferencias} onClick={() => { onClose(); navigate('/preferences') }} />
-        <MenuRow icon="bell"     label={t.avatar.novedades}    onClick={onClose} />
-      </div>
-
-      {/* ── Divider ── */}
-      <Divider />
-
-      {/* ── Theme section ── */}
-      <div style={{ padding: '0.286rem 0' }}>
-        <SectionLabel>{t.avatar.secTema}</SectionLabel>
-        {THEMES.map(({ id, label }) => (
-          <ThemeRow
-            key={id}
-            label={label}
-            active={theme === id}
-            onClick={() => setTheme(id)}
-          />
-        ))}
-      </div>
-
-      {/* ── Divider ── */}
-      <Divider />
-
-      {/* ── Language section ── */}
-      <div style={{ padding: '0.286rem 0' }}>
-        <SectionLabel>{t.avatar.secIdioma}</SectionLabel>
-        {LANGS.map(({ id, label }) => (
-          <ThemeRow
-            key={id}
-            label={label}
-            active={lang === id}
-            onClick={() => setLang(id)}
-          />
-        ))}
-      </div>
-
-      {/* ── Divider ── */}
-      <Divider />
-
-      {/* ── Sign out ── */}
-      <div style={{ padding: '0.286rem 0' }}>
-        <MenuRow icon="log-out" label={t.avatar.cerrarSesion} onClick={handleSignOut} />
-      </div>
-    </div>
-  )
-}
-
-// ── ThemeRow ──────────────────────────────────────────────────────────────────
-
-function ThemeRow({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  const [hovered, setHovered] = useState(false)
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.571rem',
-        width: '100%',
-        padding: '0.357rem 0.857rem',
-        background: hovered ? 'var(--chrome)' : 'transparent',
-        border: 'none',
-        cursor: 'pointer',
-        textAlign: 'left',
-        fontFamily: 'var(--font-ui)',
-      }}
-    >
-      {/* Active dot */}
-      <span
-        style={{
-          width: '0.429rem',
-          height: '0.429rem',
-          borderRadius: '50%',
-          background: active ? '#10b981' : 'transparent',
-          border: active ? 'none' : '1.5px solid #d1d5db',
-          flexShrink: 0,
-        }}
-      />
-      <span
-        style={{
-          fontSize: '0.857rem',
-          fontWeight: active ? 600 : 400,
-          color: active ? 'var(--ink)' : 'var(--ink2)',
-          lineHeight: 1,
-        }}
-      >
-        {label}
-      </span>
-    </button>
-  )
-}
-
-// ── MenuRow ───────────────────────────────────────────────────────────────────
-
-function MenuRow({ label, icon, danger, onClick }: { label: string; icon: string; danger?: boolean; onClick: () => void }) {
-  const [hovered, setHovered] = useState(false)
-  const color = danger ? '#dc2626' : 'var(--ink2)'
-  const bg = hovered ? (danger ? '#fef2f2' : 'var(--chrome)') : 'transparent'
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.571rem',
-        width: '100%',
-        padding: '0.357rem 0.857rem',
-        background: bg,
-        border: 'none',
-        cursor: 'pointer',
-        textAlign: 'left',
-        fontFamily: 'var(--font-ui)',
-        color,
-      }}
-    >
-      <N2G name={icon} size={14} stroke={2} color={color} />
-      <span style={{ fontSize: '0.857rem', fontWeight: 500, lineHeight: 1 }}>{label}</span>
-    </button>
-  )
-}
-
-// ── Divider ───────────────────────────────────────────────────────────────────
-
-function Divider() {
-  return (
-    <div style={{ height: 1, background: 'var(--border)', margin: '0.143rem 0' }} />
-  )
-}
-
-// ── SectionLabel ──────────────────────────────────────────────────────────────
-
-function SectionLabel({ children }: { children: ReactNode }) {
-  return (
-    <div
-      style={{
-        padding: '0.357rem 0.857rem 0.143rem',
-        fontSize: '0.714rem',
-        fontWeight: 700,
-        letterSpacing: '0.6px',
-        textTransform: 'uppercase',
-        color: 'var(--muted)',
-        lineHeight: 1,
-        fontFamily: 'var(--font-ui)',
-        userSelect: 'none',
-      }}
-    >
-      {children}
-    </div>
-  )
-}
 
 // ── Theme SVG icons ───────────────────────────────────────────────────────────
 
@@ -378,14 +146,8 @@ export default function TabBar({
   onCommitRename,
   onCancelRename,
 }: TabBarProps) {
-  const user   = useAuthStore((s) => s.user)
   const t      = useI18nStore((s) => s.t)
-  const theme  = useThemeStore((s) => s.theme)
-  const isDark = getEffectiveTheme(theme) === 'dark'
   const [hoveredTabId, setHoveredTabId] = useState<string | null>(null)
-  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false)
-  const [avatarImgError, setAvatarImgError] = useState(false)
-  const rightZoneRef = useRef<HTMLDivElement>(null)
 
   // ── Inline rename ──────────────────────────────────────────────────────────
   const [draftName, setDraftName] = useState('')
@@ -418,55 +180,11 @@ export default function TabBar({
     }
   }
 
-  const email = user?.email ?? null
-  const avatarUrl = (user?.user_metadata?.avatar_url ?? user?.user_metadata?.picture) as string | undefined
-  const fullName = (user?.user_metadata?.full_name as string | undefined) ?? email?.split('@')[0] ?? 'Usuario'
-  const firstName = fullName.split(' ')[0]
-
-  // Close avatar menu on click outside — only relevant in auth mode
-  useEffect(() => {
-    if (isGuest) return
-    if (!avatarMenuOpen) return
-    function handleMouseDown(e: MouseEvent) {
-      if (rightZoneRef.current && !rightZoneRef.current.contains(e.target as Node)) {
-        setAvatarMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleMouseDown)
-    return () => document.removeEventListener('mousedown', handleMouseDown)
-  }, [isGuest, avatarMenuOpen])
-
   return (
-    <div
-      role="tablist"
-      style={{
-        display: 'flex',
-        alignItems: 'stretch',
-        height: '3rem',
-        background: 'linear-gradient(to right, rgba(16,185,129,0.07), transparent), repeating-linear-gradient(45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 1px, transparent 1px, transparent 12px)',
-        flexShrink: 0,
-        fontFamily: 'var(--font-ui)',
-        position: 'relative',
-      }}
-    >
-      {/* ── Left zone: logo ── */}
+    <AppHeader isGuest={isGuest}>
+      {/* ── Tabs + new-tab button ── */}
       <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          flexShrink: 0,
-          gap: '0.714rem',
-          padding: '0 1rem 0 1rem',
-        }}
-      >
-        <img src="/images/logo-drop-t.png" alt="notes.js" style={{ width: '1.857rem', height: 'auto', display: 'block', flexShrink: 0, filter: isDark ? 'invert(1)' : 'none' }} />
-        <span style={{ fontSize: '1.357rem', fontWeight: 800, letterSpacing: -0.5, color: 'var(--ink)', lineHeight: 1, whiteSpace: 'nowrap', userSelect: 'none' }}>
-          notes<span style={{ color: '#10b981' }}>.js</span>
-        </span>
-      </div>
-
-      {/* ── Center zone: scrollable tabs + new-tab button ── */}
-      <div
+        role="tablist"
         style={{
           flex: 1,
           display: 'flex',
@@ -662,80 +380,6 @@ export default function TabBar({
           </button>
         </div>
       </div>
-
-      {/* ── Right zone: email + avatar + menu ── */}
-      <div
-        ref={rightZoneRef}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.571rem',
-          flexShrink: 0,
-          padding: '0 0.857rem',
-          background: 'var(--bg)',
-          borderLeft: isGuest ? 'none' : '1px solid var(--border)',
-          position: 'relative',
-        }}
-      >
-        {isGuest ? (
-          <>
-            <ThemeToggleButton />
-            <GuestLoginButton />
-          </>
-        ) : (
-          <>
-            <span
-              style={{
-                fontSize: '0.821rem',
-                color: 'var(--ink2)',
-                whiteSpace: 'nowrap',
-                userSelect: 'none',
-              }}
-            >
-              {t.tabbar.hola} <strong style={{ color: 'var(--ink)', fontWeight: 700 }}>{firstName}</strong>
-            </span>
-
-            {/* Avatar — clickable */}
-            <button
-              type="button"
-              aria-label={t.tabbar.menuCuenta}
-              onClick={() => setAvatarMenuOpen((v) => !v)}
-              style={{
-                width: '1.714rem',
-                height: '1.714rem',
-                borderRadius: '50%',
-                background: '#10b981',
-                border: 'none',
-                boxShadow: avatarMenuOpen ? '0 0 0 2px #10b981' : 'none',
-                padding: 0,
-                cursor: 'pointer',
-                flexShrink: 0,
-                overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'box-shadow 120ms',
-              }}
-            >
-              {avatarUrl && !avatarImgError ? (
-                <img
-                  src={avatarUrl}
-                  alt={email ?? 'Usuario'}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  onError={() => setAvatarImgError(true)}
-                />
-              ) : (
-                <span style={{ fontSize: '0.857rem', fontWeight: 500, color: 'white', userSelect: 'none', lineHeight: 1 }}>
-                  {firstName[0]?.toUpperCase() ?? '?'}
-                </span>
-              )}
-            </button>
-
-            {/* Dropdown */}
-            <AvatarMenu open={avatarMenuOpen} onClose={() => setAvatarMenuOpen(false)} />
-          </>
-        )}
-      </div>
-    </div>
+    </AppHeader>
   )
 }
