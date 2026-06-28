@@ -229,7 +229,7 @@ pre,
 }
 
 @page {
-  margin: 0 2cm;
+  margin: 2cm 0;
 }
 
 @media print {
@@ -244,12 +244,14 @@ pre,
     top: 0;
     left: 0;
     width: 100%;
+    box-sizing: border-box;
+    padding: 0 2cm;
     white-space: pre-wrap;
     word-break: break-word;
     overflow-wrap: break-word;
     font-family: var(--font-mono);
-    font-size: 12pt;
-    line-height: 1.6;
+    font-size: 9pt;
+    line-height: 1.5;
     color: black;
     background: white;
   }
