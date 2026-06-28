@@ -111,16 +111,13 @@ function OAuthButton({ label, icon, disabled, loading, onClick }: OAuthButtonPro
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function LoginPage() {
-  const { user, loading, signInWithEmail, signInWithGoogle, signInWithGitHub } = useAuth()
+  const { user, loading, signInWithGoogle, signInWithGitHub } = useAuth()
   const { setGuest } = useAuthStore()
   const navigate = useNavigate()
   const t = useI18nStore((s) => s.t)
 
-  const [email, setEmail]               = useState('')
-  const [password, setPassword]         = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [error, setError]               = useState<string | null>(null)
-  const [loadingProvider, setLoadingProvider] = useState<'google' | 'github' | 'email' | null>(null)
+  const [loadingProvider, setLoadingProvider] = useState<'google' | 'github' | null>(null)
 
   if (!loading && user) return <Navigate to="/editor" replace />
 
@@ -144,15 +141,6 @@ export default function LoginPage() {
     setLoadingProvider('github')
     try { await signInWithGitHub() }
     catch (err) { setError(err instanceof Error ? err.message : 'Error al iniciar con GitHub.') }
-    finally { setLoadingProvider(null) }
-  }
-
-  async function handleEmailSignIn(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setLoadingProvider('email')
-    try { await signInWithEmail(email, password) }
-    catch (err) { setError(err instanceof Error ? err.message : 'Credenciales incorrectas.') }
     finally { setLoadingProvider(null) }
   }
 
@@ -332,107 +320,11 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Divider */}
-            <Divider />
-
-            {/* Email + password form */}
-            <form onSubmit={handleEmailSignIn} style={{ display: 'flex', flexDirection: 'column', gap: '0.857rem' }}>
-              {/* Email */}
-              <div>
-                <label
-                  htmlFor="login-email"
-                  style={{ display: 'block', fontSize: '0.893rem', fontWeight: 500, color: '#374151', marginBottom: '0.357rem' }}
-                >
-                  {t.login.emailLabel}
-                </label>
-                <input
-                  id="login-email"
-                  type="email"
-                  className="login-input"
-                  placeholder={t.login.emailPlaceholder}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                  style={{
-                    width: '100%',
-                    padding: '0.571rem 0.714rem',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '0.429rem',
-                    fontSize: '0.929rem',
-                    color: '#111827',
-                    background: '#ffffff',
-                    fontFamily: 'var(--font-ui)',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-
-              {/* Password */}
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.357rem' }}>
-                  <label
-                    htmlFor="login-password"
-                    style={{ fontSize: '0.893rem', fontWeight: 500, color: '#374151' }}
-                  >
-                    {t.login.password}
-                  </label>
-                  <a
-                    href="#"
-                    style={{ fontSize: '0.821rem', color: '#10b981', fontWeight: 500, textDecoration: 'none' }}
-                  >
-                    {t.login.olvide}
-                  </a>
-                </div>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    id="login-password"
-                    type={showPassword ? 'text' : 'password'}
-                    className="login-input"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
-                    style={{
-                      width: '100%',
-                      padding: '0.571rem 2.286rem 0.571rem 0.714rem',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '0.429rem',
-                      fontSize: '0.929rem',
-                      color: '#111827',
-                      background: '#ffffff',
-                      fontFamily: 'var(--font-ui)',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((p) => !p)}
-                    style={{
-                      position: 'absolute', right: '0.571rem', top: '50%', transform: 'translateY(-50%)',
-                      background: 'none', border: 'none', padding: '0.143rem',
-                      cursor: 'pointer', display: 'flex', alignItems: 'center',
-                    }}
-                  >
-                    <EyeIcon open={showPassword} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Sign in button */}
-              <SignInButton loading={loadingProvider === 'email'} disabled={isLoading} />
-            </form>
-
             {/* Guest divider + button */}
             <Divider />
             <GuestButton disabled={isLoading} onClick={handleGuest} />
 
-            {/* Footer */}
-            <p style={{ fontSize: '0.821rem', color: '#6b7280', textAlign: 'center', margin: '0.857rem 0 0', lineHeight: 1.5 }}>
-              {t.login.noTienes}{' '}
-              <a href="#" style={{ color: '#047857', textDecoration: 'none', fontWeight: 600 }}>
-                {t.login.registro}
-              </a>
-            </p>
+            {/* TODO: email/password login + registration — hidden until implemented */}
           </div>
         </div>
       </div>
