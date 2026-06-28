@@ -16,14 +16,6 @@ type Section = 'cuenta' | 'editor'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function getInitials(email: string | null | undefined): string {
-  if (!email) return '?'
-  const [local] = email.split('@')
-  const parts = local.split(/[._\-+]/).filter(Boolean)
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
-  return local.slice(0, 2).toUpperCase()
-}
-
 // ── Google colored SVG icon ───────────────────────────────────────────────────
 
 function GoogleIcon() {
@@ -492,7 +484,6 @@ export default function PreferencesPage() {
 
   const email     = user?.email ?? ''
   const fullName  = (user?.user_metadata?.full_name as string | undefined) ?? ''
-  const avatarUrl = user?.user_metadata?.avatar_url as string | undefined
   const identities: UserIdentity[] = user?.identities ?? []
 
   const nameParts = fullName.trim().split(/\s+/)

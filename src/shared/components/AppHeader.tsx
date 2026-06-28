@@ -5,7 +5,6 @@ import { useAuthStore } from '@/features/auth/authStore'
 import { useThemeStore, getEffectiveTheme } from '@/store/themeStore'
 import { useI18nStore } from '@/store/i18nStore'
 import { AvatarButton } from '@/shared/components/AvatarMenu'
-import { N2G } from '@/shared/components/N2G'
 
 // ── ThemeToggleButton (guest mode) ────────────────────────────────────────────
 

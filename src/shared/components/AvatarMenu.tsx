@@ -7,7 +7,7 @@ import { useI18nStore } from '@/store/i18nStore'
 import { useAuth } from '@/features/auth/useAuth'
 import { N2G } from '@/shared/components/N2G'
 import type { Theme } from '@/shared/types'
-import type { Lang } from '@/i18n/types'
+import type { Lang } from '@/i18n'
 
 // ── Primitives ────────────────────────────────────────────────────────────────
 
