@@ -224,57 +224,32 @@ pre,
 
 /* ── Print — show only editor content ────────────────────────────────────── */
 
+.print-content {
+  display: none;
+}
+
 @page {
   margin: 0 2cm;
 }
 
 @media print {
   body * {
-    visibility: hidden;
-  }
-
-  .cm-editor,
-  .cm-editor * {
-    visibility: visible;
-  }
-
-  .cm-gutters,
-  .cm-gutter,
-  .cm-lineNumbers {
     display: none !important;
-    visibility: hidden !important;
   }
 
-  .cm-editor {
+  .print-content {
+    display: block !important;
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-    background: white;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    font-family: var(--font-mono);
     font-size: 12pt;
-  }
-
-  .cm-scroller {
-    overflow: visible !important;
-    height: auto !important;
-    max-height: none !important;
-  }
-
-  .cm-content {
-    min-width: 0 !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    white-space: pre-wrap !important;
-    word-break: break-word !important;
-    overflow-wrap: break-word !important;
-  }
-
-  .cm-line {
-    white-space: pre-wrap !important;
-    word-break: break-word !important;
-    overflow-wrap: break-word !important;
+    line-height: 1.6;
+    color: black;
+    background: white;
   }
 }

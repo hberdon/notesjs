@@ -175,7 +175,8 @@ export default function EditorPage() {
 
   // Tracks tabs mid-promotion so concurrent debounced saves don't create
   // duplicate DB files during the async createFile window.
-  const promotingRef = useRef<Set<string>>(new Set())
+  const promotingRef   = useRef<Set<string>>(new Set())
+  const printContentRef = useRef<HTMLPreElement>(null)
 
   // ── Hydrate guest tabs from IndexedDB ──────────────────────────────────────
   // Guard against React Strict Mode double-invocation: before opening any tab,
@@ -589,7 +590,12 @@ export default function EditorPage() {
             a.click()
             URL.revokeObjectURL(url)
           }}
-          onPrint={() => window.print()}
+          onPrint={() => {
+            if (printContentRef.current) {
+              printContentRef.current.textContent = getActiveEditorView()?.state.doc.toString() ?? ''
+            }
+            window.print()
+          }}
           onUndo={() => { const v = getActiveEditorView(); if (v) undo(v) }}
           onRedo={() => { const v = getActiveEditorView(); if (v) redo(v) }}
           onCut={() => {
@@ -699,6 +705,9 @@ export default function EditorPage() {
           onRestore={handleRestoreDeleted}
         />
       )}
+
+      {/* Print target — populated with full content before window.print() */}
+      <pre ref={printContentRef} className="print-content" aria-hidden="true" />
     </div>
   )
 }
