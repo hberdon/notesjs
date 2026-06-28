@@ -2,6 +2,7 @@
 // Design reference: design/design_handoff_notesjs_v3/README.md § F — Archivo
 
 import { useI18nStore } from '@/store/i18nStore'
+import type { FileMeta } from '@/shared/types'
 import { MItem, MDivider, MSection, MenuSheet } from './MenuPrimitives'
 
 export interface ArchivoSheetProps {
@@ -15,15 +16,12 @@ export interface ArchivoSheetProps {
   onDeleteTab: () => void
   /** Open the trash (deleted files) modal */
   onOpenTrash: () => void
+  /** Persisted files list — shown in Recientes section. Empty = hide section. */
+  recentFiles: FileMeta[]
+  onOpenRecent: (file: FileMeta) => void
 }
 
-const RECENTES = [
-  { name: 'config.json', time: 'hace 5 min' },
-  { name: 'reunion.md',  time: 'hace 1 h'   },
-  { name: 'lista.txt',   time: 'ayer'        },
-]
-
-export function ArchivoSheet({ left, onNewTab, onOpenFile, onDownload, onPrint, onRenameTab, onDeleteTab, onOpenTrash }: ArchivoSheetProps) {
+export function ArchivoSheet({ left, onNewTab, onOpenFile, onDownload, onPrint, onRenameTab, onDeleteTab, onOpenTrash, recentFiles, onOpenRecent }: ArchivoSheetProps) {
   const t = useI18nStore((s) => s.t)
 
   return (
@@ -84,19 +82,21 @@ export function ArchivoSheet({ left, onNewTab, onOpenFile, onDownload, onPrint, 
           />
         </MSection>
 
-        <MDivider />
-
-        <MSection label={t.archivo.secRecientes}>
-          {RECENTES.map((r) => (
-            <MItem
-              key={r.name}
-              icon="dot"
-              label={r.name}
-              sub={r.time}
-              wip
-            />
-          ))}
-        </MSection>
+        {recentFiles.length > 0 && (
+          <>
+            <MDivider />
+            <MSection label={t.archivo.secRecientes}>
+              {recentFiles.slice(0, 8).map((f) => (
+                <MItem
+                  key={f.id}
+                  icon="dot"
+                  label={f.name}
+                  onClick={() => onOpenRecent(f)}
+                />
+              ))}
+            </MSection>
+          </>
+        )}
       </MenuSheet>
   )
 }

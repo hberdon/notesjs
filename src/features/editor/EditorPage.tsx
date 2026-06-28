@@ -155,6 +155,7 @@ export default function EditorPage() {
   const isDark = getEffectiveTheme(theme) === 'dark'
 
   // ── File store ─────────────────────────────────────────────────────────────
+  const files        = useFileStore((s) => s.files)
   const createFile   = useFileStore((s) => s.createFile)
   const updateFile   = useFileStore((s) => s.updateFile)
   const renameFile   = useFileStore((s) => s.renameFile)
@@ -569,6 +570,12 @@ export default function EditorPage() {
           onRenameTab={() => { closeMenu(); if (activeTabId) setRenamingTabId(activeTabId) }}
           onOpenTrash={() => { closeMenu(); setTrashOpen(true) }}
           onDeleteTab={() => { if (activeTabId) handleMoveToTrash(activeTabId) }}
+          recentFiles={files}
+          onOpenRecent={async (file) => {
+            closeMenu()
+            const content = await loadFileContent(file.id)
+            openPersistedFile(file.id, file.name, content ?? '', file.language)
+          }}
           onFormat={handleFormat}
           onMinify={() => { /* TODO: CM6 minify */ }}
           fileId={activeTab?.fileId ?? null}

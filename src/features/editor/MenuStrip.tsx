@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { N2G } from '@/shared/components/N2G'
 import { useI18nStore } from '@/store/i18nStore'
 import { useUIStore } from '@/store/uiStore'
+import type { FileMeta } from '@/shared/types'
 import { ArchivoSheet }   from './menus/ArchivoSheet'
 import { EditarSheet }    from './menus/EditarSheet'
 import { BuscarSheet }    from './menus/BuscarSheet'
@@ -23,6 +24,8 @@ export interface MenuStripProps {
   onRenameTab: () => void
   onDeleteTab: () => void
   onOpenTrash: () => void
+  recentFiles: FileMeta[]
+  onOpenRecent: (file: FileMeta) => void
   /** Passed down to EditarSheet */
   onUndo: () => void
   onRedo: () => void
@@ -56,6 +59,8 @@ export function MenuStrip({
   onRenameTab,
   onDeleteTab,
   onOpenTrash,
+  recentFiles,
+  onOpenRecent,
   onUndo,
   onRedo,
   onCut,
@@ -243,6 +248,8 @@ export function MenuStrip({
           onRenameTab={onRenameTab}
           onDeleteTab={onDeleteTab}
           onOpenTrash={onOpenTrash}
+          recentFiles={recentFiles}
+          onOpenRecent={onOpenRecent}
         />
       )}
       {openMenuId === 'editar' && (
