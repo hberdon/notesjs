@@ -234,11 +234,12 @@ pre,
 
 @media print {
   body * {
-    display: none !important;
+    visibility: hidden !important;
   }
 
   .print-content {
     display: block !important;
+    visibility: visible !important;
     position: absolute;
     top: 0;
     left: 0;
