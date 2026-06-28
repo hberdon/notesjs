@@ -6,6 +6,7 @@ import { useUIStore } from '@/store/uiStore'
 import { useAuthStore } from '@/features/auth/authStore'
 import { formatCode } from '@/lib/formatter'
 import { getActiveEditorView } from './useEditorView'
+import { undo, redo } from '@codemirror/commands'
 import { loadGuestTabs, saveGuestTab, deleteGuestTab } from '@/lib/guestDb'
 import type { Tab, FileMeta } from '@/shared/types'
 import { DeletedFilesModal } from './DeletedFilesModal'
@@ -495,6 +496,8 @@ export default function EditorPage() {
             URL.revokeObjectURL(url)
           }}
           onPrint={() => window.print()}
+          onUndo={() => { const v = getActiveEditorView(); if (v) undo(v) }}
+          onRedo={() => { const v = getActiveEditorView(); if (v) redo(v) }}
           onRenameTab={() => { closeMenu(); if (activeTabId) setRenamingTabId(activeTabId) }}
           onOpenTrash={() => { closeMenu(); setTrashOpen(true) }}
           onDeleteTab={() => { if (activeTabId) handleMoveToTrash(activeTabId) }}

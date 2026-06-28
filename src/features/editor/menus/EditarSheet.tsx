@@ -6,18 +6,20 @@ import { MItem, MDivider, MSection, MenuSheet } from './MenuPrimitives'
 
 export interface EditarSheetProps {
   left: number
+  onUndo: () => void
+  onRedo: () => void
   onFormat: () => void
   onMinify: () => void
 }
 
-export function EditarSheet({ left, onFormat, onMinify }: EditarSheetProps) {
+export function EditarSheet({ left, onUndo, onRedo, onFormat, onMinify }: EditarSheetProps) {
   const t = useI18nStore((s) => s.t)
 
   return (
     <MenuSheet width="17.143rem" left={left}>
       <MSection>
-        <MItem icon="undo" label={t.editar.deshacer} wip />
-        <MItem icon="redo" label={t.editar.rehacer}  wip />
+        <MItem icon="undo" label={t.editar.deshacer} shortcut="⌘Z"       onClick={onUndo} />
+        <MItem icon="redo" label={t.editar.rehacer}  shortcut="⌘⇧Z"      onClick={onRedo} />
       </MSection>
 
       <MDivider />
