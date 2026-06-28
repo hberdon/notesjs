@@ -7,6 +7,7 @@ import { useAuthStore } from '@/features/auth/authStore'
 import { formatCode } from '@/lib/formatter'
 import { getActiveEditorView } from './useEditorView'
 import { undo, redo } from '@codemirror/commands'
+import { useRecentStore } from '@/store/recentStore'
 import { loadGuestTabs, saveGuestTab, deleteGuestTab } from '@/lib/guestDb'
 import type { Tab, FileMeta } from '@/shared/types'
 import { DeletedFilesModal } from './DeletedFilesModal'
@@ -347,6 +348,7 @@ export default function EditorPage() {
     try {
       if (tab.fileId) {
         await renameFile(tab.fileId, filename)
+        useRecentStore.getState().updateName(tab.fileId, filename, tab.language)
       } else if (isGuest) {
         await saveGuestTab(tabId, filename, currentContent())
       } else if (!promotingRef.current.has(tabId)) {
@@ -456,6 +458,16 @@ export default function EditorPage() {
   const panelType  = panelTypeForLanguage(language)
 
   const [panelWidth, setPanelWidth] = useState(() => Math.floor(window.innerWidth / 2))
+
+  const addRecent    = useRecentStore((s) => s.addRecent)
+  const recentStore  = useRecentStore((s) => s.recents)
+
+  // Track recently opened persisted tabs
+  useEffect(() => {
+    if (!activeTab?.fileId) return
+    addRecent({ id: activeTab.fileId, name: activeTab.filename, language: activeTab.language })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab?.fileId])
 
   // ── Format active document ────────────────────────────────────────────────
 
@@ -580,11 +592,11 @@ export default function EditorPage() {
           onRenameTab={() => { closeMenu(); if (activeTabId) setRenamingTabId(activeTabId) }}
           onOpenTrash={() => { closeMenu(); setTrashOpen(true) }}
           onDeleteTab={() => { if (activeTabId) handleMoveToTrash(activeTabId) }}
-          recentFiles={files}
-          onOpenRecent={async (file) => {
+          recentFiles={recentStore}
+          onOpenRecent={async (entry) => {
             closeMenu()
-            const content = await loadFileContent(file.id)
-            openPersistedFile(file.id, file.name, content ?? '', file.language)
+            const content = await loadFileContent(entry.id)
+            openPersistedFile(entry.id, entry.name, content ?? '', entry.language)
           }}
           onFormat={handleFormat}
           onMinify={() => { /* TODO: CM6 minify */ }}

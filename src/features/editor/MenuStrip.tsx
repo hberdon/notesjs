@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { N2G } from '@/shared/components/N2G'
 import { useI18nStore } from '@/store/i18nStore'
 import { useUIStore } from '@/store/uiStore'
-import type { FileMeta } from '@/shared/types'
+import type { RecentEntry } from '@/store/recentStore'
 import { ArchivoSheet }   from './menus/ArchivoSheet'
 import { EditarSheet }    from './menus/EditarSheet'
 import { BuscarSheet }    from './menus/BuscarSheet'
@@ -24,8 +24,8 @@ export interface MenuStripProps {
   onRenameTab: () => void
   onDeleteTab: () => void
   onOpenTrash: () => void
-  recentFiles: FileMeta[]
-  onOpenRecent: (file: FileMeta) => void
+  recentFiles: RecentEntry[]
+  onOpenRecent: (entry: RecentEntry) => void
   /** Passed down to EditarSheet */
   onUndo: () => void
   onRedo: () => void

@@ -2,7 +2,7 @@
 // Design reference: design/design_handoff_notesjs_v3/README.md § F — Archivo
 
 import { useI18nStore } from '@/store/i18nStore'
-import type { FileMeta } from '@/shared/types'
+import type { RecentEntry } from '@/store/recentStore'
 import { MItem, MDivider, MSection, MenuSheet } from './MenuPrimitives'
 
 export interface ArchivoSheetProps {
@@ -17,8 +17,8 @@ export interface ArchivoSheetProps {
   /** Open the trash (deleted files) modal */
   onOpenTrash: () => void
   /** Persisted files list — shown in Recientes section. Empty = hide section. */
-  recentFiles: FileMeta[]
-  onOpenRecent: (file: FileMeta) => void
+  recentFiles: RecentEntry[]
+  onOpenRecent: (entry: RecentEntry) => void
 }
 
 export function ArchivoSheet({ left, onNewTab, onOpenFile, onDownload, onPrint, onRenameTab, onDeleteTab, onOpenTrash, recentFiles, onOpenRecent }: ArchivoSheetProps) {
@@ -86,12 +86,12 @@ export function ArchivoSheet({ left, onNewTab, onOpenFile, onDownload, onPrint, 
           <>
             <MDivider />
             <MSection label={t.archivo.secRecientes}>
-              {recentFiles.slice(0, 8).map((f) => (
+              {recentFiles.slice(0, 8).map((entry) => (
                 <MItem
-                  key={f.id}
+                  key={entry.id}
                   icon="dot"
-                  label={f.name}
-                  onClick={() => onOpenRecent(f)}
+                  label={entry.name}
+                  onClick={() => onOpenRecent(entry)}
                 />
               ))}
             </MSection>
