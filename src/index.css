@@ -238,9 +238,11 @@ pre,
     visibility: visible;
   }
 
-  .cm-gutters {
-    visibility: hidden;
-    display: none;
+  .cm-gutters,
+  .cm-gutter,
+  .cm-lineNumbers {
+    display: none !important;
+    visibility: hidden !important;
   }
 
   .cm-editor {
