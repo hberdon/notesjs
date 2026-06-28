@@ -225,7 +225,7 @@ pre,
 /* ── Print — show only editor content ────────────────────────────────────── */
 
 @page {
-  margin: 2cm;
+  margin: 0 2cm;
 }
 
 @media print {
