@@ -137,6 +137,13 @@ html { font-size: 16px; }
   --key: #9cdcfe;
 }
 
+/* CM6 gutter separator — oneDark blends gutter into editor; force contrast */
+[data-theme='dark'] .cm-gutters {
+  background-color: #1a1d23 !important;
+  background-image: none !important;
+  border-right: 1px solid #3E4451 !important;
+}
+
 /* ── Base Reset ──────────────────────────────────────────────────────────── */
 
 *,

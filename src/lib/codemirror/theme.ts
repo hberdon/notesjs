@@ -44,10 +44,6 @@ export function getDarkTheme(): Extension {
         backgroundImage: 'radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)',
         backgroundSize: '22px 22px',
       },
-      '.cm-gutters': {
-        backgroundColor: '#21252b',
-        borderRight: '1px solid rgba(255,255,255,0.1)',
-      },
     }),
   ]
 }
