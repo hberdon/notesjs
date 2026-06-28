@@ -221,3 +221,30 @@ pre,
 .mono {
   font-family: var(--font-mono);
 }
+
+/* ── Print — show only editor content ────────────────────────────────────── */
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .cm-editor,
+  .cm-editor * {
+    visibility: visible;
+  }
+
+  .cm-editor {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    background: white;
+    font-size: 12pt;
+  }
+
+  .cm-scroller {
+    overflow: visible !important;
+  }
+}
