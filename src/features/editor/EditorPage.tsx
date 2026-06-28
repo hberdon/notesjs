@@ -420,8 +420,18 @@ export default function EditorPage() {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = () => {
-      useTabStore.getState().openLocalTab(file.name, reader.result as string)
+    reader.onload = async () => {
+      const content = reader.result as string
+      if (!isGuest) {
+        try {
+          const created = await createFile(file.name, content)
+          openPersistedFile(created.id, created.name, content, created.language)
+          return
+        } catch {
+          // fallback to local tab if Supabase fails
+        }
+      }
+      useTabStore.getState().openLocalTab(file.name, content)
     }
     reader.readAsText(file, 'utf-8')
     e.target.value = ''
