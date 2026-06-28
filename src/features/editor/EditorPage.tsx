@@ -33,14 +33,14 @@ import LiteBar from './LiteBar'
 
 // ── Panel eligibility ──────────────────────────────────────────────────────────
 
-/** Languages that expose a right panel (JSON tree or Markdown preview). */
+/** Languages that expose a right panel (JSON/XML tree or Markdown preview). */
 function languageHasPanel(language: string): boolean {
-  return language === 'json' || language === 'markdown'
+  return language === 'json' || language === 'xml' || language === 'markdown'
 }
 
 /** Map language → panel type. */
 function panelTypeForLanguage(language: string): 'tree' | 'preview' {
-  return language === 'json' ? 'tree' : 'preview'
+  return language === 'json' || language === 'xml' ? 'tree' : 'preview'
 }
 
 /**
@@ -534,6 +534,7 @@ export default function EditorPage() {
           {showRightPanel && (
             <RightPanel
               type={panelTypeForLanguage(language)}
+              language={language}
               onClose={() => setRightPanel(null)}
             />
           )}

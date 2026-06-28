@@ -10,12 +10,14 @@ import { useEditorContentStore } from '@/store/editorContentStore'
 
 export interface RightPanelProps {
   type: 'tree' | 'preview'
+  language?: string
   onClose: () => void
 }
 
 // ── Type-glyph definitions ────────────────────────────────────────────────────
 
 type JsonNodeType = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null'
+  | 'xml-element' | 'xml-attr' | 'xml-text'
 
 interface GlyphDef {
   sym: string
@@ -23,12 +25,15 @@ interface GlyphDef {
 }
 
 const TYPE_GLYPHS: Record<JsonNodeType, GlyphDef> = {
-  object:  { sym: '{}', color: '#0369a1' },
-  array:   { sym: '[]', color: '#7c3aed' },
-  string:  { sym: '"a', color: '#b45309' },
-  number:  { sym: '#',  color: '#dc2626' },
-  boolean: { sym: '✓',  color: '#16a34a' },
-  null:    { sym: '∅',  color: '#6b7280' },
+  object:       { sym: '{}', color: '#0369a1' },
+  array:        { sym: '[]', color: '#7c3aed' },
+  string:       { sym: '"a', color: '#b45309' },
+  number:       { sym: '#',  color: '#dc2626' },
+  boolean:      { sym: '✓',  color: '#16a34a' },
+  null:         { sym: '∅',  color: '#6b7280' },
+  'xml-element':{ sym: '<>', color: '#0369a1' },
+  'xml-attr':   { sym: '@',  color: '#7c3aed' },
+  'xml-text':   { sym: '"a', color: '#b45309' },
 }
 
 // ── JSON tree node (internal representation) ──────────────────────────────────
@@ -79,14 +84,16 @@ function buildTree(value: unknown, key: string | null, depth: number): JsonNode 
   }
 }
 
-// Count total nodes recursively
+function isContainer(type: JsonNodeType): boolean {
+  return type === 'object' || type === 'array' || type === 'xml-element'
+}
+
 function countNodes(node: JsonNode): number {
   return 1 + node.children.reduce((acc, c) => acc + countNodes(c), 0)
 }
 
-// Count visible (rendered) nodes — only children of expanded containers
 function countVisible(node: JsonNode): number {
-  if (node.type !== 'object' && node.type !== 'array') return 1
+  if (!isContainer(node.type)) return 1
   const selfCount = 1
   if (!node.expanded) return selfCount
   return selfCount + node.children.reduce((acc, c) => acc + countVisible(c), 0)
@@ -103,7 +110,7 @@ interface TreeNodeProps {
 }
 
 function TreeNode({ node, selectedKey, onToggle, onSelect, path }: TreeNodeProps) {
-  const isContainer = node.type === 'object' || node.type === 'array'
+  const nodeIsContainer = isContainer(node.type)
   const glyph = TYPE_GLYPHS[node.type]
   const isSelected = selectedKey === path
 
@@ -128,7 +135,7 @@ function TreeNode({ node, selectedKey, onToggle, onSelect, path }: TreeNodeProps
       {/* Row */}
       <div
         onClick={() => {
-          if (isContainer) onToggle(path)
+          if (nodeIsContainer) onToggle(path)
           else onSelect(path)
         }}
         style={{
@@ -146,7 +153,7 @@ function TreeNode({ node, selectedKey, onToggle, onSelect, path }: TreeNodeProps
         }}
       >
         {/* Chevron for containers */}
-        {isContainer ? (
+        {nodeIsContainer ? (
           <span
             style={{
               display: 'inline-flex',
@@ -205,7 +212,7 @@ function TreeNode({ node, selectedKey, onToggle, onSelect, path }: TreeNodeProps
         )}
 
         {/* Value / count */}
-        {isContainer ? (
+        {nodeIsContainer ? (
           <span
             style={{
               fontFamily: 'var(--font-ui)',
@@ -215,7 +222,7 @@ function TreeNode({ node, selectedKey, onToggle, onSelect, path }: TreeNodeProps
           >
             {node.type === 'array'
               ? `[${node.children.length}]`
-              : `{${node.children.length}}`}
+              : `(${node.children.length})`}
           </span>
         ) : (
           <>
@@ -238,7 +245,7 @@ function TreeNode({ node, selectedKey, onToggle, onSelect, path }: TreeNodeProps
       </div>
 
       {/* Children (only when expanded) */}
-      {isContainer && node.expanded && (
+      {nodeIsContainer && node.expanded && (
         <div>
           {node.children.map((child, i) => (
             <TreeNode
@@ -256,10 +263,64 @@ function TreeNode({ node, selectedKey, onToggle, onSelect, path }: TreeNodeProps
   )
 }
 
+// ── XML tree builder ──────────────────────────────────────────────────────────
+
+function buildXmlTree(domNode: Element, key: string | null, depth: number): JsonNode {
+  const children: JsonNode[] = []
+
+  Array.from(domNode.attributes).forEach((attr) => {
+    children.push({
+      key: `@${attr.name}`,
+      value: attr.value,
+      type: 'xml-attr',
+      depth: depth + 1,
+      expanded: true,
+      children: [],
+    })
+  })
+
+  Array.from(domNode.childNodes).forEach((child) => {
+    if (child.nodeType === Node.ELEMENT_NODE) {
+      children.push(buildXmlTree(child as Element, child.nodeName, depth + 1))
+    } else if (child.nodeType === Node.TEXT_NODE) {
+      const text = child.textContent?.trim()
+      if (text) {
+        children.push({
+          key: '#text',
+          value: text,
+          type: 'xml-text',
+          depth: depth + 1,
+          expanded: true,
+          children: [],
+        })
+      }
+    }
+  })
+
+  return {
+    key: key ?? domNode.tagName,
+    value: null,
+    type: 'xml-element',
+    depth,
+    expanded: depth < 3,
+    children,
+  }
+}
+
+function parseXml(content: string): JsonNode | null {
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(content, 'text/xml')
+  if (doc.querySelector('parsererror')) return null
+  const root = doc.documentElement
+  if (!root) return null
+  return buildXmlTree(root, root.tagName, 0)
+}
+
 // ── RightPanelTree ────────────────────────────────────────────────────────────
 
 interface RightPanelTreeProps {
   content: string
+  language?: string
 }
 
 // Mutate a cloned node tree by toggling expanded at a given path
@@ -280,38 +341,28 @@ function toggleNodeAt(node: JsonNode, pathParts: string[], depth: number): JsonN
   }
 }
 
-function RightPanelTree({ content }: RightPanelTreeProps) {
+function parseForLanguage(content: string, language?: string): JsonNode | null {
+  if (language === 'xml') return parseXml(content)
+  try {
+    return buildTree(JSON.parse(content), null, 0)
+  } catch {
+    return null
+  }
+}
+
+function RightPanelTree({ content, language }: RightPanelTreeProps) {
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
 
-  let parsedOk = false
-  let parsed: unknown = null
+  const [tree, setTree] = useState<JsonNode | null>(() => parseForLanguage(content, language))
 
-  try {
-    parsed = JSON.parse(content)
-    parsedOk = true
-  } catch {
-    parsedOk = false
-  }
-
-  const [tree, setTree] = useState<JsonNode | null>(() => {
-    if (!parsedOk || parsed === null) return null
-    return buildTree(parsed, null, 0)
-  })
-
-  // If content changed, rebuild tree
-  // We use a ref to compare previous content without re-subscribing
   const [lastContent, setLastContent] = useState(content)
   if (content !== lastContent) {
     setLastContent(content)
-    try {
-      const newParsed = JSON.parse(content)
-      setTree(buildTree(newParsed, null, 0))
-    } catch {
-      setTree(null)
-    }
+    setTree(parseForLanguage(content, language))
   }
 
-  if (!parsedOk || tree === null) {
+  if (tree === null) {
+    const label = language === 'xml' ? 'XML inválido' : 'JSON inválido'
     return (
       <div
         style={{
@@ -326,7 +377,7 @@ function RightPanelTree({ content }: RightPanelTreeProps) {
           textAlign: 'center',
         }}
       >
-        JSON inválido
+        {label}
       </div>
     )
   }
@@ -492,29 +543,23 @@ const MD_STYLES = `
 
 // ── RightPanel (root component) ───────────────────────────────────────────────
 
-export function RightPanel({ type, onClose }: RightPanelProps) {
-  // Live editor content — subscribed here (leaf) so keystrokes re-render the
-  // panel only, not EditorPage or the editor chrome.
+export function RightPanel({ type, language, onClose }: RightPanelProps) {
   const content = useEditorContentStore((s) => s.content)
 
-  // For the tree chip we need node counts; track them via a simple parse here
-  // so the header can display them without re-doing the full tree render.
   let chipLabel: string
   if (type === 'tree') {
-    try {
-      const parsed = JSON.parse(content)
-      const root = buildTree(parsed, null, 0)
-      const total = countNodes(root)
-      const visible = countVisible(root)
-      chipLabel = `${visible} / ${total} nodos`
-    } catch {
-      chipLabel = 'JSON inválido'
+    const root = parseForLanguage(content, language)
+    if (root) {
+      chipLabel = `${countVisible(root)} / ${countNodes(root)} nodos`
+    } else {
+      chipLabel = language === 'xml' ? 'XML inválido' : 'JSON inválido'
     }
   } else {
     chipLabel = 'Markdown'
   }
 
-  const title = type === 'tree' ? 'Árbol JSON' : 'Vista previa'
+  const isXml   = language === 'xml'
+  const title    = type === 'tree' ? (isXml ? 'Árbol XML' : 'Árbol JSON') : 'Vista previa'
   const iconName = type === 'tree' ? 'chev-right' : 'eye'
   const footerText =
     type === 'preview'
@@ -611,7 +656,7 @@ export function RightPanel({ type, onClose }: RightPanelProps) {
           flexDirection: 'column',
         }}
       >
-        {type === 'tree' && <RightPanelTree content={content} />}
+        {type === 'tree' && <RightPanelTree content={content} language={language} />}
         {type === 'preview' && <MdPreview content={content} />}
       </div>
 
