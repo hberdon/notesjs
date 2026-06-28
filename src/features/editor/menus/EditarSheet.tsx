@@ -1,6 +1,7 @@
 // EditarSheet — 240px @ left 74px
 // Design reference: design/design_handoff_notesjs_v3/README.md § G — Editar
 
+import { useI18nStore } from '@/store/i18nStore'
 import { MItem, MDivider, MSection, MenuSheet } from './MenuPrimitives'
 
 export interface EditarSheetProps {
@@ -10,49 +11,47 @@ export interface EditarSheetProps {
 }
 
 export function EditarSheet({ left, onFormat, onMinify }: EditarSheetProps) {
+  const t = useI18nStore((s) => s.t)
+
   return (
     <MenuSheet width="17.143rem" left={left}>
-      {/* Historial */}
       <MSection>
-        <MItem icon="undo" label="Deshacer" wip />
-        <MItem icon="redo" label="Rehacer"  wip />
+        <MItem icon="undo" label={t.editar.deshacer} wip />
+        <MItem icon="redo" label={t.editar.rehacer}  wip />
       </MSection>
 
       <MDivider />
 
-      {/* Portapapeles */}
       <MSection>
-        <MItem icon="cut"   label="Cortar"           wip />
-        <MItem icon="copy"  label="Copiar"           wip />
-        <MItem icon="paste" label="Pegar"            wip />
-        <MItem icon="paste" label="Pegar sin formato" wip />
+        <MItem icon="cut"   label={t.editar.cortar}    wip />
+        <MItem icon="copy"  label={t.editar.copiar}    wip />
+        <MItem icon="paste" label={t.editar.pegar}     wip />
+        <MItem icon="paste" label={t.editar.pegarSin}  wip />
       </MSection>
 
       <MDivider />
 
-      {/* Selección */}
       <MSection>
-        <MItem icon="type"    label="Seleccionar todo"  wip />
-        <MItem icon="comment" label="Comentar línea"    wip />
+        <MItem icon="type"    label={t.editar.seleccionar} wip />
+        <MItem icon="comment" label={t.editar.comentar}    wip />
       </MSection>
 
       <MDivider />
 
-      {/* Formato */}
-      <MSection label="Formato">
+      <MSection label={t.editar.secFormato}>
         <MItem
           icon="format"
-          label="Formatear documento"
+          label={t.editar.formatear}
           shortcut="⌘⇧F"
-          sub="aplica indent y comas correctas"
+          sub={t.editar.subFormatear}
           variant="accent"
           onClick={onFormat}
         />
         <MItem
           icon="minimize"
-          label="Minimizar"
+          label={t.editar.minimizar}
           shortcut="⌘⇧M"
-          sub="elimina espacios y saltos"
+          sub={t.editar.subMinimizar}
           onClick={onMinify}
         />
       </MSection>

@@ -1,6 +1,7 @@
 // ArchivoSheet — 260px @ anchored to button left
 // Design reference: design/design_handoff_notesjs_v3/README.md § F — Archivo
 
+import { useI18nStore } from '@/store/i18nStore'
 import { MItem, MDivider, MSection, MenuSheet } from './MenuPrimitives'
 
 export interface ArchivoSheetProps {
@@ -14,21 +15,21 @@ export interface ArchivoSheetProps {
   onOpenTrash: () => void
 }
 
-// Fake recent items — will be replaced with real data in a future phase
 const RECENTES = [
-  { name: 'config.json',   time: 'hace 5 min' },
-  { name: 'reunion.md',    time: 'hace 1 h' },
-  { name: 'lista.txt',     time: 'ayer' },
+  { name: 'config.json', time: 'hace 5 min' },
+  { name: 'reunion.md',  time: 'hace 1 h'   },
+  { name: 'lista.txt',   time: 'ayer'        },
 ]
 
 export function ArchivoSheet({ left, onNewTab, onOpenFile, onRenameTab, onDeleteTab, onOpenTrash }: ArchivoSheetProps) {
+  const t = useI18nStore((s) => s.t)
+
   return (
     <MenuSheet width="18.571rem" left={left}>
-        {/* Nuevo */}
         <MSection>
           <MItem
             icon="file-new"
-            label="Nuevo documento"
+            label={t.archivo.nuevo}
             shortcut="⌘N"
             variant="accent"
             onClick={onNewTab}
@@ -37,56 +38,53 @@ export function ArchivoSheet({ left, onNewTab, onOpenFile, onRenameTab, onDelete
 
         <MDivider />
 
-        {/* Archivo */}
-        <MSection label="Archivo">
+        <MSection label={t.archivo.secArchivo}>
           <MItem
             icon="folder-open"
-            label="Abrir"
-            sub="archivo local"
+            label={t.archivo.abrir}
+            sub={t.archivo.subLocal}
             onClick={onOpenFile}
           />
           <MItem
             icon="download"
-            label="Descargar copia"
-            sub="txt · md"
+            label={t.archivo.descargar}
+            sub={t.archivo.subDescargar}
             wip
           />
           <MItem
             icon="type"
-            label="Imprimir…"
+            label={t.archivo.imprimir}
             wip
           />
         </MSection>
 
         <MDivider />
 
-        {/* Organizar */}
-        <MSection label="Organizar">
+        <MSection label={t.archivo.secOrganizar}>
           <MItem
             icon="rename"
-            label="Renombrar"
+            label={t.archivo.renombrar}
             shortcut="F2"
             onClick={onRenameTab}
           />
           <MItem
             icon="trash"
-            label="Mover a papelera"
+            label={t.archivo.moverPapelera}
             shortcut="⌘⌫"
             variant="danger"
             onClick={onDeleteTab}
           />
           <MItem
             icon="undo"
-            label="Papelera"
-            sub="restaurar eliminados"
+            label={t.archivo.papelera}
+            sub={t.archivo.subPapelera}
             onClick={onOpenTrash}
           />
         </MSection>
 
         <MDivider />
 
-        {/* Recientes — fake data, pending real recent-files tracking */}
-        <MSection label="Recientes">
+        <MSection label={t.archivo.secRecientes}>
           {RECENTES.map((r) => (
             <MItem
               key={r.name}

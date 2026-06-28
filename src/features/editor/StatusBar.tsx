@@ -7,6 +7,8 @@ import { N2G } from '@/shared/components/N2G'
 import { FormatPill } from '@/shared/components/FormatPill'
 import { useEditorContentStore } from '@/store/editorContentStore'
 import { useSaveStatusStore } from '@/store/saveStatusStore'
+import { useI18nStore } from '@/store/i18nStore'
+import type { Translations } from '@/i18n'
 
 export interface StatusBarProps {
   language: string
@@ -27,11 +29,11 @@ function SaveSpinner({ color }: { color: string }) {
 
 // ── Relative time helper ────────────────────────────────────────────────────
 
-function timeAgo(ts: number): string {
-  const diffSec = Math.floor((Date.now() - ts) / 1000)
-  if (diffSec < 60)   return `hace ${diffSec} s`
-  if (diffSec < 3600) return `hace ${Math.floor(diffSec / 60)} min`
-  return `hace ${Math.floor(diffSec / 3600)} h`
+function timeAgo(ts: number, s: Translations['status']): string {
+  const n = Math.floor((Date.now() - ts) / 1000)
+  if (n < 60)   return s.agoS.replace('{n}', String(n))
+  if (n < 3600) return s.agoMin.replace('{n}', String(Math.floor(n / 60)))
+  return s.agoH.replace('{n}', String(Math.floor(n / 3600)))
 }
 
 // ── Component ───────────────────────────────────────────────────────────────
@@ -41,28 +43,25 @@ export function StatusBar({
   cursorLine,
   cursorCol,
 }: StatusBarProps) {
-  // Live editor content — subscribed here (leaf) so keystrokes don't re-render
-  // EditorPage or the surrounding chrome.
+  const t = useI18nStore((s) => s.t)
+
   const content = useEditorContentStore((s) => s.content)
 
-  // Save status — subscribed here (leaf) so save ticks stay out of EditorPage.
   const saveStatus  = useSaveStatusStore((s) => s.status)
   const lastSavedAt = useSaveStatusStore((s) => s.lastSavedAt)
 
-  // Word / char counts
   const wordCount = content.trim() === ''
     ? 0
     : content.trim().split(/\s+/).filter(Boolean).length
   const charCount = content.length
 
-  // Save pill content
   const isSaving = saveStatus === 'saving'
   const pillColor = isSaving ? '#6b7280' : '#047857'
   const pillLabel = isSaving
-    ? 'guardando…'
+    ? t.status.guardando
     : lastSavedAt !== null
-      ? `Guardado · ${timeAgo(lastSavedAt)}`
-      : 'Guardado'
+      ? t.status.guardadoHace.replace('{time}', timeAgo(lastSavedAt, t.status))
+      : t.status.guardado
 
   return (
     <div
@@ -121,7 +120,7 @@ export function StatusBar({
 
       {/* Word + char counts */}
       <span style={{ fontSize: '0.821rem', color: '#6b7280', whiteSpace: 'nowrap' }}>
-        · {wordCount} palabras · {charCount} car.
+        · {t.status.palabras.replace('{n}', String(wordCount))} · {t.status.car.replace('{n}', String(charCount))}
       </span>
 
       {/* Encoding */}

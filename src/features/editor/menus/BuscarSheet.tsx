@@ -2,9 +2,11 @@
 // Design reference: design/design_handoff_notesjs_v3/README.md § H — Buscar
 
 import { useState } from 'react'
+import { useI18nStore } from '@/store/i18nStore'
 import { MenuSheet } from './MenuPrimitives'
 
 export function BuscarSheet({ left }: { left: number }) {
+  const t = useI18nStore((s) => s.t)
   const [caseSensitive, setCaseSensitive] = useState(false)
   const [wholeWord,     setWholeWord]     = useState(false)
   const [regex,         setRegex]         = useState(false)
@@ -46,7 +48,7 @@ export function BuscarSheet({ left }: { left: number }) {
         <div style={{ position: 'relative' }}>
           <input
             type="text"
-            placeholder="Buscar…"
+            placeholder={t.buscar.placeholder}
             style={{
               width:        '100%',
               height:       '2rem',
@@ -84,7 +86,7 @@ export function BuscarSheet({ left }: { left: number }) {
         {/* Replace input */}
         <input
           type="text"
-          placeholder="Reemplazar…"
+          placeholder={t.buscar.reemplazar}
           style={{
             width:        '100%',
             height:       '2rem',
@@ -103,9 +105,9 @@ export function BuscarSheet({ left }: { left: number }) {
         {/* Toggle chips row */}
         <div style={{ display: 'flex', gap: '0.357rem' }}>
           {[
-            { label: 'Aa',  state: caseSensitive, set: setCaseSensitive, title: 'Caso sensible' },
-            { label: 'W',   state: wholeWord,     set: setWholeWord,     title: 'Palabra completa' },
-            { label: '.*',  state: regex,          set: setRegex,         title: 'Regex' },
+            { label: 'Aa', state: caseSensitive, set: setCaseSensitive, title: t.buscar.casoSensible    },
+            { label: 'W',  state: wholeWord,     set: setWholeWord,     title: t.buscar.palabraCompleta },
+            { label: '.*', state: regex,          set: setRegex,         title: t.buscar.regex           },
           ].map(({ label, state, set, title }) => (
             <button
               key={label}
@@ -152,7 +154,7 @@ export function BuscarSheet({ left }: { left: number }) {
             width:        '100%',
           }}
         >
-          <span>Reemplazar todo</span>
+          <span>{t.buscar.reemplazarTodo}</span>
           <span
             style={{
               fontFamily: 'var(--font-mono)',

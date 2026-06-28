@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { N2G } from '@/shared/components/N2G'
+import { useI18nStore } from '@/store/i18nStore'
 import { useUIStore } from '@/store/uiStore'
 import { ArchivoSheet }   from './menus/ArchivoSheet'
 import { EditarSheet }    from './menus/EditarSheet'
@@ -36,14 +37,7 @@ export interface MenuStripProps {
 
 type MenuId = 'archivo' | 'editar' | 'buscar' | 'compartir' | 'ver' | 'ayuda'
 
-const MENUS: Array<{ id: MenuId; label: string }> = [
-  { id: 'archivo',   label: 'Archivo'   },
-  { id: 'editar',    label: 'Editar'    },
-  { id: 'buscar',    label: 'Buscar'    },
-  { id: 'compartir', label: 'Compartir' },
-  { id: 'ver',       label: 'Ver'       },
-  { id: 'ayuda',     label: 'Ayuda'     },
-]
+const MENU_IDS: MenuId[] = ['archivo', 'editar', 'buscar', 'compartir', 'ver', 'ayuda']
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -61,6 +55,7 @@ export function MenuStrip({
   panelType,
   onTogglePanel,
 }: MenuStripProps) {
+  const t           = useI18nStore((s) => s.t)
   const openMenuId  = useUIStore((s) => s.openMenuId)
   const toggleMenu  = useUIStore((s) => s.toggleMenu)
   const closeMenu   = useUIStore((s) => s.closeMenu)
@@ -92,9 +87,8 @@ export function MenuStrip({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [closeMenu])
 
-  // Panel toggle button (json → árbol, markdown → vista previa)
   const panelActive = rightPanel !== null
-  const panelLabel  = panelType === 'tree' ? 'Vista árbol' : 'Vista previa'
+  const panelLabel  = panelType === 'tree' ? t.panel.tree : t.panel.preview
   const panelIcon   = panelType === 'tree' ? 'list-ol' : 'eye'
 
   return (
@@ -117,7 +111,8 @@ export function MenuStrip({
     >
       {/* ── Left: menu items ── */}
       <div style={{ display: 'flex', alignItems: 'stretch', height: '100%', flex: 1 }}>
-        {MENUS.map(({ id, label }) => {
+        {MENU_IDS.map((id) => {
+          const label    = t.menu[id]
           const isActive = openMenuId === id
           return (
             <button

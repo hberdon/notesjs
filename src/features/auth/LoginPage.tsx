@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from './useAuth'
 import { useAuthStore } from './authStore'
+import { useI18nStore } from '@/store/i18nStore'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -113,6 +114,7 @@ export default function LoginPage() {
   const { user, loading, signInWithEmail, signInWithGoogle, signInWithGitHub } = useAuth()
   const { setGuest } = useAuthStore()
   const navigate = useNavigate()
+  const t = useI18nStore((s) => s.t)
 
   const [email, setEmail]               = useState('')
   const [password, setPassword]         = useState('')
@@ -239,19 +241,19 @@ export default function LoginPage() {
                 marginTop: '2rem',
               }}
             >
-              Tu bloc de notas, en cualquier navegador.
+              {t.login.tagline}
             </h1>
 
             <p style={{ fontSize: '1rem', color: '#6b7280', lineHeight: 1.6, margin: '0.571rem 0 0' }}>
-              Tus notas te siguen donde inicies sesión.
+              {t.login.desc}
             </p>
 
             {/* Check rows */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.857rem', marginTop: '1.429rem' }}>
               {[
-                { bold: 'Cero descargas.', rest: ' funciona en cualquier navegador moderno' },
-                { bold: 'Sincroniza al iniciar sesión.', rest: ' tus notas aparecen en cualquier dispositivo' },
-                { bold: 'Comparte por enlace.', rest: ' genera un enlace público estilo pastebin' },
+                { bold: t.login.feat1bold, rest: t.login.feat1rest },
+                { bold: t.login.feat2bold, rest: t.login.feat2rest },
+                { bold: t.login.feat3bold, rest: t.login.feat3rest },
               ].map(({ bold, rest }) => (
                 <div key={bold} style={{ display: 'flex', alignItems: 'center', gap: '0.571rem' }}>
                   <span
@@ -289,10 +291,10 @@ export default function LoginPage() {
           >
             {/* Card header */}
             <h2 style={{ fontSize: '1.571rem', fontWeight: 800, color: '#111827', letterSpacing: -0.5, margin: 0 }}>
-              Bienvenido de vuelta
+              {t.login.bienvenido}
             </h2>
             <p style={{ fontSize: '0.929rem', color: '#6b7280', margin: '0.286rem 0 1.286rem', lineHeight: 1.4 }}>
-              Inicia sesión en tu cuenta
+              {t.login.inicia}
             </p>
 
             {/* Error */}
@@ -315,14 +317,14 @@ export default function LoginPage() {
             {/* OAuth buttons */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.571rem' }}>
               <OAuthButton
-                label="Continuar con Google"
+                label={t.login.google}
                 icon={<GoogleIcon />}
                 disabled={isLoading}
                 loading={loadingProvider === 'google'}
                 onClick={handleGoogle}
               />
               <OAuthButton
-                label="Continuar con GitHub"
+                label={t.login.github}
                 icon={<GitHubIcon />}
                 disabled={isLoading}
                 loading={loadingProvider === 'github'}
@@ -341,13 +343,13 @@ export default function LoginPage() {
                   htmlFor="login-email"
                   style={{ display: 'block', fontSize: '0.893rem', fontWeight: 500, color: '#374151', marginBottom: '0.357rem' }}
                 >
-                  Email
+                  {t.login.emailLabel}
                 </label>
                 <input
                   id="login-email"
                   type="email"
                   className="login-input"
-                  placeholder="tu@email.com"
+                  placeholder={t.login.emailPlaceholder}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
@@ -372,13 +374,13 @@ export default function LoginPage() {
                     htmlFor="login-password"
                     style={{ fontSize: '0.893rem', fontWeight: 500, color: '#374151' }}
                   >
-                    Contraseña
+                    {t.login.password}
                   </label>
                   <a
                     href="#"
                     style={{ fontSize: '0.821rem', color: '#10b981', fontWeight: 500, textDecoration: 'none' }}
                   >
-                    ¿Olvidaste tu contraseña?
+                    {t.login.olvide}
                   </a>
                 </div>
                 <div style={{ position: 'relative' }}>
@@ -426,9 +428,9 @@ export default function LoginPage() {
 
             {/* Footer */}
             <p style={{ fontSize: '0.821rem', color: '#6b7280', textAlign: 'center', margin: '0.857rem 0 0', lineHeight: 1.5 }}>
-              ¿No tienes cuenta?{' '}
+              {t.login.noTienes}{' '}
               <a href="#" style={{ color: '#047857', textDecoration: 'none', fontWeight: 600 }}>
-                Regístrate →
+                {t.login.registro}
               </a>
             </p>
           </div>
@@ -441,16 +443,18 @@ export default function LoginPage() {
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function Divider() {
+  const t = useI18nStore((s) => s.t)
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.571rem', margin: '1rem 0' }}>
       <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
-      <span style={{ fontSize: '0.786rem', fontWeight: 600, color: '#9ca3af' }}>o</span>
+      <span style={{ fontSize: '0.786rem', fontWeight: 600, color: '#9ca3af' }}>{t.login.o}</span>
       <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
     </div>
   )
 }
 
 function SignInButton({ loading, disabled }: { loading: boolean; disabled: boolean }) {
+  const t = useI18nStore((s) => s.t)
   const [hovered, setHovered] = useState(false)
   return (
     <button
@@ -478,12 +482,13 @@ function SignInButton({ loading, disabled }: { loading: boolean; disabled: boole
       }}
     >
       {loading && <Spinner />}
-      Iniciar sesión
+      {t.login.iniciar}
     </button>
   )
 }
 
 function GuestButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
+  const t = useI18nStore((s) => s.t)
   const [hovered, setHovered] = useState(false)
   return (
     <button
@@ -509,9 +514,9 @@ function GuestButton({ disabled, onClick }: { disabled: boolean; onClick: () => 
         transition: 'background 120ms, border-color 120ms, color 120ms',
       }}
     >
-      <span style={{ fontSize: '0.929rem', fontWeight: 700, lineHeight: 1 }}>Continuar como invitado</span>
+      <span style={{ fontSize: '0.929rem', fontWeight: 700, lineHeight: 1 }}>{t.login.invitado}</span>
       <span style={{ fontSize: '0.821rem', fontWeight: 500, color: hovered ? '#6b7280' : '#9ca3af', lineHeight: 1 }}>
-        tus notas se quedan en este navegador
+        {t.login.invitadoSub}
       </span>
     </button>
   )

@@ -4,20 +4,13 @@
 import { useState, useEffect } from 'react'
 import type { ExpiryOption, SharePermission, PublicLink } from '@/shared/types'
 import { useFileStore } from '@/store/fileStore'
+import { useI18nStore } from '@/store/i18nStore'
 import { MenuSheet, MDivider } from './MenuPrimitives'
 import { N2G } from '@/shared/components/N2G'
 
 export interface CompartirSheetProps {
   left: number
   fileId: string | null
-}
-
-const EXPIRY_LABELS: Record<NonNullable<ExpiryOption> | 'null', string> = {
-  '1h':  '1 hora',
-  '1d':  '1 día',
-  '7d':  '7 días',
-  '30d': '30 días',
-  'null': 'Sin caducidad',
 }
 
 function expiryToMs(opt: ExpiryOption): number | null {
@@ -32,6 +25,7 @@ function expiryToMs(opt: ExpiryOption): number | null {
 }
 
 export function CompartirSheet({ left, fileId }: CompartirSheetProps) {
+  const t                = useI18nStore((s) => s.t)
   const createPublicLink = useFileStore((s) => s.createPublicLink)
   const revokePublicLink = useFileStore((s) => s.revokePublicLink)
   const getPublicLink    = useFileStore((s) => s.getPublicLink)
@@ -99,10 +93,10 @@ export function CompartirSheet({ left, fileId }: CompartirSheetProps) {
         {/* Header */}
         <div>
           <span style={{ fontSize: '0.786rem', fontWeight: 700, color: 'var(--ink3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-            Compartir por enlace público
+            {t.compartir.titulo}
           </span>
           <p style={{ fontSize: '0.786rem', color: 'var(--ink3)', marginTop: '0.214rem', lineHeight: 1.4 }}>
-            Estilo pastebin — cualquiera con el enlace verá el contenido.
+            {t.compartir.desc}
           </p>
         </div>
 
@@ -151,7 +145,7 @@ export function CompartirSheet({ left, fileId }: CompartirSheetProps) {
                   fontFamily:   'var(--font-ui)',
                 }}
               >
-                {copied ? '✓ copiado' : 'copiar'}
+                {copied ? t.compartir.copiado : t.compartir.copiar}
               </button>
             </div>
 
@@ -175,7 +169,7 @@ export function CompartirSheet({ left, fileId }: CompartirSheetProps) {
                 alignSelf:    'flex-start',
               }}
             >
-              Revocar enlace
+              {t.compartir.revocar}
             </button>
           </>
         ) : (
@@ -193,7 +187,7 @@ export function CompartirSheet({ left, fileId }: CompartirSheetProps) {
                 }}
               >
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>
-                  Caducidad
+                  {t.compartir.caducidad}
                 </span>
                 <button
                   type="button"
@@ -213,7 +207,7 @@ export function CompartirSheet({ left, fileId }: CompartirSheetProps) {
                     cursor:       'pointer',
                   }}
                 >
-                  {EXPIRY_LABELS[expiry === null ? 'null' : expiry]}
+                  {t.compartir.expiry[expiry === null ? 'null' : expiry]}
                   <N2G name="chev-down" size={11} stroke={2} color="var(--ink3)" />
                 </button>
               </div>
@@ -256,7 +250,7 @@ export function CompartirSheet({ left, fileId }: CompartirSheetProps) {
                           cursor:     'pointer',
                         }}
                       >
-                        {EXPIRY_LABELS[key]}
+                        {t.compartir.expiry[key]}
                       </button>
                     )
                   })}
@@ -275,7 +269,7 @@ export function CompartirSheet({ left, fileId }: CompartirSheetProps) {
                 }}
               >
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>
-                  Proteger con contraseña
+                  {t.compartir.password}
                 </span>
                 {/* Mini toggle */}
                 <button
@@ -314,7 +308,7 @@ export function CompartirSheet({ left, fileId }: CompartirSheetProps) {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Contraseña…"
+                    placeholder={t.compartir.passPlaceholder}
                     style={{
                       width:        '100%',
                       height:       '2rem',
@@ -378,7 +372,7 @@ export function CompartirSheet({ left, fileId }: CompartirSheetProps) {
                   {perm === 'view' && permission === perm && (
                     <span style={{ fontSize: 9, marginRight: 2 }}>✓</span>
                   )}
-                  {perm === 'view' ? 'Solo ver' : 'Ver + descargar'}
+                  {perm === 'view' ? t.compartir.verSolo : t.compartir.verDescargar}
                 </button>
               ))}
             </div>
@@ -408,15 +402,15 @@ export function CompartirSheet({ left, fileId }: CompartirSheetProps) {
                 opacity:      loading || !fileId ? 0.6 : 1,
               }}
             >
-              {loading ? 'Creando…' : (
+              {loading ? t.compartir.creando : (
                 <>
                   <N2G name="share" size={11} stroke={2} color="#fff" />
-                  Crear enlace público
+                  {t.compartir.crear}
                 </>
               )}
             </button>
             <span style={{ fontSize: '0.75rem', color: 'var(--ink3)', textAlign: 'center', marginTop: '0.357rem' }}>
-              podrás revocarlo en cualquier momento
+              {t.compartir.nota}
             </span>
           </>
         )}

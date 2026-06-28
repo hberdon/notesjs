@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import type { UserIdentity } from '@supabase/supabase-js'
 import { useAuthStore } from '@/features/auth/authStore'
 import { useThemeStore } from '@/store/themeStore'
+import { useI18nStore } from '@/store/i18nStore'
 import { useAuth } from '@/features/auth/useAuth'
 import { N2G } from '@/shared/components/N2G'
 import { supabase } from '@/lib/supabase'
@@ -72,12 +73,13 @@ interface AvatarMenuDropdownProps {
 function AvatarMenuDropdown({ open, onClose, email, fullName }: AvatarMenuDropdownProps) {
   const theme    = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
+  const t        = useI18nStore((s) => s.t)
   const { signOut } = useAuth()
 
   const THEMES: Array<{ id: Theme; label: string }> = [
-    { id: 'dark',  label: 'Oscuro' },
-    { id: 'light', label: 'Claro'  },
-    { id: 'auto',  label: 'Auto'   },
+    { id: 'dark',  label: t.avatar.temaOscuro },
+    { id: 'light', label: t.avatar.temaClaro  },
+    { id: 'auto',  label: t.avatar.temaAuto   },
   ]
 
   async function handleSignOut() {
@@ -117,15 +119,15 @@ function AvatarMenuDropdown({ open, onClose, email, fullName }: AvatarMenuDropdo
 
       {/* Preferencias + Novedades */}
       <div style={{ padding: '0.286rem 0' }}>
-        <MenuRowItem icon="settings" label="Preferencias" disabled onClick={() => { /* already here */ }} />
-        <MenuRowItem icon="bell"     label="Novedades"    onClick={onClose} />
+        <MenuRowItem icon="settings" label={t.avatar.preferencias} disabled onClick={() => { /* already here */ }} />
+        <MenuRowItem icon="bell"     label={t.avatar.novedades}    onClick={onClose} />
       </div>
 
       <MenuDivider />
 
       {/* Tema */}
       <div style={{ padding: '0.286rem 0' }}>
-        <MenuSectionLabel>Tema</MenuSectionLabel>
+        <MenuSectionLabel>{t.avatar.secTema}</MenuSectionLabel>
         {THEMES.map(({ id, label }) => (
           <ThemeRowItem
             key={id}
@@ -140,7 +142,7 @@ function AvatarMenuDropdown({ open, onClose, email, fullName }: AvatarMenuDropdo
 
       {/* Cerrar sesión */}
       <div style={{ padding: '0.286rem 0' }}>
-        <MenuRowItem icon="log-out" label="Cerrar sesión" onClick={handleSignOut} />
+        <MenuRowItem icon="log-out" label={t.avatar.cerrarSesion} onClick={handleSignOut} />
       </div>
     </div>
   )
@@ -363,9 +365,10 @@ interface SidebarProps {
 }
 
 function Sidebar({ activeSection, onSectionChange, onBack }: SidebarProps) {
+  const t = useI18nStore((s) => s.t)
   const NAV: Array<{ id: Section; label: string; icon: string }> = [
-    { id: 'cuenta', label: 'Cuenta', icon: 'eye' },
-    { id: 'editor', label: 'Editor', icon: 'type' },
+    { id: 'cuenta', label: t.prefs.navCuenta, icon: 'eye'  },
+    { id: 'editor', label: t.prefs.navEditor, icon: 'type' },
   ]
 
   return (
@@ -404,7 +407,7 @@ function Sidebar({ activeSection, onSectionChange, onBack }: SidebarProps) {
         <span style={{ display: 'flex', transform: 'rotate(180deg)' }}>
           <N2G name="chev-right" size={13} stroke={2.5} color="currentColor" />
         </span>
-        Volver al editor
+        {t.prefs.volver}
       </button>
 
       {/* Section label */}
@@ -420,7 +423,7 @@ function Sidebar({ activeSection, onSectionChange, onBack }: SidebarProps) {
           lineHeight:    1,
         }}
       >
-        Ajustes
+        {t.prefs.ajustes}
       </span>
 
       {/* Nav items */}
@@ -538,6 +541,7 @@ function Input({
 // ── PageHeading ───────────────────────────────────────────────────────────────
 
 function PageHeading({ section }: { section: string }) {
+  const t = useI18nStore((s) => s.t)
   return (
     <h1
       style={{
@@ -552,7 +556,7 @@ function PageHeading({ section }: { section: string }) {
         fontFamily: 'var(--font-ui)',
       }}
     >
-      <span style={{ color: '#9ca3af', fontWeight: 600 }}>Preferencias</span>
+      <span style={{ color: '#9ca3af', fontWeight: 600 }}>{t.prefs.heading}</span>
       <span style={{ color: '#d1d5db', fontWeight: 400, fontSize: '1.25rem' }}>›</span>
       <span>{section}</span>
     </h1>
@@ -562,6 +566,7 @@ function PageHeading({ section }: { section: string }) {
 // ── Connected account row ─────────────────────────────────────────────────────
 
 function IdentityRow({ identity }: { identity: UserIdentity }) {
+  const t        = useI18nStore((s) => s.t)
   const isGoogle = identity.provider === 'google'
   const name     = (identity.identity_data?.full_name as string | undefined) ?? ''
   const email    = (identity.identity_data?.email    as string | undefined) ?? ''
@@ -574,7 +579,7 @@ function IdentityRow({ identity }: { identity: UserIdentity }) {
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: '0.893rem', fontWeight: 600, color: '#111827', lineHeight: 1.3 }}>
-          {isGoogle ? 'Google' : 'Email'}
+          {isGoogle ? t.prefs.identiGoogle : t.prefs.identiEmail}
         </div>
         {sub && (
           <div style={{ fontSize: '0.786rem', color: '#6b7280', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -620,18 +625,19 @@ function CuentaSection({
   firstName, setFirstName, lastName, setLastName,
   email, username, setUsername, saving, onSave, identities,
 }: CuentaProps) {
+  const t = useI18nStore((s) => s.t)
   return (
     <div style={{ maxWidth: '50rem' }}>
-      <PageHeading section="Cuenta" />
+      <PageHeading section={t.prefs.cuentaTitulo} />
       <p style={{ fontSize: '0.893rem', color: '#6b7280', margin: '0 0 1.714rem', lineHeight: 1.5 }}>
-        Gestiona tu perfil, los proveedores conectados y cómo se ve notes.js para ti.
+        {t.prefs.cuentaDesc}
       </p>
 
       <h2 style={{ fontSize: '1.071rem', fontWeight: 700, color: '#111827', margin: '0 0 0.357rem', lineHeight: 1.3 }}>
-        Información del perfil
+        {t.prefs.perfilTitulo}
       </h2>
       <p style={{ fontSize: '0.821rem', color: '#6b7280', margin: '0 0 0.857rem', lineHeight: 1.5 }}>
-        Esto es lo que verán otros usuarios cuando compartas notas con ellos.
+        {t.prefs.perfilDesc}
       </p>
 
       <div
@@ -643,15 +649,15 @@ function CuentaSection({
           marginBottom: '2rem',
         }}
       >
-        <FormRow label="Nombre">
+        <FormRow label={t.prefs.nombre}>
           <Input value={firstName} onChange={setFirstName} />
         </FormRow>
         <RowDivider />
-        <FormRow label="Apellidos">
+        <FormRow label={t.prefs.apellidos}>
           <Input value={lastName} onChange={setLastName} />
         </FormRow>
         <RowDivider />
-        <FormRow label="Email principal" sub="Lo usamos para notificaciones y recuperación de cuenta.">
+        <FormRow label={t.prefs.emailLabel} sub={t.prefs.emailSub}>
           <Input
             value={email}
             readOnly
@@ -670,15 +676,15 @@ function CuentaSection({
                   whiteSpace:    'nowrap',
                 }}
               >
-                Verificado
+                {t.prefs.emailVerificado}
               </span>
             }
           />
         </FormRow>
         <RowDivider />
         <FormRow
-          label="Nombre de usuario"
-          sub={`Aparece en URLs de notas públicas: notes.js/u/${username || '…'}`}
+          label={t.prefs.usernameLabel}
+          sub={t.prefs.usernameSub.replace('{username}', username || '…')}
         >
           <Input value={username} onChange={setUsername} />
         </FormRow>
@@ -710,16 +716,16 @@ function CuentaSection({
             onMouseEnter={(e) => { if (!saving) (e.currentTarget as HTMLButtonElement).style.background = '#059669' }}
             onMouseLeave={(e) => { if (!saving) (e.currentTarget as HTMLButtonElement).style.background = '#10b981' }}
           >
-            {saving ? 'Guardando…' : 'Guardar'}
+            {saving ? t.prefs.guardando : t.prefs.guardar}
           </button>
         </div>
       </div>
 
       <h2 style={{ fontSize: '1.071rem', fontWeight: 700, color: '#111827', margin: '0 0 0.357rem', lineHeight: 1.3 }}>
-        Cuentas conectadas
+        {t.prefs.cuentasTitulo}
       </h2>
       <p style={{ fontSize: '0.821rem', color: '#6b7280', margin: '0 0 0.857rem', lineHeight: 1.5 }}>
-        Proveedores con los que puedes iniciar sesión. Puedes vincular más en cualquier momento.
+        {t.prefs.cuentasDesc}
       </p>
 
       <div
@@ -732,7 +738,7 @@ function CuentaSection({
       >
         {identities.length === 0 ? (
           <div style={{ padding: '1.143rem', fontSize: '0.893rem', color: '#9ca3af' }}>
-            No hay cuentas conectadas.
+            {t.prefs.noConectadas}
           </div>
         ) : (
           identities.map((identity, i) => (
@@ -750,11 +756,12 @@ function CuentaSection({
 // ── Editor section ────────────────────────────────────────────────────────────
 
 function EditorSection() {
+  const t = useI18nStore((s) => s.t)
   return (
     <div style={{ maxWidth: '50rem' }}>
-      <PageHeading section="Editor" />
+      <PageHeading section={t.prefs.navEditor} />
       <p style={{ fontSize: '0.893rem', color: '#6b7280', margin: '0 0 1.714rem', lineHeight: 1.5 }}>
-        Configuración del editor de código.
+        {t.prefs.editorDesc}
       </p>
       <div
         style={{
@@ -767,7 +774,7 @@ function EditorSection() {
           fontSize:     '0.893rem',
         }}
       >
-        Próximamente
+        {t.prefs.editorProx}
       </div>
     </div>
   )

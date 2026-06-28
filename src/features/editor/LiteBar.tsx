@@ -4,6 +4,7 @@ import { formatBytes } from '@/shared/utils'
 import { GUEST_MAX_BYTES } from '@/lib/guestDb'
 import { getActiveEditorView } from './useEditorView'
 import { useUIStore } from '@/store/uiStore'
+import { useI18nStore } from '@/store/i18nStore'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -111,8 +112,9 @@ export default function LiteBar({
   panelType,
   onTogglePanel,
 }: LiteBarProps) {
-  const [copied, setCopied] = useState(false)
-  const showLineNumbers     = useUIStore((s) => s.editorSettings.showLineNumbers)
+  const t                    = useI18nStore((s) => s.t)
+  const [copied, setCopied]  = useState(false)
+  const showLineNumbers      = useUIStore((s) => s.editorSettings.showLineNumbers)
   const updateEditorSettings = useUIStore((s) => s.updateEditorSettings)
 
   function handleDownload() {
@@ -139,9 +141,8 @@ export default function LiteBar({
   const storageWarn = usageRatio > 0.8
   const storageText = `${formatBytes(usedBytes)} de ${formatBytes(GUEST_MAX_BYTES)}`
 
-  // Panel toggle (json → árbol, markdown → vista previa)
   const panelActive = rightPanel !== null
-  const panelLabel  = panelType === 'tree' ? 'Vista árbol' : 'Vista previa'
+  const panelLabel  = panelType === 'tree' ? t.litebar.vistaArbol : t.litebar.vistaPrevia
   const panelIcon   = panelType === 'tree' ? 'list-ol' : 'eye'
 
   return (
@@ -161,12 +162,12 @@ export default function LiteBar({
     >
       {/* ── Left: action buttons ── */}
       <div style={{ display: 'flex', alignItems: 'stretch', height: '100%', flex: 1 }}>
-        <IconToggleBtn icon="list-ol" active={showLineNumbers} onClick={() => updateEditorSettings({ showLineNumbers: !showLineNumbers })} title="Números de línea" />
-        <ActionBtn icon="file-new"    label="Nuevo"      onClick={onNewTab}      />
-        <ActionBtn icon="folder-open" label="Abrir"      onClick={onOpenFile}    />
-        <ActionBtn icon="download"    label="Descargar"  onClick={handleDownload} />
-        <ActionBtn icon="format"      label="Formatear"  onClick={onFormat}      />
-        <ActionBtn icon="share"       label={copied ? 'Copiado' : 'Compartir'} onClick={handleShare} />
+        <IconToggleBtn icon="list-ol" active={showLineNumbers} onClick={() => updateEditorSettings({ showLineNumbers: !showLineNumbers })} title={t.litebar.lineas} />
+        <ActionBtn icon="file-new"    label={t.litebar.nuevo}      onClick={onNewTab}       />
+        <ActionBtn icon="folder-open" label={t.litebar.abrir}      onClick={onOpenFile}     />
+        <ActionBtn icon="download"    label={t.litebar.descargar}  onClick={handleDownload} />
+        <ActionBtn icon="format"      label={t.litebar.formatear}  onClick={onFormat}       />
+        <ActionBtn icon="share"       label={copied ? t.litebar.copiado : t.litebar.compartir} onClick={handleShare} />
       </div>
 
       {/* ── Right: storage indicator + cloud CTA ── */}

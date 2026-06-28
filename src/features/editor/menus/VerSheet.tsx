@@ -1,6 +1,7 @@
 // VerSheet — 250px @ left 298px
 // Design reference: design/design_handoff_notesjs_v3/README.md § J — Ver
 
+import { useI18nStore } from '@/store/i18nStore'
 import { useUIStore } from '@/store/uiStore'
 import { MenuSheet, MSection, MDivider } from './MenuPrimitives'
 import { N2G } from '@/shared/components/N2G'
@@ -9,6 +10,7 @@ import { N2G } from '@/shared/components/N2G'
 // ── VerSheet ──────────────────────────────────────────────────────────────────
 
 export function VerSheet({ left }: { left: number }) {
+  const t                    = useI18nStore((s) => s.t)
   const editorSettings       = useUIStore((s) => s.editorSettings)
   const updateEditorSettings = useUIStore((s) => s.updateEditorSettings)
 
@@ -16,22 +18,21 @@ export function VerSheet({ left }: { left: number }) {
 
   return (
     <MenuSheet width="17.857rem" left={left}>
-      {/* Editor toggles */}
-      <MSection label="Editor">
+      <MSection label={t.ver.secEditor}>
         <ToggleRow
-          label="Números de línea"
+          label={t.ver.lineas}
           icon="hash"
           value={showLineNumbers}
           onChange={(v) => updateEditorSettings({ showLineNumbers: v })}
         />
         <ToggleRow
-          label="Ajustar línea"
+          label={t.ver.ajustar}
           icon="wrap"
           value={wrap}
           onChange={(v) => updateEditorSettings({ wrap: v })}
         />
         <ToggleRow
-          label="Minimapa"
+          label={t.ver.minimapa}
           icon="map"
           wip
         />
@@ -39,8 +40,7 @@ export function VerSheet({ left }: { left: number }) {
 
       <MDivider />
 
-      {/* Font size */}
-      <MSection label="Tamaño de fuente">
+      <MSection label={t.ver.secFuente}>
         <div style={{ padding: '0.143rem 0.714rem 0.286rem', display: 'flex', flexDirection: 'column', gap: '0.357rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '0.857rem', fontWeight: 600, color: 'var(--ink)' }}>

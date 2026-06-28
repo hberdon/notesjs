@@ -6,11 +6,13 @@ import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/features/auth/authStore'
 import { useThemeStore, getEffectiveTheme } from '@/store/themeStore'
+import { useI18nStore } from '@/store/i18nStore'
 import { useAuth } from '@/features/auth/useAuth'
 import { FormatPill } from '@/shared/components/FormatPill'
 import { N2G } from '@/shared/components/N2G'
 import type { Tab } from '@/shared/types'
 import type { Theme } from '@/shared/types'
+import type { Lang } from '@/i18n'
 
 // ── AvatarMenu ────────────────────────────────────────────────────────────────
 
@@ -20,19 +22,27 @@ interface AvatarMenuProps {
 }
 
 function AvatarMenu({ open, onClose }: AvatarMenuProps) {
-  const user = useAuthStore((s) => s.user)
-  const theme = useThemeStore((s) => s.theme)
+  const user     = useAuthStore((s) => s.user)
+  const theme    = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
+  const t        = useI18nStore((s) => s.t)
+  const lang     = useI18nStore((s) => s.lang)
+  const setLang  = useI18nStore((s) => s.setLang)
   const { signOut } = useAuth()
   const navigate = useNavigate()
 
-  const email = user?.email ?? null
+  const email    = user?.email ?? null
   const fullName = (user?.user_metadata?.full_name as string | undefined) ?? email ?? 'Usuario'
 
   const THEMES: Array<{ id: Theme; label: string }> = [
-    { id: 'dark', label: 'Oscuro' },
-    { id: 'light', label: 'Claro' },
-    { id: 'auto', label: 'Auto' },
+    { id: 'dark',  label: t.avatar.temaOscuro },
+    { id: 'light', label: t.avatar.temaClaro  },
+    { id: 'auto',  label: t.avatar.temaAuto   },
+  ]
+
+  const LANGS: Array<{ id: Lang; label: string }> = [
+    { id: 'es', label: t.lang.es },
+    { id: 'en', label: t.lang.en },
   ]
 
   async function handleSignOut() {
@@ -75,8 +85,8 @@ function AvatarMenu({ open, onClose }: AvatarMenuProps) {
 
       {/* ── Account section ── */}
       <div style={{ padding: '0.286rem 0' }}>
-        <MenuRow icon="settings" label="Preferencias" onClick={() => { onClose(); navigate('/preferences') }} />
-        <MenuRow icon="bell" label="Novedades" onClick={onClose} />
+        <MenuRow icon="settings" label={t.avatar.preferencias} onClick={() => { onClose(); navigate('/preferences') }} />
+        <MenuRow icon="bell"     label={t.avatar.novedades}    onClick={onClose} />
       </div>
 
       {/* ── Divider ── */}
@@ -84,7 +94,7 @@ function AvatarMenu({ open, onClose }: AvatarMenuProps) {
 
       {/* ── Theme section ── */}
       <div style={{ padding: '0.286rem 0' }}>
-        <SectionLabel>Tema</SectionLabel>
+        <SectionLabel>{t.avatar.secTema}</SectionLabel>
         {THEMES.map(({ id, label }) => (
           <ThemeRow
             key={id}
@@ -98,9 +108,25 @@ function AvatarMenu({ open, onClose }: AvatarMenuProps) {
       {/* ── Divider ── */}
       <Divider />
 
+      {/* ── Language section ── */}
+      <div style={{ padding: '0.286rem 0' }}>
+        <SectionLabel>{t.avatar.secIdioma}</SectionLabel>
+        {LANGS.map(({ id, label }) => (
+          <ThemeRow
+            key={id}
+            label={label}
+            active={lang === id}
+            onClick={() => setLang(id)}
+          />
+        ))}
+      </div>
+
+      {/* ── Divider ── */}
+      <Divider />
+
       {/* ── Sign out ── */}
       <div style={{ padding: '0.286rem 0' }}>
-        <MenuRow icon="log-out" label="Cerrar sesión" onClick={handleSignOut} />
+        <MenuRow icon="log-out" label={t.avatar.cerrarSesion} onClick={handleSignOut} />
       </div>
     </div>
   )
@@ -241,12 +267,13 @@ function MoonIcon({ color }: { color: string }) {
 // ── ThemeToggleButton ─────────────────────────────────────────────────────────
 
 function ThemeToggleButton() {
-  const theme = useThemeStore((s) => s.theme)
+  const theme    = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
+  const t        = useI18nStore((s) => s.t)
   const [hovered, setHovered] = useState(false)
 
-  const isDark = getEffectiveTheme(theme) === 'dark'
-  const title = isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'
+  const isDark    = getEffectiveTheme(theme) === 'dark'
+  const title     = isDark ? t.tabbar.temaClaro : t.tabbar.temaOscuro
   const iconColor = hovered ? 'var(--accent)' : 'var(--ink3)'
 
   function toggle() {
@@ -286,6 +313,7 @@ function ThemeToggleButton() {
 
 function GuestLoginButton() {
   const navigate = useNavigate()
+  const t        = useI18nStore((s) => s.t)
   const [hovered, setHovered] = useState(false)
 
   return (
@@ -312,7 +340,7 @@ function GuestLoginButton() {
         lineHeight: 1,
       }}
     >
-      Iniciar sesión →
+      {t.tabbar.login}
     </button>
   )
 }
@@ -351,6 +379,7 @@ export default function TabBar({
   onCancelRename,
 }: TabBarProps) {
   const user = useAuthStore((s) => s.user)
+  const t    = useI18nStore((s) => s.t)
   const [hoveredTabId, setHoveredTabId] = useState<string | null>(null)
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false)
   const [avatarImgError, setAvatarImgError] = useState(false)
@@ -523,7 +552,7 @@ export default function TabBar({
                 ) : (
                   <span
                     onDoubleClick={(e) => { e.stopPropagation(); onRequestRename?.(tab.id) }}
-                    title="Doble-click para renombrar"
+                    title={t.tabbar.renombrar}
                     style={{
                       fontSize: '0.821rem',
                       fontWeight: isActive ? 600 : 400,
@@ -542,7 +571,7 @@ export default function TabBar({
 
                 {tab.isDirty && !(isHovered || isActive) && (
                   <span
-                    title="Cambios sin guardar"
+                    title={t.tabbar.sinGuardar}
                     style={{
                       width: '0.429rem',
                       height: '0.429rem',
@@ -556,8 +585,8 @@ export default function TabBar({
 
                 {(isHovered || isActive) && (
                   <button
-                    aria-label={`Cerrar ${tab.filename}`}
-                    title={`Cerrar ${tab.filename}`}
+                    aria-label={t.tabbar.cerrar.replace('{filename}', tab.filename)}
+                    title={t.tabbar.cerrar.replace('{filename}', tab.filename)}
                     onClick={(e) => { e.stopPropagation(); onCloseTab(tab.id) }}
                     onMouseEnter={(e) => {
                       const btn = e.currentTarget as HTMLButtonElement
@@ -608,8 +637,8 @@ export default function TabBar({
 
           {/* New-tab button */}
           <button
-            aria-label="Nuevo documento"
-            title="Nuevo documento (⌘T)"
+            aria-label={t.tabbar.nuevo}
+            title={`${t.tabbar.nuevo} (⌘T)`}
             onClick={onNewTab}
             style={{
               width: '2.143rem',
@@ -661,13 +690,13 @@ export default function TabBar({
                 userSelect: 'none',
               }}
             >
-              Hola, <strong style={{ color: 'var(--ink)', fontWeight: 700 }}>{firstName}</strong>
+              {t.tabbar.hola} <strong style={{ color: 'var(--ink)', fontWeight: 700 }}>{firstName}</strong>
             </span>
 
             {/* Avatar — clickable */}
             <button
               type="button"
-              aria-label="Menú de cuenta"
+              aria-label={t.tabbar.menuCuenta}
               onClick={() => setAvatarMenuOpen((v) => !v)}
               style={{
                 width: '1.714rem',

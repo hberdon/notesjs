@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useFileStore } from '@/store/fileStore'
+import { useI18nStore } from '@/store/i18nStore'
 import type { FileMeta } from '@/shared/types'
 import { FormatPill } from '@/shared/components/FormatPill'
 import { N2G } from '@/shared/components/N2G'
@@ -10,11 +11,10 @@ interface DeletedFilesModalProps {
   onRestore: (file: FileMeta) => void | Promise<void>
 }
 
-// Logs-style timestamp: "24 jun, 14:10:26" (mirrors the privedge-platform Logs table).
-function formatTimestamp(iso: string): string {
+function formatTimestamp(iso: string, locale: string): string {
   const d = new Date(iso)
   const day   = String(d.getDate()).padStart(2, '0')
-  const month = d.toLocaleString('es-ES', { month: 'short' }).replace('.', '')
+  const month = d.toLocaleString(locale, { month: 'short' }).replace('.', '')
   const h = String(d.getHours()).padStart(2, '0')
   const m = String(d.getMinutes()).padStart(2, '0')
   const s = String(d.getSeconds()).padStart(2, '0')
@@ -28,9 +28,12 @@ function formatTimestamp(iso: string): string {
  * Opened from Archivo → Papelera; overlays and closes on backdrop / Escape.
  */
 export function DeletedFilesModal({ onClose, onRestore }: DeletedFilesModalProps) {
+  const t                 = useI18nStore((s) => s.t)
+  const lang              = useI18nStore((s) => s.lang)
   const fetchDeletedFiles = useFileStore((s) => s.fetchDeletedFiles)
   const countTrash        = useFileStore((s) => s.countTrash)
   const emptyTrash        = useFileStore((s) => s.emptyTrash)
+  const tsLocale          = lang === 'es' ? 'es-ES' : 'en-US'
 
   const [loading, setLoading]         = useState(true)
   const [files, setFiles]             = useState<FileMeta[]>([])
@@ -130,12 +133,12 @@ export function DeletedFilesModal({ onClose, onRestore }: DeletedFilesModalProps
           borderBottom: '1px solid var(--border)',
         }}>
           <N2G name="trash" size={16} stroke={1.8} color="var(--ink)" />
-          <span style={{ fontWeight: 800, fontSize: '0.964rem' }}>Papelera</span>
+          <span style={{ fontWeight: 800, fontSize: '0.964rem' }}>{t.papelera.titulo}</span>
           <span style={{ flex: 1 }} />
 
           <button
             type="button"
-            aria-label="Cerrar"
+            aria-label={t.papelera.cerrar}
             onClick={onClose}
             style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -152,13 +155,13 @@ export function DeletedFilesModal({ onClose, onRestore }: DeletedFilesModalProps
         <div style={{ overflowY: 'auto' }}>
           {loading && (
             <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--ink3)', fontSize: '0.893rem' }}>
-              Cargando…
+              {t.papelera.cargando}
             </div>
           )}
 
           {!loading && files.length === 0 && (
             <div style={{ padding: '2rem 1.5rem', textAlign: 'center', color: 'var(--ink3)', fontSize: '0.893rem' }}>
-              No hay archivos eliminados.
+              {t.papelera.vacia}
             </div>
           )}
 
@@ -166,15 +169,14 @@ export function DeletedFilesModal({ onClose, onRestore }: DeletedFilesModalProps
             <table className="nj-trash-table">
               <thead>
                 <tr>
-                  <th>Archivo</th>
-                  <th>Eliminado</th>
+                  <th>{t.papelera.colArchivo}</th>
+                  <th>{t.papelera.colEliminado}</th>
                   <th style={{ textAlign: 'right' }}></th>
                 </tr>
               </thead>
               <tbody>
                 {files.map((file) => (
                   <tr key={file.id}>
-                    {/* Archivo — pill + name (ellipsis on overflow) */}
                     <td style={{ maxWidth: '18rem', overflow: 'hidden' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
                         <FormatPill ext={file.language} size="s" />
@@ -187,19 +189,17 @@ export function DeletedFilesModal({ onClose, onRestore }: DeletedFilesModalProps
                       </span>
                     </td>
 
-                    {/* Eliminado — logs-style timestamp */}
                     <td style={{ color: 'var(--ink3)' }}>
-                      {formatTimestamp(file.deleted_at ?? file.updated_at)}
+                      {formatTimestamp(file.deleted_at ?? file.updated_at, tsLocale)}
                     </td>
 
-                    {/* Acciones — restore (icon-only, discreet) */}
                     <td style={{ textAlign: 'right' }}>
                       <button
                         type="button"
                         onClick={() => handleRestore(file)}
                         disabled={restoringId === file.id}
-                        title="Restaurar"
-                        aria-label="Restaurar"
+                        title={t.papelera.restaurar}
+                        aria-label={t.papelera.restaurar}
                         style={{
                           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                           width: '1.714rem', height: '1.714rem',
@@ -247,12 +247,12 @@ export function DeletedFilesModal({ onClose, onRestore }: DeletedFilesModalProps
                 onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--ink3)' }}
               >
                 <N2G name="trash" size={13} stroke={1.8} color="currentColor" />
-                Vaciar papelera
+                {t.papelera.vaciar}
               </button>
             ) : (
               <>
                 <span style={{ fontSize: '0.786rem', fontWeight: 600, color: 'var(--ink2)', whiteSpace: 'nowrap' }}>
-                  ¿Borrar {totalCount} para siempre?
+                  {t.papelera.confirmar.replace('{n}', String(totalCount))}
                 </span>
                 <button
                   type="button"
@@ -266,7 +266,7 @@ export function DeletedFilesModal({ onClose, onRestore }: DeletedFilesModalProps
                     cursor: emptying ? 'default' : 'pointer',
                   }}
                 >
-                  Cancelar
+                  {t.papelera.cancelar}
                 </button>
                 <button
                   type="button"
@@ -281,7 +281,7 @@ export function DeletedFilesModal({ onClose, onRestore }: DeletedFilesModalProps
                     opacity: emptying ? 0.7 : 1,
                   }}
                 >
-                  {emptying ? 'Vaciando…' : 'Vaciar'}
+                  {emptying ? t.papelera.vaciando : t.papelera.vaciarBtn}
                 </button>
               </>
             )}
