@@ -190,7 +190,7 @@ export default function EditorPage() {
       const metas = await fetchFiles()
       if (cancelled) return
 
-      for (const meta of metas) addPersistedMeta(meta.id, meta.name)
+      for (const meta of metas) addPersistedMeta(meta.id, meta.name, meta.language)
 
       // Eagerly load + activate the most recent file (metas are newest-first) so
       // the editor mounts with real content instead of an empty doc.
@@ -198,7 +198,7 @@ export default function EditorPage() {
       if (active) {
         const content = await loadFileContent(active.id)
         if (cancelled) return
-        openPersistedFile(active.id, active.name, content ?? '')
+        openPersistedFile(active.id, active.name, content ?? '', active.language)
       }
 
       if (useTabStore.getState().tabs.length === 0) {
@@ -348,7 +348,7 @@ export default function EditorPage() {
   async function handleRestoreDeleted(file: FileMeta) {
     await restoreFile(file.id)
     const content = await loadFileContent(file.id)
-    openPersistedFile(file.id, file.name, content ?? '')
+    openPersistedFile(file.id, file.name, content ?? '', file.language)
   }
 
   const fileInputRef = useRef<HTMLInputElement>(null)

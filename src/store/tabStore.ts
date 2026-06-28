@@ -60,14 +60,14 @@ interface TabStore {
    * for the editor. Idempotent: re-activates an already-open tab instead of
    * duplicating. Used to restore the auth user's session on reload.
    */
-  openPersistedFile: (id: string, filename: string, content: string) => void
+  openPersistedFile: (id: string, filename: string, content: string, language?: Language) => void
 
   /**
    * Add a persisted DB file as a tab WITHOUT loading its content (lazy).
    * Used to list all of the user's Supabase files as tabs on login — content
    * is fetched on first activation. Does not change the active tab. Idempotent.
    */
-  addPersistedMeta: (id: string, filename: string) => void
+  addPersistedMeta: (id: string, filename: string, language?: Language) => void
 }
 
 export const useTabStore = create<TabStore>((set, get) => ({
@@ -184,9 +184,7 @@ export const useTabStore = create<TabStore>((set, get) => ({
     set((state) => ({ tabs: [...state.tabs, newTab], activeTabId: id }))
   },
 
-  openPersistedFile(id, filename, content) {
-    // Seed content and clear any stale CM6 snapshot so the editor rebuilds from
-    // the freshly fetched DB content.
+  openPersistedFile(id, filename, content, language) {
     localContentMap.set(id, content)
     editorStateMap.delete(id)
 
@@ -197,22 +195,22 @@ export const useTabStore = create<TabStore>((set, get) => ({
 
     const newTab: Tab = {
       id,
-      fileId: id, // tab.id === fileId for persisted files
+      fileId: id,
       filename,
-      language: detectLanguage(filename),
+      language: language ?? detectLanguage(filename),
       isDirty: false,
     }
     set((state) => ({ tabs: [...state.tabs, newTab], activeTabId: id }))
   },
 
-  addPersistedMeta(id, filename) {
+  addPersistedMeta(id, filename, language) {
     if (get().tabs.some((t) => t.id === id)) return
 
     const newTab: Tab = {
       id,
-      fileId: id, // tab.id === fileId for persisted files
+      fileId: id,
       filename,
-      language: detectLanguage(filename),
+      language: language ?? detectLanguage(filename),
       isDirty: false,
     }
     // No activeTabId change and no localContentMap seed — getLocalContent stays
