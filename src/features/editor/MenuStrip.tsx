@@ -19,6 +19,7 @@ export interface MenuStripProps {
   onNewTab: () => void
   onOpenFile: () => void
   onDownload: () => void
+  onPrint: () => void
   onRenameTab: () => void
   onDeleteTab: () => void
   onOpenTrash: () => void
@@ -46,6 +47,7 @@ export function MenuStrip({
   onNewTab,
   onOpenFile,
   onDownload,
+  onPrint,
   onRenameTab,
   onDeleteTab,
   onOpenTrash,
@@ -227,6 +229,7 @@ export function MenuStrip({
           onNewTab={onNewTab}
           onOpenFile={onOpenFile}
           onDownload={onDownload}
+          onPrint={onPrint}
           onRenameTab={onRenameTab}
           onDeleteTab={onDeleteTab}
           onOpenTrash={onOpenTrash}

@@ -494,6 +494,7 @@ export default function EditorPage() {
             a.click()
             URL.revokeObjectURL(url)
           }}
+          onPrint={() => window.print()}
           onRenameTab={() => { closeMenu(); if (activeTabId) setRenamingTabId(activeTabId) }}
           onOpenTrash={() => { closeMenu(); setTrashOpen(true) }}
           onDeleteTab={() => { if (activeTabId) handleMoveToTrash(activeTabId) }}
