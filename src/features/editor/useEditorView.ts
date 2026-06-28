@@ -15,8 +15,13 @@ import { formatCode } from '@/lib/formatter'
 /** Debounce delay (ms) before an auto-save fires after the last keystroke. */
 const DEBOUNCE_MS = 2000
 
-// Module-level singleton — always points to the currently mounted EditorView.
+// Module-level singletons — there is exactly one active editor at any given time.
+// The Compartment must survive component remounts (e.g. navigating to Preferences
+// and back) so that saved EditorState snapshots can still be reconfigured — a new
+// Compartment instance is not present in an old snapshot, making reconfigure() a
+// no-op and leaving the editor stuck on the theme that was active when it last unmounted.
 let _activeView: EditorView | null = null
+let _activeCompartment: Compartment | null = null
 
 /** Returns the live EditorView instance, or null if no editor is mounted. */
 export function getActiveEditorView(): EditorView | null {
@@ -85,9 +90,10 @@ export function useEditorView(
   const liveContentRef        = useRef<Extension | null>(null)
   const detectTimerRef        = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Compartment for theme/language — targeted reconfiguration that leaves
-  // autoSaveListener untouched.
-  const compartmentRef = useRef(new Compartment())
+  // Reuse the module-level compartment so saved EditorState snapshots remain
+  // reconfigurable after the component remounts (navigation away and back).
+  if (!_activeCompartment) _activeCompartment = new Compartment()
+  const compartmentRef = useRef(_activeCompartment)
 
   // ── Store accessors ───────────────────────────────────────────────────────
 
