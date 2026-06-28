@@ -71,11 +71,11 @@ export function StatusBar({
         gap:            '0.857rem',
         height:         '1.571rem',
         minHeight:      '1.571rem',
-        background:     '#eef0f3',
-        borderTop:      '1px solid #e5e7eb',
+        background:     'var(--chromeD)',
+        borderTop:      '1px solid var(--border)',
         padding:        '0 0.857rem',
         fontSize:       '0.821rem',
-        color:          '#374151',
+        color:          'var(--ink2)',
         fontFamily:     'var(--font-ui)',
         flexShrink:     0,
         userSelect:     'none',
@@ -105,7 +105,7 @@ export function StatusBar({
       <span
         style={{
           fontSize:   '0.821rem',
-          color:      '#374151',
+          color:      'var(--ink2)',
           whiteSpace: 'nowrap',
         }}
       >
@@ -119,12 +119,12 @@ export function StatusBar({
       <FormatPill ext={language} size="s" />
 
       {/* Word + char counts */}
-      <span style={{ fontSize: '0.821rem', color: '#6b7280', whiteSpace: 'nowrap' }}>
+      <span style={{ fontSize: '0.821rem', color: 'var(--ink3)', whiteSpace: 'nowrap' }}>
         · {t.status.palabras.replace('{n}', String(wordCount))} · {t.status.car.replace('{n}', String(charCount))}
       </span>
 
       {/* Encoding */}
-      <span style={{ fontSize: '0.821rem', color: '#9ca3af', whiteSpace: 'nowrap' }}>· UTF-8</span>
+      <span style={{ fontSize: '0.821rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>· UTF-8</span>
     </div>
   )
 }

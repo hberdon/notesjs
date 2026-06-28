@@ -378,8 +378,10 @@ export default function TabBar({
   onCommitRename,
   onCancelRename,
 }: TabBarProps) {
-  const user = useAuthStore((s) => s.user)
-  const t    = useI18nStore((s) => s.t)
+  const user   = useAuthStore((s) => s.user)
+  const t      = useI18nStore((s) => s.t)
+  const theme  = useThemeStore((s) => s.theme)
+  const isDark = getEffectiveTheme(theme) === 'dark'
   const [hoveredTabId, setHoveredTabId] = useState<string | null>(null)
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false)
   const [avatarImgError, setAvatarImgError] = useState(false)
@@ -457,7 +459,7 @@ export default function TabBar({
           padding: '0 1rem 0 1rem',
         }}
       >
-        <img src="/images/logo-drop-t.png" alt="notes.js" style={{ width: '1.857rem', height: 'auto', display: 'block', flexShrink: 0 }} />
+        <img src="/images/logo-drop-t.png" alt="notes.js" style={{ width: '1.857rem', height: 'auto', display: 'block', flexShrink: 0, filter: isDark ? 'invert(1)' : 'none' }} />
         <span style={{ fontSize: '1.357rem', fontWeight: 800, letterSpacing: -0.5, color: 'var(--ink)', lineHeight: 1, whiteSpace: 'nowrap', userSelect: 'none' }}>
           notes<span style={{ color: '#10b981' }}>.js</span>
         </span>
